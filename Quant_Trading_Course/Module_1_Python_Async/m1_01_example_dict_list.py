@@ -18,3 +18,4 @@ bitcoin_data = {
 # Accessing data:
 print(f"Trading Pair: {bitcoin_data['symbol']}")
 print(f"Price: {bitcoin_data['current_price']}")
+
