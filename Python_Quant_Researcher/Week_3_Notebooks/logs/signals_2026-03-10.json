@@ -1,0 +1,533 @@
+[
+  {
+    "time": "11:39",
+    "close": 2064.85,
+    "adx": 18.21,
+    "plus_di": 24.43,
+    "minus_di": 35.19,
+    "signal": "CHOPPY",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:40",
+    "close": 2063.67,
+    "adx": 19.11,
+    "plus_di": 21.95,
+    "minus_di": 38.33,
+    "signal": "CHOPPY",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:41",
+    "close": 2064.14,
+    "adx": 20.59,
+    "plus_di": 19.09,
+    "minus_di": 38.73,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:42",
+    "close": 2062.92,
+    "adx": 22.07,
+    "plus_di": 17.1,
+    "minus_di": 35.77,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:43",
+    "close": 2060.87,
+    "adx": 25.4,
+    "plus_di": 13.78,
+    "minus_di": 48.01,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:44",
+    "close": 2061.53,
+    "adx": 28.4,
+    "plus_di": 12.98,
+    "minus_di": 45.22,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:45",
+    "close": 2061.2,
+    "adx": 30.69,
+    "plus_di": 13.7,
+    "minus_di": 42.61,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:46",
+    "close": 2061.75,
+    "adx": 32.38,
+    "plus_di": 14.17,
+    "minus_di": 39.88,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:47",
+    "close": 2062.62,
+    "adx": 32.38,
+    "plus_di": 18.56,
+    "minus_di": 36.37,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:48",
+    "close": 2064.17,
+    "adx": 29.51,
+    "plus_di": 32.4,
+    "minus_di": 30.15,
+    "signal": "LONG",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:49",
+    "close": 2063.74,
+    "adx": 29.58,
+    "plus_di": 22.51,
+    "minus_di": 41.99,
+    "signal": "BEARISH",
+    "position_state": "LONG"
+  },
+  {
+    "time": "11:50",
+    "close": 2063.87,
+    "adx": 29.64,
+    "plus_di": 21.88,
+    "minus_di": 40.8,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:51",
+    "close": 2064.89,
+    "adx": 28.54,
+    "plus_di": 26.0,
+    "minus_di": 37.98,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:52",
+    "close": 2065.44,
+    "adx": 26.82,
+    "plus_di": 28.95,
+    "minus_di": 36.38,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:53",
+    "close": 2064.34,
+    "adx": 26.09,
+    "plus_di": 26.03,
+    "minus_di": 38.63,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:54",
+    "close": 2063.62,
+    "adx": 25.84,
+    "plus_di": 23.92,
+    "minus_di": 38.66,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:55",
+    "close": 2061.6,
+    "adx": 27.22,
+    "plus_di": 19.81,
+    "minus_di": 45.8,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:56",
+    "close": 2060.96,
+    "adx": 28.96,
+    "plus_di": 18.17,
+    "minus_di": 47.53,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:57",
+    "close": 2061.32,
+    "adx": 30.53,
+    "plus_di": 17.27,
+    "minus_di": 45.17,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:58",
+    "close": 2061.6,
+    "adx": 31.13,
+    "plus_di": 19.99,
+    "minus_di": 43.01,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "11:59",
+    "close": 2061.69,
+    "adx": 31.17,
+    "plus_di": 20.61,
+    "minus_di": 39.58,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:00",
+    "close": 2061.47,
+    "adx": 31.3,
+    "plus_di": 18.98,
+    "minus_di": 37.25,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:01",
+    "close": 2059.87,
+    "adx": 33.04,
+    "plus_di": 15.67,
+    "minus_di": 45.51,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:02",
+    "close": 2060.12,
+    "adx": 34.41,
+    "plus_di": 14.46,
+    "minus_di": 39.89,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:03",
+    "close": 2058.77,
+    "adx": 36.89,
+    "plus_di": 12.02,
+    "minus_di": 46.97,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:04",
+    "close": 2057.38,
+    "adx": 39.33,
+    "plus_di": 10.59,
+    "minus_di": 44.13,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:05",
+    "close": 2057.38,
+    "adx": 41.71,
+    "plus_di": 9.9,
+    "minus_di": 43.8,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:06",
+    "close": 2058.06,
+    "adx": 41.65,
+    "plus_di": 16.25,
+    "minus_di": 38.83,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:07",
+    "close": 2055.53,
+    "adx": 43.11,
+    "plus_di": 13.09,
+    "minus_di": 46.74,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:08",
+    "close": 2055.19,
+    "adx": 44.45,
+    "plus_di": 11.7,
+    "minus_di": 41.8,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:09",
+    "close": 2054.71,
+    "adx": 45.97,
+    "plus_di": 10.84,
+    "minus_di": 42.81,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:10",
+    "close": 2056.04,
+    "adx": 45.21,
+    "plus_di": 16.57,
+    "minus_di": 37.25,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:11",
+    "close": 2056.18,
+    "adx": 44.38,
+    "plus_di": 15.44,
+    "minus_di": 33.51,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:12",
+    "close": 2057.4,
+    "adx": 42.47,
+    "plus_di": 18.49,
+    "minus_di": 31.03,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:13",
+    "close": 2058.7,
+    "adx": 38.46,
+    "plus_di": 26.01,
+    "minus_di": 27.24,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:14",
+    "close": 2057.79,
+    "adx": 34.83,
+    "plus_di": 24.0,
+    "minus_di": 25.14,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:15",
+    "close": 2057.63,
+    "adx": 31.58,
+    "plus_di": 22.53,
+    "minus_di": 23.59,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:16",
+    "close": 2056.99,
+    "adx": 29.35,
+    "plus_di": 21.03,
+    "minus_di": 25.31,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:17",
+    "close": 2056.85,
+    "adx": 28.52,
+    "plus_di": 18.67,
+    "minus_di": 28.63,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:18",
+    "close": 2057.25,
+    "adx": 27.77,
+    "plus_di": 17.21,
+    "minus_di": 26.39,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:19",
+    "close": 2056.92,
+    "adx": 26.08,
+    "plus_di": 19.92,
+    "minus_di": 24.8,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:20",
+    "close": 2058.19,
+    "adx": 23.8,
+    "plus_di": 22.96,
+    "minus_di": 21.52,
+    "signal": "LONG",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:21",
+    "close": 2058.26,
+    "adx": 21.74,
+    "plus_di": 20.51,
+    "minus_di": 19.22,
+    "signal": "LONG",
+    "position_state": "LONG"
+  },
+  {
+    "time": "12:22",
+    "close": 2059.16,
+    "adx": 21.3,
+    "plus_di": 24.72,
+    "minus_di": 17.41,
+    "signal": "LONG",
+    "position_state": "LONG"
+  },
+  {
+    "time": "12:23",
+    "close": 2058.24,
+    "adx": 21.4,
+    "plus_di": 25.0,
+    "minus_di": 15.85,
+    "signal": "LONG",
+    "position_state": "LONG"
+  },
+  {
+    "time": "12:24",
+    "close": 2057.2,
+    "adx": 19.36,
+    "plus_di": 23.0,
+    "minus_di": 22.51,
+    "signal": "CHOPPY",
+    "position_state": "LONG"
+  },
+  {
+    "time": "12:25",
+    "close": 2057.23,
+    "adx": 18.07,
+    "plus_di": 21.47,
+    "minus_di": 24.45,
+    "signal": "CHOPPY",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:26",
+    "close": 2056.75,
+    "adx": 17.04,
+    "plus_di": 20.21,
+    "minus_di": 23.62,
+    "signal": "CHOPPY",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:27",
+    "close": 2056.1,
+    "adx": 16.79,
+    "plus_di": 18.68,
+    "minus_di": 25.05,
+    "signal": "CHOPPY",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:28",
+    "close": 2053.73,
+    "adx": 19.99,
+    "plus_di": 14.18,
+    "minus_di": 41.21,
+    "signal": "CHOPPY",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:29",
+    "close": 2052.61,
+    "adx": 23.34,
+    "plus_di": 12.58,
+    "minus_di": 41.11,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:30",
+    "close": 2049.33,
+    "adx": 27.75,
+    "plus_di": 9.72,
+    "minus_di": 49.88,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:31",
+    "close": 2050.45,
+    "adx": 31.71,
+    "plus_di": 8.53,
+    "minus_di": 43.77,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:32",
+    "close": 2050.73,
+    "adx": 35.27,
+    "plus_di": 8.12,
+    "minus_di": 41.64,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:33",
+    "close": 2051.76,
+    "adx": 36.08,
+    "plus_di": 14.89,
+    "minus_di": 37.62,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:34",
+    "close": 2052.01,
+    "adx": 36.07,
+    "plus_di": 16.59,
+    "minus_di": 35.32,
+    "signal": "BEARISH",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:35",
+    "close": 2055.28,
+    "adx": 33.15,
+    "plus_di": 31.88,
+    "minus_di": 27.77,
+    "signal": "LONG",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:48",
+    "close": 2051.12,
+    "adx": 18.69,
+    "plus_di": 20.61,
+    "minus_di": 27.5,
+    "signal": "CHOPPY",
+    "position_state": "FLAT"
+  },
+  {
+    "time": "12:49",
+    "close": 2051.59,
+    "adx": 17.55,
+    "plus_di": 22.29,
+    "minus_di": 25.8,
+    "signal": "CHOPPY",
+    "position_state": "FLAT"
+  }
+]
