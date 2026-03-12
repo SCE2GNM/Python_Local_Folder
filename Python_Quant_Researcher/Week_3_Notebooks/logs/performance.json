@@ -1,10 +1,10 @@
 {
-  "total_trades": 3,
-  "winning_trades": 0,
+  "total_trades": 4,
+  "winning_trades": 1,
   "losing_trades": 3,
-  "total_pnl_usd": -9.36,
-  "best_trade_usd": 0.0,
+  "total_pnl_usd": -8.53,
+  "best_trade_usd": 0.83,
   "worst_trade_usd": -7.94,
-  "win_rate_pct": 0.0,
-  "last_updated": "2026-03-11 14:49:00"
+  "win_rate_pct": 25.0,
+  "last_updated": "2026-03-12 19:09:00"
 }
