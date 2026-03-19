@@ -1,0 +1,14 @@
+{
+  "symbol": "ETH-USD",
+  "start_date": "2018-01-01",
+  "end_date": "2026-03-18",
+  "threshold": 20,
+  "period": 10,
+  "total_return": 41.5433,
+  "annual_return": 0.5787,
+  "sharpe": 1.111,
+  "max_drawdown": -0.4812,
+  "total_trades": 193,
+  "trades_per_year": 23.5,
+  "validated": true
+}
