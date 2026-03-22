@@ -1,0 +1,9 @@
+{
+  "win_rate": 0.5,
+  "avg_win_pct": 0.0993,
+  "avg_loss_pct": 0.05,
+  "full_kelly": 0.2481,
+  "half_kelly": 0.1241,
+  "recommended": 0.1241,
+  "position_for_1k": 124.06
+}
