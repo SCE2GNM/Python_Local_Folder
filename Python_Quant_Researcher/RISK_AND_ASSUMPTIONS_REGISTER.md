@@ -74,8 +74,7 @@ Re-build backtest with intraday stop-loss logic using daily low prices to detect
 
 **Update log:**
 - 2026-03-20: Raised. Deferred to Week 5 — execution infrastructure takes priority.
-
----
+- 2026-03-20: Sortino consistently below Sharpe across both validation methods (Expanding avg 0.816 vs Sharpe 0.869, Rolling avg 0.775 vs Sharpe 0.831). This confirms downside volatility is the dominant risk characteristic of this strategy. Stop-loss behaviour directly affects this profile — resolving A002 is important before scaling capital beyond initial $1,000.
 
 ### A003 — Slippage modelled as flat cost, not variable
 
