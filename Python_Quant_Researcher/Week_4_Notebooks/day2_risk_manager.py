@@ -57,7 +57,7 @@ logger = logging.getLogger(__name__)     # [OBJECT] our logger instance
 RISK_CONFIG = {                          # [VARIABLE - dict] risk parameters
 
     # Position sizing
-    'position_pct':      0.95,           # Use 95% of available USDT per trade
+    'position_pct':      0.1241,           # Use 95% of available USDT per trade
                                          # (keep 5% as buffer for fees)
 
     # Per-trade stop loss

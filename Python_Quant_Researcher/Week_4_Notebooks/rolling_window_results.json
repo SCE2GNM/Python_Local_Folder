@@ -1,0 +1,60 @@
+{
+  "windows_tested": 5,
+  "target_selected": 3,
+  "avg_test_sharpe": 0.831,
+  "avg_degradation": 31.8,
+  "profitable_years": 5,
+  "validation_passed": true,
+  "window_results": [
+    {
+      "year": 2020,
+      "best_threshold": 25,
+      "best_period": 20,
+      "train_sharpe": 0.951,
+      "test_sharpe": 0.655,
+      "test_return": 0.2303,
+      "degradation": 31.1,
+      "target_selected": false
+    },
+    {
+      "year": 2021,
+      "best_threshold": 20,
+      "best_period": 10,
+      "train_sharpe": 1.469,
+      "test_sharpe": 1.521,
+      "test_return": 1.2632,
+      "degradation": -3.6,
+      "target_selected": true
+    },
+    {
+      "year": 2022,
+      "best_threshold": 20,
+      "best_period": 10,
+      "train_sharpe": 1.949,
+      "test_sharpe": 0.487,
+      "test_return": 0.1263,
+      "degradation": 75.0,
+      "target_selected": true
+    },
+    {
+      "year": 2023,
+      "best_threshold": 20,
+      "best_period": 10,
+      "train_sharpe": 1.088,
+      "test_sharpe": 0.764,
+      "test_return": 0.2277,
+      "degradation": 29.8,
+      "target_selected": true
+    },
+    {
+      "year": 2024,
+      "best_threshold": 22,
+      "best_period": 10,
+      "train_sharpe": 0.998,
+      "test_sharpe": 0.729,
+      "test_return": 0.2137,
+      "degradation": 26.9,
+      "target_selected": false
+    }
+  ]
+}
