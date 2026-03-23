@@ -9,3 +9,12 @@ __pycache__/
 
 # Mac system files
 .DS_Store
+
+# Runtime generated data files
+Week_3_Notebooks/live_candles.csv
+Week_3_Notebooks/binance_eth_30d.csv
+Week_3_Notebooks/logs/signals_*.json
+Week_3_Notebooks/logs/bot_state.json
+
+# Virtual environment
+venv/
