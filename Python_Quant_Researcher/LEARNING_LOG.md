@@ -170,6 +170,16 @@ Sharpe = (mean return - risk free rate) / standard deviation of returns, annuali
 
 ---
 
+
+
+
+
+
+
+
+
+===
+
 ## Concepts Encountered
 
 A complete glossary of every meaningful concept introduced during the curriculum. Plain English definitions — no jargon.
