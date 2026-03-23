@@ -29,7 +29,7 @@
 
 **Category:** Strategy
 
-**Status:** Open
+**Status:** In Progress
 
 **Priority:** High
 
@@ -47,6 +47,7 @@ Add per-trade logging to backtest (entry price, exit price, P&L per trade) to de
 **Target:** Week 4 Day 3 (add per-trade backtest logging)
 
 **Update log:**
+- 2026-03-21: PARTIALLY RESOLVED. Real win rate measured at 37.5% from 96 completed trades (no stop-loss). Significantly lower than 50% estimate but compensated by larger avg win (24.30% vs 9.93%). Kelly impact immaterial (-0.57%). Remains open until stop-loss backtest completes (A002).
 - 2026-03-20: Raised. 50% assumption used as placeholder.
 
 ---
@@ -132,7 +133,7 @@ Verify fee tier in Binance account settings before Day 7 live deployment.
 
 **Category:** Strategy
 
-**Status:** Open
+**Status:** In Progress
 
 **Priority:** High
 
@@ -150,6 +151,7 @@ Re-run Kelly after A001 and A002 are resolved.
 **Target:** Week 5 (after stop-loss backtest complete)
 
 **Update log:**
+- 2026-03-21: PARTIALLY RESOLVED. Kelly re-run with real inputs: 11.84% vs 12.41% estimated. Difference immaterial — no change to RiskManager. Remains open until A002 resolved and Kelly re-run with stop-loss backtest data.
 - 2026-03-20: Raised. Proceeding with 12.41% as conservative initial estimate.
 
 ---
@@ -179,6 +181,35 @@ Re-run grid search optimisation with stop-loss logic included after A002 is reso
 - 2026-03-20: Raised. ADX 20/10 remains best available estimate pending constrained re-optimisation.
 
 ---
+
+### A007 — Portfolio-level backtest not yet built
+
+**Category:** Strategy
+
+**Status:** Open
+
+**Priority:** Medium
+
+**Raised:** Week 4 Day 2
+
+**Description:**
+Current backtest measures percentage returns per dollar invested. It does not model actual dollar portfolio growth with compounding position sizing applied trade by trade. A portfolio-level backtest is needed to properly compare 95% fixed sizing vs 12.41% Kelly sizing and to measure real dollar drawdowns, compounding effects, and probability of ruin at different position sizes.
+
+**Impact:**
+Cannot yet quantitatively confirm that Kelly sizing (12.41%) produces better risk-adjusted dollar returns than fixed sizing (95%) over the full backtest period. The theoretical case is strong but unverified empirically on this specific strategy.
+
+**Fix:**
+Build portfolio simulator that replays all 193 historical trades with actual dollar position sizing, tracking balance trade by trade. Compare 95% vs 12.41% vs Full Kelly on final portfolio value, max drawdown, and Sharpe.
+
+**Target:** Week 5 (after per-trade logging from A001 is complete)
+
+**Update log:**
+- 2026-03-20: Raised. Requires per-trade logging (A001) as prerequisite.
+
+---
+
+
+
 
 ## Resolved Items
 

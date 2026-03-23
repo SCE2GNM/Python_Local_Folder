@@ -1,9 +1,22 @@
 {
-  "win_rate": 0.5,
-  "avg_win_pct": 0.0993,
-  "avg_loss_pct": 0.05,
-  "full_kelly": 0.2481,
-  "half_kelly": 0.1241,
-  "recommended": 0.1241,
-  "position_for_1k": 124.06
+  "version": "v2_real_inputs",
+  "updated_at": "2026-03-23 15:23:47",
+  "inputs": {
+    "win_rate": 0.375,
+    "avg_win_pct": 0.243,
+    "avg_loss_pct": 0.0537,
+    "source": "measured_from_193_trades"
+  },
+  "outputs": {
+    "full_kelly": 0.2368,
+    "half_kelly": 0.1184,
+    "recommended": 0.1184,
+    "position_for_1k": 118.42
+  },
+  "vs_day2": {
+    "day2_kelly": 0.1241,
+    "day3_kelly": 0.1184,
+    "difference": -0.0057,
+    "material": false
+  }
 }
