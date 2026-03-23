@@ -1,4 +1,33 @@
+# Core data and analysis
 yfinance
 pandas
 numpy
 matplotlib
+seaborn
+plotly
+
+# Technical indicators
+ta
+
+# Binance trading
+python-binance
+
+# Environment and credentials
+python-dotenv
+
+# Ethereum and DeFi
+web3
+
+# Dashboard
+streamlit
+
+# Excel file support
+openpyxl
+
+# HTTP requests
+requests
+
+# Jupyter notebooks
+jupyterlab
+ipykernel
+ipywidgets

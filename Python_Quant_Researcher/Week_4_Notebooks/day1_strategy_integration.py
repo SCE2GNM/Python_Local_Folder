@@ -24,7 +24,10 @@
 
 # ── Imports ───────────────────────────────────────────────────────────────────
 
-from day1_production_executor import TradingExecutor  # [CLASS] our executor
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'core', 'execution'))
+from trading_executor import TradingExecutor
 from binance.client import Client                      # [LIBRARY] Binance API
 from dotenv import load_dotenv                         # [LIBRARY] loads .env
 import os                                              # [LIBRARY] env vars

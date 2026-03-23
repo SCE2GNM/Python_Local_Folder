@@ -1,7 +1,0 @@
-session_date,entry_time,exit_time,entry_price,exit_price,position_size_eth,pnl_usd,pnl_pct,duration_minutes,exit_reason
-2026-03-10,11:48,11:49,2064.17,2063.74,1.0,-0.43,-0.0208,1,Signal changed to BEARISH
-2026-03-10,12:20,12:24,2058.19,2057.2,1.0,-0.99,-0.0481,4,Signal changed to CHOPPY
-2026-03-11,13:15,14:48,2024.89,2016.95,1.0,-7.94,-0.3921,93,Signal changed to BEARISH
-2026-03-12,09:43,10:08,2052.52,2053.35,1.0,0.83,0.0404,25,Signal changed to BEARISH
-2026-03-12,10:11,10:12,2054.75,2054.75,1.0,0.0,0.0,1,Signal changed to CHOPPY
-2026-03-12,10:21,11:02,2060.72,2069.39,1.0,8.67,0.4207,41,Signal changed to BEARISH
