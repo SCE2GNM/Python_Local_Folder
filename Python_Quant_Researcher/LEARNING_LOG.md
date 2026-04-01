@@ -170,7 +170,106 @@ Sharpe = (mean return - risk free rate) / standard deviation of returns, annuali
 
 ---
 
+---
 
+### SB006 — Multi-parameter joint optimisation
+
+**Priority:** Medium
+
+**Introduced:** Week 4 Day 3
+
+**What you understand:**
+All strategy parameters are interdependent — ADX threshold, stop-loss %, position sizing, and Kelly fraction all affect each other's optimal values. Changing one requires re-evaluating all others. Identified as a gap in current curriculum approach where parameters have been optimised independently rather than jointly.
+
+**What needs deeper study:**
+
+- How to structure a multi-dimensional grid search across strategy, risk, and sizing parameters simultaneously
+- Combinatorial Purged Cross-Validation (CPCV) — the standard technique for multi-parameter walk-forward validation
+- Parameter stability analysis — identifying stable regions vs fragile single-point optima
+- Out-of-sample holdout methodology — reserving final 1-2 years of data, never touched during optimisation
+- Minimum description length principle — preferring simpler parameter sets when performance is similar
+- How to calculate statistical significance of optimised results (probability of chance vs genuine edge)
+
+**Curriculum target:** Weeks 6-8
+
+**Update log:**
+- 2026-03-21: Added. Identified from camera aperture/shutter/ISO analogy — all parameters interdependent.
+
+---
+
+### SB007 — Multi-indicator signal stacking (ADX + RSI + MACD etc.)
+
+**Priority:** Medium
+
+**Introduced:** Week 4 Day 3
+
+**What you understand:**
+Different indicators capture different dimensions of market behaviour. Combining independent indicators into a signal stack filters out low-confidence signals, typically reducing trade frequency but improving win rate. Each indicator must have a logical justification for inclusion — not just backtested improvement.
+
+**What needs deeper study:**
+
+- How to combine multiple indicators without curve-fitting — the logical vs empirical justification distinction
+- Information overlap between indicators — ADX and MACD are not independent, both are trend-based. Understanding correlation between indicator signals
+- How to weight multiple signals — equal weight vs confidence-weighted
+- The relationship between number of indicators and overfitting risk
+- Specific indicators to study: RSI (momentum), MACD (trend + momentum), Bollinger Bands (volatility), Volume (conviction)
+- Academic literature on technical indicator combinations in crypto markets
+
+**Curriculum target:** Weeks 9-12
+
+**Update log:**
+- 2026-03-21: Added. Natural extension of current single-indicator ADX strategy.
+
+---
+
+### SB008 — On-chain metrics and blockchain data analysis
+
+**Priority:** Medium
+
+**Introduced:** Week 4 Day 3 (Web3.py foundation built Week 2)
+
+**What you understand:**
+On-chain metrics measure actual blockchain activity rather than price behaviour. They provide information that doesn't exist for traditional assets. You have already connected Web3.py and read Uniswap pool prices in Week 2. The regime-switching capstone strategy (pre-curriculum) used on-chain informed allocation between HODL/LP/CASH positions.
+
+**What needs deeper study:**
+
+- Exchange netflow — measuring ETH moving onto/off exchanges as a buy/sell pressure indicator
+- NVT ratio (Network Value to Transactions) — the crypto equivalent of a P/E ratio
+- Active address growth — network adoption as a price driver
+- Funding rates in perpetual futures — market sentiment and leverage positioning
+- Stablecoin supply ratio — dry powder available to enter the market
+- Whale wallet tracking — large holder accumulation/distribution patterns
+- Data sources: Glassnode, Dune Analytics, Nansen, The Graph protocol
+- How to combine on-chain regime signals with technical entry signals
+
+**Curriculum target:** Weeks 13-16
+
+**Update log:**
+- 2026-03-21: Added. Genuine crypto-native advantage over traditional asset analysis.
+
+---
+
+### SB009 — Combined on-chain and technical indicator strategies
+
+**Priority:** Low (depends on SB007 and SB008)
+
+**Introduced:** Week 4 Day 3
+
+**What you understand:**
+Combining on-chain regime filters with technical entry signals creates a two-layer decision system. On-chain layer determines market regime (favourable/unfavourable). Technical layer determines entry/exit timing within favourable regimes. This is more sophisticated than either approach alone.
+
+**What needs deeper study:**
+
+- How to formally define and test regime filters using on-chain data
+- Walk-forward validation methodology for combined systems
+- Whether on-chain + technical outperforms either alone on a risk-adjusted basis
+- Latency considerations — on-chain data has different update frequencies than price data
+- The distinction between on-chain leading indicators vs lagging indicators
+
+**Curriculum target:** Weeks 17-20
+
+**Update log:**
+- 2026-03-21: Added. Convergence of SB007 and SB008 — prerequisite for both.
 
 
 
