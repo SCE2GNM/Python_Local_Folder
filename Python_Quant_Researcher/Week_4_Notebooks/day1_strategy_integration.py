@@ -104,6 +104,21 @@ def fetch_daily_candles(client, symbol, limit=50):
     df.set_index('open_time', inplace=True)
 
     logger.info(f"Fetched {len(df)} daily candles for {symbol}")
+    if len(df) < CANDLES_NEEDED:
+        logger.warning(f"Only {len(df)} candles returned — insufficient for ADX calculation")
+        logger.warning(f"Fetching from yfinance as fallback...")
+        import yfinance as yf
+        df_yf = yf.download('ETH-USD', period='60d', interval='1d',
+                            auto_adjust=True, progress=False)
+        df_yf.columns = df_yf.columns.get_level_values(0)
+        df = pd.DataFrame({
+            'Open':   df_yf['Open'].squeeze().values,
+            'High':   df_yf['High'].squeeze().values,
+            'Low':    df_yf['Low'].squeeze().values,
+            'Close':  df_yf['Close'].squeeze().values,
+            'Volume': df_yf['Volume'].squeeze().values
+        }, index=df_yf.index)
+        logger.info(f"yfinance fallback: {len(df)} candles loaded")
     logger.info(f"  From: {df.index[0].date()}")
     logger.info(f"  To:   {df.index[-1].date()}")
 
