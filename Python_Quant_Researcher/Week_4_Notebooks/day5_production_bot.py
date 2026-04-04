@@ -52,8 +52,8 @@ logger = logging.getLogger(__name__)
 # Change DRY_RUN and USE_TESTNET here when going live on Day 7
 # ══════════════════════════════════════════════════════════════════════════════
 
-DRY_RUN      = True    # SAFETY: True = simulate only | False = real orders (Day 7)
-USE_TESTNET  = True    # True = testnet fake money    | False = live Binance (Day 7)
+DRY_RUN      = False    # SAFETY: True = simulate only | False = real orders (Day 7)
+USE_TESTNET  = False    # True = testnet fake money    | False = live Binance (Day 7)
 
 SYMBOL       = 'ETHUSDT'
 ADX_THRESHOLD = 20
