@@ -107,7 +107,7 @@ Monitor actual fill prices vs stop prices once live trading begins. If consisten
 
 **Category:** Execution
 
-**Status:** Open
+**Status:** Resolved
 
 **Priority:** Low
 
@@ -126,7 +126,9 @@ Verify fee tier in Binance account settings before Day 7 live deployment.
 
 **Update log:**
 - 2026-03-20: Raised. Likely conservative assumption — may work in our favour.
-
+- 2026-04-03: RESOLVED. Actual fee rate confirmed 0.075% maker/taker (with BNB discount). 
+  Significantly better than 0.175% assumed. Backtest results are conservative — 
+  real performance will be marginally better. Round-trip cost 0.15% vs 0.175% assumed.
 ---
 
 ### A005 — Kelly sizing based on pre-stop-loss backtest metrics
