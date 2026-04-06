@@ -298,6 +298,108 @@ Not needed for a daily candle strategy. The ADX signal is calculated on daily cl
 **Update log:**
 - 2026-04-07: Added. Identified during Week 5 Day 2 discussion on gap risk and 24/7 crypto trading.
 
+---
+
+### SB011 — BTC independent parameter optimisation
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 7
+
+**What you understand:**
+Cross-asset validation in Week 5 Day 7 confirmed all three strategies (ADX, BB, RSI) are profitable on BTC using ETH-optimised parameters. However performance degrades materially — RSI profit factor drops from 5.593 (ETH) to 2.450 (BTC), BB from 3.497 to 1.784. This suggests ETH-optimised parameters are not optimal for BTC. Independent BTC optimisation would find parameters better suited to BTC's specific volatility and trend characteristics.
+
+**What needs deeper study:**
+
+- Run full grid search (ADX, BB, RSI) on BTC-USD data independently from 2018-2026
+- Compare optimal BTC parameters vs ETH parameters — how different are they?
+- Identify which parameters are asset-agnostic (likely to transfer) vs asset-specific (likely to differ)
+- Understand whether a single unified parameter set can serve both assets acceptably
+- Consider whether BTC's larger market cap and different liquidity profile requires different stop-loss distances
+
+**Curriculum target:** Week 6-7
+
+**Update log:**
+- 2026-04-07: Added. Identified from cross-asset validation showing material performance degradation on BTC.
+
+---
+
+### SB012 — Crypto asset scanning and pump/dump strategies
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 7
+
+**What you understand:**
+The idea of scanning multiple crypto assets simultaneously for momentum signals — either catching the initial pump move early, or trading the subsequent dump (short selling) if the initial move is missed. This requires a different infrastructure to the current single-asset daily strategy.
+
+**What needs deeper study:**
+
+- How to build a multi-asset scanner that monitors hundreds of crypto pairs simultaneously for momentum signals
+- The mechanics of short selling crypto: Binance offers futures and margin trading for retail investors — research minimum capital requirements, funding rates on perpetual futures, and liquidation risk
+- DeFi alternatives for shorting: dYdX, GMX, and Synthetix offer decentralised perpetual contracts — compare centralised vs decentralised short selling in terms of cost, risk, and accessibility
+- How to detect the "initial move" algorithmically — volume spike + price breakout detection, order book imbalance
+- Pump and dump dynamics: how to distinguish genuine momentum from coordinated manipulation — regulatory and ethical considerations
+- Risk management for short positions: short selling has theoretically unlimited loss potential, requires different position sizing and stop-loss logic
+- Data sources for scanning: Binance API supports multi-symbol streaming, CoinGecko and CoinMarketCap APIs for broader universe
+
+**Curriculum target:** Weeks 13-16 (after on-chain metrics foundation built)
+
+**Update log:**
+- 2026-04-07: Added. Identified as natural extension of momentum strategy work into multi-asset and short-selling territory.
+
+---
+
+### SB013 — Adaptive and online learning strategies
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 7
+
+**What you understand:**
+Current strategies use fixed parameters optimised once on historical data. Adaptive strategies periodically re-optimise their own parameters as new data arrives, without manual intervention. The re-optimisation frequency depends on the candle timeframe — daily strategies might re-optimise monthly, intraday strategies might re-optimise daily or even per-session.
+
+**What needs deeper study:**
+
+- Online learning algorithms — how to update model parameters incrementally as each new data point arrives, without reprocessing the full history
+- Walk-forward automation — building a system that automatically re-runs the grid search on a rolling basis and updates deployed parameters if a better combination is found
+- Regime detection as a trigger for re-optimisation — rather than re-optimising on a fixed schedule, re-optimise when a regime change is detected (e.g. market structure shift)
+- The risk of over-adaptation — strategies that re-optimise too frequently will chase noise and overfit to recent data. Finding the right re-optimisation frequency is critical
+- High-frequency trading (HFT) implications — at millisecond timeframes, parameter adaptation happens in real time using techniques like Kalman filters and Bayesian updating
+- Reinforcement learning as an alternative to grid search — training an agent to discover optimal parameters through trial and error in a simulated environment
+
+**Curriculum target:** Weeks 17-20 (advanced curriculum)
+
+**Update log:**
+- 2026-04-07: Added. Identified as the natural evolution of fixed-parameter strategies toward truly adaptive systems.
+
+---
+
+### SB014 — Intraday timeframes for mean reversion strategies
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 2
+
+**What you understand:**
+Mean reversion strategies on daily candles generate very few signals — BB generates 3.3/year, RSI 3.9/year. Switching to 4-hour candles would generate approximately 6x more signals, improving statistical reliability dramatically. However this is not a simple parameter change — it requires full re-optimisation from scratch and a different bot architecture.
+
+**Why it was deferred:**
+The current bot architecture fires once daily via cron at 00:05 UTC. A 4-hour strategy requires the bot to run every 4 hours, changing the EC2 cron setup. All parameters (BB window, RSI period, MA filter, stop %) calibrated on daily candles would need complete re-optimisation on 4-hour data. Transaction costs compound 6x faster at shorter timeframes.
+
+**What needs deeper study:**
+
+- Full parameter re-optimisation of BB and RSI on 4-hour ETH candles — cannot transplant daily parameters
+- EC2 architecture changes: cron job every 4 hours vs daily, state file management for multiple intraday runs
+- Transaction cost impact at higher frequency — 0.15% round-trip at 6x frequency significantly erodes edge
+- Whether the regime filter (MA) needs to change timeframe — a 120-bar MA on 4-hour candles is only 20 days, very different from the 120-day MA used on daily candles
+- Liquidity and spread differences between daily and intraday candles on ETHUSDT
+
+**Curriculum target:** When moving to intraday strategies — later curriculum weeks
+
+**Update log:**
+- 2026-04-07: Added. Identified as natural extension to improve statistical reliability of mean reversion strategies.
+
 
 
 
@@ -429,6 +531,22 @@ A complete glossary of every meaningful concept introduced during the curriculum
 **Arithmetic vs Geometric Growth** — Fixed dollar sizing produces arithmetic growth (add the same amount each win). Percentage sizing produces geometric growth (each win grows the base, making future wins larger). Over many trades the difference is dramatic.
 
 **Kelly Criterion — Week 5 Update** — Recalculated using true stop-loss data: win rate 34.3% (was 37.5%), avg loss -3.92% (was -5.37%), reward:risk ratio 6.13x (was 4.52x). New recommended Half-Kelly: 11.77%. Difference from Week 4 (12.41%) immaterial — no change to RiskManager required.
+
+**Bollinger Bands** — A volatility-based indicator consisting of three lines: a middle band (N-day moving average), an upper band (middle + 2 standard deviations), and a lower band (middle − 2 standard deviations). The bands expand during high volatility and contract during low volatility. Mean reversion signal: buy when price closes below the lower band (statistically unusual distance from mean), exit when price recovers to the middle band. Key insight: work best in ranging markets, fail badly in trending/bear markets without a regime filter. Optimised parameters for ETH: window=15, std=2.0, stop=10%, 150MA regime filter. Profit factor 3.497, win rate 80.8%.
+
+**RSI (Relative Strength Index)** — A momentum oscillator measuring the speed and magnitude of recent price changes on a scale of 0-100. Formula: RSI = 100 − (100 / (1 + RS)) where RS = average gain / average loss over N periods, calculated using Wilder's exponential smoothing (alpha = 1/period). RSI < 30 traditionally signals oversold; RSI > 70 signals overbought. Key difference from Bollinger Bands: BB measures WHERE price is relative to its average (location-based), RSI measures HOW FAST price moved to get there (momentum-based). They capture different dimensions of the same oversold condition. Optimised parameters for ETH: period=14, oversold<43, exit>48, stop=15%, 120MA regime filter. Profit factor 5.593, win rate 93.5%, 31 trades.
+
+**Regime Filter (Moving Average)** — A long-term moving average used to define whether the broader market is in a bull or bear regime before taking mean reversion signals. Entry signals are only taken when price is above the MA (bull regime). This prevents buying into sustained downtrends — the "falling knife" problem. Key finding: 150MA worked better than 200MA for BB on ETH (less restrictive, more valid trades captured). 120MA worked best for RSI. The MA filter transformed BB from a losing strategy (profit factor 0.962) to a profitable one (3.497) by eliminating bear market entries.
+
+**Parameter Stability Analysis** — A method for distinguishing genuine strategy edges from overfitting. Varies each parameter independently while holding others fixed at their best values, then measures what fraction of parameter values keep performance above a minimum threshold (profit factor > 2.0). Results interpreted as: 80-100% = stable plateau (robust edge), 50-79% = moderately stable, 0-49% = fragile spike (likely overfitting). Complemented by 2D heatmap grids showing profit factor across pairs of parameters simultaneously. Broad green regions = stable edge; isolated green cells = fragile spike.
+
+**Signal Confluence (Indicator Stacking)** — Combining multiple independent indicators so that a trade is only taken when all indicators simultaneously agree. BB fires when price is unusually far below its average; RSI fires when it fell there unusually fast. When both agree, two independent pieces of evidence point to the same conclusion. The combined BB+RSI strategy achieved profit factor 6.353 vs 3.497 (BB alone) and 5.593 (RSI alone) — higher quality signals but fewer of them (17 trades vs 26/31 individually).
+
+**Cross-Asset Validation** — Testing a strategy optimised on one asset using the same parameters on a completely different asset. If the strategy remains profitable, the edge is more likely genuine rather than specific to one asset's price history. Week 5 result: ADX, BB, and RSI all profitable on BTC using ETH-optimised parameters. Performance degraded (RSI: ETH 5.593 → BTC 2.450) but remained positive — the edge generalises, confirming it is not purely ETH-specific.
+
+**Walk-Forward Validation (Mean Reversion)** — Applied to BB and RSI strategies using rolling test windows (2022-2023, 2023-2024, 2024-2026) with parameters frozen at full-sample optimised values. Both strategies profitable in all three windows. Important caveat: this is not a true walk-forward (parameters were not re-optimised per window) — it is out-of-period testing with fixed parameters. A true walk-forward requires independent re-optimisation per training window, which was impractical given only 3-4 signals per year.
+
+**Profit Factor Calculation Bug** — When all trades in a window are winners (zero losing trades), gross_loss = 0 and profit factor = infinity. Using a near-zero denominator (1e-9) instead produces nonsensical large numbers (e.g. 68,861,154). Correct approach: return float('inf') or report "no losses" explicitly when gross_loss = 0. This bug appeared in the Week 5 Day 7 walk-forward validation and was fixed in the Bitcoin validation script.
 
 ---
 
