@@ -271,6 +271,33 @@ Combining on-chain regime filters with technical entry signals creates a two-lay
 **Update log:**
 - 2026-03-21: Added. Convergence of SB007 and SB008 — prerequisite for both.
 
+---
+
+### SB010 — Real-time WebSocket price feed (Binance → EC2)
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 2
+
+**What you understand:**
+The current bot architecture fires once per day via cron at 00:05 UTC and is otherwise blind to price movements. A WebSocket connection would stream live price data continuously from Binance into EC2, enabling real-time position monitoring and dynamic sell triggers without waiting for the next cron cycle. Binance provides a WebSocket API designed exactly for this purpose.
+
+**Why it was deferred:**
+Not needed for a daily candle strategy. The ADX signal is calculated on daily closes — checking price every second adds infrastructure complexity without improving signal quality. The existing Binance STOP_LOSS_LIMIT order provides sufficient intraday protection for the current strategy.
+
+**What needs deeper study:**
+
+- Binance WebSocket API — how to maintain a persistent connection, handle reconnections, and process streaming price data in Python
+- asyncio — Python's asynchronous programming library, required for WebSocket connections that run alongside other logic
+- How to architect a bot that combines a daily signal engine (ADX calculation) with a real-time monitoring layer (intraday stop management)
+- The infrastructure implications — a WebSocket bot runs continuously rather than as a cron job, requiring different EC2 sizing and monitoring
+- When real-time monitoring adds genuine value vs when it introduces overtrading risk (e.g. reacting to noise on intraday moves)
+
+**Curriculum target:** When moving to intraday strategies — later curriculum weeks
+
+**Update log:**
+- 2026-04-07: Added. Identified during Week 5 Day 2 discussion on gap risk and 24/7 crypto trading.
+
 
 
 
@@ -384,6 +411,24 @@ A complete glossary of every meaningful concept introduced during the curriculum
 **Markdown (.md)** — A plain text format that renders as formatted documentation. Uses simple symbols (# for headings, ** for bold) to indicate formatting.
 
 **Risk & Assumptions Register** — A living document tracking all known risks, assumptions, and open questions about the trading system. Should be reviewed before each capital increase.
+
+---
+
+### Week 5
+
+**Stop-Loss Aware Backtest** — A backtest that explicitly checks whether the daily LOW price breached the stop level on each bar, before checking the ADX exit signal. More realistic than assuming you always hold until the ADX signal fires.
+
+**Bar-by-Bar Simulation** — Iterating through historical data one candle at a time, maintaining position state explicitly. More accurate than vectorised backtesting because it correctly handles intraday stop triggers and trade sequencing.
+
+**Gap Risk** — The risk that price jumps past your stop level between trading sessions (or between bot runs), causing your stop to fill at a worse price than intended. Reduced but not eliminated on 24/7 crypto exchanges when using a cron-based bot.
+
+**Sequence Dependency** — The phenomenon where portfolio performance depends on the order trades occur, not just the distribution of outcomes. A strategy with the same trades in a different order can produce dramatically different results. Relevant when evaluating aggressive position sizing in backtests.
+
+**Portfolio Simulator** — A tool that runs historical trades sequentially through different position sizing rules, tracking account balance after every trade. Used to compare compounding sizing strategies (Kelly %) vs fixed dollar sizing.
+
+**Arithmetic vs Geometric Growth** — Fixed dollar sizing produces arithmetic growth (add the same amount each win). Percentage sizing produces geometric growth (each win grows the base, making future wins larger). Over many trades the difference is dramatic.
+
+**Kelly Criterion — Week 5 Update** — Recalculated using true stop-loss data: win rate 34.3% (was 37.5%), avg loss -3.92% (was -5.37%), reward:risk ratio 6.13x (was 4.52x). New recommended Half-Kelly: 11.77%. Difference from Week 4 (12.41%) immaterial — no change to RiskManager required.
 
 ---
 
