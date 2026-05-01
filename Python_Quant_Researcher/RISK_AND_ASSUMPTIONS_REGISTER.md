@@ -280,6 +280,148 @@ As live trade history accumulates, use real live performance data as the primary
 
 
 
+### A010 — Daily loss limit not calibrated for daily candle strategies
+
+**Category:** Strategy
+
+**Status:** Open
+
+**Priority:** Medium
+
+**Raised:** Week 5 Extension
+
+**Description:**
+The 2% daily loss limit in RiskManager was set arbitrarily from intraday trading norms, not from analysis of what is appropriate for a daily candle strategy. Backtesting showed it fires on normal ETH volatility during open positions — reducing ADX annual return from 67.4% to 8.8% when applied. It was removed from the backtest model but remains hardcoded in the live bot (day5_production_bot.py).
+
+**Impact:**
+If the live bot fires the daily loss limit on a valid open position, it exits unnecessarily and blocks re-entry that day. This directly reduces real returns.
+
+**Fix:**
+Either remove the daily loss limit from the live bot, or raise it to a level that only fires on genuinely extreme daily losses (e.g. 5-8%). Requires analysis of historical daily P&L distribution to set an appropriate threshold. The per-trade stop-loss (5%) and max drawdown guardrail (15%) provide sufficient protection without a daily limit.
+
+**Target:** Week 6 — before leveraged deployment
+
+**Update log:**
+- 2026-04-12: Raised. Daily loss limit removed from backtest model after analysis showed it was inappropriate for daily candle strategies. Live bot not yet updated.
+
+---
+
+### A011 — ETH ADX uses fixed stop-loss, not trailing stop
+
+**Category:** Strategy
+
+**Status:** Open
+
+**Priority:** High
+
+**Raised:** Week 5 Extension
+
+**Description:**
+The live ADX strategy uses a fixed 5% stop-loss set at entry and never adjusted. A trailing stop that moves up as the trade profits would lock in gains during strong trends and should outperform a fixed stop on a trend-following strategy. This was a deliberate simplification in Week 4-5 that has not been backtested.
+
+**Impact:**
+Fixed stop may exit profitable trades at breakeven or small loss when ETH dips temporarily during a strong trend, then recovers and continues higher. A trailing stop would hold through the dip and capture the continued move. Expected impact: higher average win, better profit factor, potentially fewer stop exits.
+
+**Fix:**
+Stage 1 of Week 6 optimisation plan: test percentage trailing stop AND ATR trailing stop on ETH ADX. Compare best trailing stop result vs fixed stop result on all metrics. Deploy whichever performs better.
+
+**Target:** Week 6 Stage 1a-1d
+
+**Update log:**
+- 2026-04-12: Raised. Trailing stop not yet tested. Required before leverage optimisation.
+
+---
+
+### A012 — BTC SMA 125 strategy not fully validated
+
+**Category:** Strategy
+
+**Status:** Open
+
+**Priority:** High
+
+**Raised:** Week 5 Extension
+
+**Description:**
+BTC SMA 125 (current price vs 125-day SMA crossover) showed exceptional backtest metrics (Calmar 3.506, profit factor 15.641) but has three unresolved validation gaps:
+1. No hard stop-loss — only SMA crossover exit and liquidation check. Dangerous with leverage.
+2. No walk-forward validation — only full-sample backtest and stability analysis.
+3. Only 25 trades over 8.3 years — statistically fragile. Profit factor of 15.641 is unreliable at this sample size.
+4. No cross-asset validation in reverse (BTC params on ETH).
+
+**Impact:**
+Cannot confidently deploy leveraged BTC SMA until all gaps resolved. With only 25 trades, the backtest metrics could change dramatically with 2-3 different trade outcomes.
+
+**Fix:**
+Stage 2 of Week 6 optimisation plan:
+2a. Add trailing stop (percentage and ATR) — joint optimisation with SMA period
+2b. Stability analysis on SMA + trailing stop combination
+2c. Walk-forward validation (3 rolling windows)
+2d. Cross-asset check — BTC params on ETH
+
+**Target:** Week 6 Stage 2a-2e
+
+**Update log:**
+- 2026-04-12: Raised. BTC SMA not suitable for leveraged deployment until gaps resolved.
+
+---
+
+### A013 — Margin leverage not yet optimised for any strategy
+
+**Category:** Strategy
+
+**Status:** Open
+
+**Priority:** High
+
+**Raised:** Week 5 Extension
+
+**Description:**
+Analysis showed leverage could materially improve returns for ETH ADX (annual return doubles at 2x leverage with interest costs nearly zero at 12.41% Kelly sizing). Optimal leverage levels not yet determined for either ETH ADX or BTC SMA. Leverage grid search (1.0x-5.0x, 0.1x steps) not yet run.
+
+**Key findings from preliminary analysis:**
+- Interest accrues hourly on borrowed amount ONLY during open positions — not when flat
+- At 12.41% own fraction, total interest over 108 ETH ADX trades at 2x was only ~$30
+- Minimum margin ratio stayed above 25% safety buffer at all leverage levels tested (to 2x)
+- Liquidation checked using daily LOW prices on every bar — not just closes
+- Stop slippage modelled at 2% below intended stop price
+
+**Fix:**
+Stages 3-4 of Week 6 optimisation plan. Use Claude Code for efficiency given 16 optimisation stages planned.
+
+**Target:** Week 6 Stages 3-4
+
+**Update log:**
+- 2026-04-12: Raised. Preliminary margin backtest had hold_days calculation bug (now fixed). Full optimisation deferred to Week 6 with Claude Code.
+
+---
+
+### A014 — RiskManager guardrails not calibrated for daily candle strategies
+
+**Category:** Strategy
+
+**Status:** Open
+
+**Priority:** Medium
+
+**Raised:** Week 5 Extension
+
+**Description:**
+The three RiskManager guardrails (2% daily loss limit, 15% max drawdown, 5% per-trade stop) were set based on professional trading norms for intraday strategies, not backtested against ETH ADX specifically. The daily loss limit has been shown to be inappropriate (see A010). The 15% max drawdown and 5% per-trade stop have not been jointly optimised.
+
+**Impact:**
+Suboptimal guardrail settings reduce strategy performance without providing proportionate protection. The right guardrail values depend on the strategy's natural volatility profile.
+
+**Fix:**
+After trailing stop optimisation (A011), run a joint optimisation of trailing stop distance AND max drawdown guardrail level to find the combination that maximises Calmar ratio.
+
+**Target:** Week 6 — after Stage 1 trailing stop optimisation
+
+**Update log:**
+- 2026-04-12: Raised. Guardrail calibration deferred to Week 6.
+
+---
+
 ## Resolved Items
 
 | ID | Description | Resolved | Week |
@@ -298,9 +440,16 @@ As live trade history accumulates, use real live performance data as the primary
 | Strategy | Status | Capital | Position Size | Notes |
 |----------|--------|---------|---------------|-------|
 | ADX 20/10 ETH | Live | $1,000 | 12.41% Kelly | Live since April 4, 2026 |
-| RSI_14_v_final ETH | Live | $500 | 10% (conservative) | Live from Week 5 — monitor closely |
+| RSI_14_v_final ETH | Pending deployment | $500 | 15% | EC2 deployment deferred to Week 6 |
 | BB_15_2_v3 ETH | Paper trading | $0 | N/A | Pending further validation |
-| Total deployed | | $1,500 | | Do not exceed until A008 resolved |
+| ETH ADX (leveraged) | Planned | $1,500 | 100% own capital | Replaces unleveraged — pending Week 6 optimisation |
+| BTC SMA 125 (leveraged) | Planned | $1,000 | 100% own capital | Pending full validation and Week 6 optimisation |
+| Total planned | | $3,000 | | After Week 6 completion |
+
+**Capital scaling rules:**
+- Do NOT increase beyond $1,500 until A008 (RSI sample size), A011 (trailing stop), A012 (BTC SMA validation), A013 (leverage optimisation) all resolved
+- ETH ADX leveraged replaces unleveraged — not additive to avoid correlated doubling
+- RSI stays at $500 until 20+ live trades validate backtest performance
 
 ---
 
@@ -308,8 +457,12 @@ As live trade history accumulates, use real live performance data as the primary
 
 | Milestone | Action |
 |-----------|--------|
+| Week 6 | Complete Stages 1-5 optimisation plan with Claude Code |
+| Week 6 | Deploy RSI bot to EC2 |
+| Week 6 | Update live bot with trailing stop once validated |
 | After 20 RSI live trades | Compare live win rate vs backtest 93.5% — review A008 |
 | Week 7 | Review slippage from first 10 ADX live trades (A003) |
+| Before leveraged deployment | A010, A011, A012, A013, A014 all resolved |
 | Week 8-10 | Consider true rolling walk-forward when more live data available (A009) |
 | Every 6 months | Full parameter re-evaluation on rolling window |
 | Sharpe < 0.5 over 30 live trades | Pause live trading, full strategy review |

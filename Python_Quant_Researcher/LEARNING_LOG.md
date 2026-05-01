@@ -273,6 +273,277 @@ Combining on-chain regime filters with technical entry signals creates a two-lay
 
 ---
 
+### SB010 — Real-time WebSocket price feed (Binance to EC2)
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 2
+
+**What you understand:**
+The current bot fires once daily via cron at 00:05 UTC and is blind to intraday price movements. A WebSocket connection would stream live prices continuously from Binance to EC2, enabling real-time position monitoring and dynamic sell triggers. Binance provides a WebSocket API for this purpose.
+
+**Why deferred:**
+Not needed for a daily candle strategy. The existing Binance STOP_LOSS_LIMIT order provides sufficient intraday protection. Adding WebSocket infrastructure adds complexity without improving signal quality on daily candles.
+
+**What needs deeper study:**
+- Binance WebSocket API — maintaining persistent connections, handling reconnections
+- asyncio — Python's async library required for WebSocket connections
+- How to architect a bot combining a daily signal engine with real-time monitoring
+- When real-time monitoring adds genuine value vs introduces overtrading risk
+
+**Curriculum target:** When moving to intraday strategies
+
+**Update log:**
+- 2026-04-07: Added. Identified during Week 5 Day 2 discussion on gap risk.
+
+---
+
+### SB011 — BTC independent parameter optimisation
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 7
+
+**What you understand:**
+Cross-asset validation showed all three strategies profitable on BTC using ETH-optimised parameters, but with material performance degradation. ETH and BTC have different volatility profiles and trend characteristics — ETH trends are faster and more reactive, BTC trends are slower and longer-duration. Independent optimisation per asset is required for best performance.
+
+**What needs deeper study:**
+- Run full grid search (ADX, BB, RSI) on BTC independently and compare optimal params vs ETH
+- Identify which parameters are asset-agnostic vs asset-specific
+- Understand BTC vs ETH volatility structure differences and how they affect strategy design
+
+**Curriculum target:** Week 6
+
+**Update log:**
+- 2026-04-07: Added. BTC ADX independently optimised (ADX 19/14 3% stop). BTC SMA 125 identified as strongest BTC strategy. Full validation deferred to Week 6.
+
+---
+
+### SB012 — Crypto asset scanning and pump/dump strategies
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 7
+
+**What you understand:**
+Scanning multiple crypto assets simultaneously for momentum signals — catching the initial pump or trading the subsequent dump. Requires different infrastructure to single-asset daily strategies. Retail short-selling on Binance requires spot margin (UK) not futures.
+
+**What needs deeper study:**
+- Multi-asset scanner architecture (Binance API supports multi-symbol streaming)
+- Algorithmic detection of initial pump move (volume spike + price breakout)
+- Pump and dump dynamics — distinguishing genuine momentum from manipulation
+- Short selling mechanics on Binance spot margin for UK retail
+- DeFi alternatives: dYdX, GMX perpetuals (note: regulatory status for UK retail)
+- Risk management for short positions (unlimited theoretical loss)
+
+**Curriculum target:** Weeks 13-16
+
+**Update log:**
+- 2026-04-07: Added. Natural extension of momentum strategy work.
+
+---
+
+### SB013 — Adaptive and online learning strategies
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 7
+
+**What you understand:**
+Strategies that periodically re-optimise their own parameters as new data arrives rather than using fixed parameters forever. Re-optimisation frequency depends on candle timeframe. Risk of over-adaptation to recent noise.
+
+**What needs deeper study:**
+- Online learning algorithms — incremental parameter updates without reprocessing full history
+- Walk-forward automation — automatic rolling grid search and parameter updates
+- Regime change detection as re-optimisation trigger
+- Kalman filters and Bayesian updating for real-time parameter adaptation
+- Reinforcement learning as alternative to grid search
+
+**Curriculum target:** Weeks 17-20
+
+**Update log:**
+- 2026-04-07: Added. Natural evolution of fixed-parameter strategies.
+
+---
+
+### SB014 — Intraday timeframes for mean reversion strategies
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Day 2
+
+**What you understand:**
+4-hour candles would generate ~6x more RSI/BB signals than daily candles, improving statistical reliability. Requires full parameter re-optimisation and different EC2 architecture (cron every 4 hours).
+
+**What needs deeper study:**
+- Full parameter re-optimisation of BB and RSI on 4-hour ETH candles
+- EC2 architecture changes for sub-daily execution
+- Transaction cost impact at higher frequency
+- Whether the regime filter MA period needs to change timeframe
+
+**Curriculum target:** Later intraday strategy curriculum weeks
+
+**Update log:**
+- 2026-04-07: Added. Deferred — not needed for daily candle strategy.
+
+---
+
+### SB015 — ATR (Average True Range)
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Extension
+
+**What you understand:**
+ATR measures average daily price range over N periods using Wilder's exponential smoothing. Used as a volatility-adaptive trailing stop distance — the stop widens when the market is volatile and tightens when calm.
+
+**What needs deeper study:**
+- ATR formula: True Range = max(high-low, |high-prev_close|, |low-prev_close|). ATR = Wilder EMA of True Range
+- ATR as position sizing tool (size position inversely to ATR for consistent risk per trade)
+- ATR trailing stop vs percentage trailing stop — when does volatility adaptation help vs add noise?
+- Wilder smoothing vs simple EMA for ATR calculation
+- How ATR behaves differently in trending vs ranging markets
+- Optimal ATR period and multiplier combinations for crypto daily candles
+
+**Suggested resources:**
+- J. Welles Wilder "New Concepts in Technical Trading Systems" (1978) — original ATR derivation
+- Chapter on volatility stops in "Come Into My Trading Room" by Alexander Elder
+
+**Curriculum target:** Week 6 Stage 1b (ATR trailing stop optimisation)
+
+**Update log:**
+- 2026-04-12: Added. Required for Week 6 ATR trailing stop grid search.
+
+---
+
+### SB016 — Trailing Stop Losses (percentage and ATR-based)
+
+**Priority:** High
+
+**Introduced:** Week 5 Extension
+
+**What you understand:**
+A trailing stop moves up as the trade profits, locking in gains. Percentage trailing: stop = peak_price × (1 - trail_pct). ATR trailing: stop = peak_price - (multiplier × ATR). For trend-following strategies, trailing stops should outperform fixed stops by capturing more of sustained trends while still limiting losses.
+
+**What needs deeper study:**
+- Percentage trailing stop grid search: trail_pct 3-15% on ETH ADX — optimal value?
+- ATR trailing stop grid search: ATR period 7-21, multiplier 1.5-4.0 on ETH ADX
+- Stability analysis: do optimal trailing stop parameters sit on a plateau or a spike?
+- Comparison: trailing stop vs fixed stop on all key metrics (Calmar, Sortino, profit factor)
+- How trailing stop interacts with leverage — does it provide sufficient protection to allow higher leverage?
+- Implementation in live bot: trailing stop requires tracking peak price since entry in bot_state.json
+
+**Curriculum target:** Week 6 Stage 1a-1d (highest priority)
+
+**Update log:**
+- 2026-04-12: Added. Required before leverage optimisation. Both percentage and ATR types to be tested and compared.
+
+---
+
+### SB017 — Binance Isolated Margin mechanics
+
+**Priority:** High
+
+**Introduced:** Week 5 Extension
+
+**What you understand:**
+Spot margin only (UK retail — FCA bans crypto derivatives). Interest charged hourly on borrowed amount only during open positions. Auto-Repay handles loan repayment automatically on close. Liquidation when equity/position < 5% maintenance margin. Intraday liquidation checked using daily low prices.
+
+**Key confirmed facts:**
+- Borrowing only occurs when a position is open — no interest when flat
+- Auto-Repay enabled: loan repaid automatically from trade proceeds on close
+- Own capital sits as collateral in margin wallet at all times (no interest on collateral)
+- Safety buffer: minimum margin ratio should stay above 25% historically
+- Preliminary analysis: ETH ADX at 2x leverage, 12.41% own fraction — total interest ~$30 over 108 trades (8.3 years) — nearly negligible
+
+**What needs deeper study:**
+- Current Binance USDT isolated margin borrow rate (check Margin Data page before deployment)
+- How AUTO_BORROW_REPAY works in the Binance API — implement in production bot
+- Margin call notification API — build bot logic to detect approaching 25% margin ratio
+- Maximum isolated margin leverage available for ETHUSDT and BTCUSDT pairs
+- How margin account equity is calculated when multiple positions are open simultaneously
+
+**Curriculum target:** Week 6 — before any leveraged deployment
+
+**Update log:**
+- 2026-04-12: Added. Margin mechanics confirmed from Binance official documentation. Interest model in backtest confirmed correct.
+
+---
+
+### SB018 — Calmar Ratio as primary ranking metric
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Extension
+
+**What you understand:**
+Calmar = Annual Return / |Max Drawdown|. Preferred over Sharpe for crypto strategies because it uses actual worst-case loss rather than statistical volatility, doesn't assume normal return distribution, and is directly relevant for leverage decisions where drawdown can trigger margin calls.
+
+**Benchmarks:** Above 1.0 acceptable, above 2.0 strong, above 3.0 exceptional.
+
+**Current strategy Calmar values (daily equity curve, no leverage):**
+- ETH ADX 20/10: 1.645
+- BTC SMA 125 (25% sizing): 4.464
+- RSI Final ETH: 1.054
+- BB v3 ETH: 0.768
+
+**What needs deeper study:**
+- Mathematical relationship between Calmar and Sharpe — when do they diverge and why?
+- Calmar over different time windows — is a strategy's Calmar stable across sub-periods?
+- Modified Calmar using average drawdown instead of maximum drawdown — more robust to outliers?
+- How Calmar interacts with leverage — at what leverage does Calmar peak for each strategy?
+
+**Curriculum target:** Ongoing — used as primary ranking metric throughout curriculum
+
+**Update log:**
+- 2026-04-12: Added. Used as primary ranking metric from Week 5 extension onwards.
+
+---
+
+### SB019 — Dual SMA crossover (golden cross / death cross)
+
+**Priority:** Low
+
+**Introduced:** Week 5 Extension
+
+**What you understand:**
+Fast/slow SMA crossover — signal fires when shorter MA crosses longer MA. Different from the price/SMA crossover used in BTC SMA 125. Golden cross = short MA crosses above long MA (bullish). Death cross = short MA crosses below long MA (bearish). Not yet tested on BTC or ETH.
+
+**What needs deeper study:**
+- Standard pairs to test: 50/200, 20/50, 10/30 on daily candles
+- Compare dual SMA vs price/SMA on BTC — does adding a second MA improve or hurt performance?
+- Why price/SMA might outperform dual SMA on BTC (faster signal, less lag)
+- Golden cross / death cross reliability statistics on crypto vs equities
+
+**Curriculum target:** Week 6 — optional comparison alongside BTC SMA validation
+
+**Update log:**
+- 2026-04-12: Added. Not yet tested. BTC SMA 125 (price/SMA) outperforms BTC ADX — whether dual SMA is even better remains untested.
+
+---
+
+### SB020 — Why SMA outperforms ADX on BTC
+
+**Priority:** Medium
+
+**Introduced:** Week 5 Extension
+
+**What you understand:**
+BTC has slower, longer-duration institutional trends vs ETH's faster reactive trends. A 125-day SMA filters noise below 4-month timeframe, capturing only major multi-month trends. ADX on 14-day period exits too early during BTC consolidations within larger trends. The 125-day SMA functions as both regime filter and entry signal simultaneously.
+
+**What needs deeper study:**
+- Quantify BTC vs ETH trend duration distribution — how much longer are BTC trends on average?
+- Analyse ADX false exits on BTC: how many ADX exits were followed by continued trend?
+- Test whether adding ADX as a secondary filter to BTC SMA improves results
+- Why does a single price/SMA crossover work — what market microstructure explains it?
+
+**Curriculum target:** Week 6 alongside BTC SMA validation
+
+**Update log:**
+- 2026-04-12: Added. Empirical finding from Week 5 extension — theoretical explanation needed.
+
+---
+
 ### SB010 — Real-time WebSocket price feed (Binance → EC2)
 
 **Priority:** Medium
@@ -547,6 +818,32 @@ A complete glossary of every meaningful concept introduced during the curriculum
 **Walk-Forward Validation (Mean Reversion)** — Applied to BB and RSI strategies using rolling test windows (2022-2023, 2023-2024, 2024-2026) with parameters frozen at full-sample optimised values. Both strategies profitable in all three windows. Important caveat: this is not a true walk-forward (parameters were not re-optimised per window) — it is out-of-period testing with fixed parameters. A true walk-forward requires independent re-optimisation per training window, which was impractical given only 3-4 signals per year.
 
 **Profit Factor Calculation Bug** — When all trades in a window are winners (zero losing trades), gross_loss = 0 and profit factor = infinity. Using a near-zero denominator (1e-9) instead produces nonsensical large numbers (e.g. 68,861,154). Correct approach: return float('inf') or report "no losses" explicitly when gross_loss = 0. This bug appeared in the Week 5 Day 7 walk-forward validation and was fixed in the Bitcoin validation script.
+
+---
+
+### Week 5 Extension
+
+**SMA Crossover (price vs single MA)** — Trading signal where entry fires when today's closing price crosses above the N-day simple moving average, and exit fires when price crosses back below. One moving average compared directly against price. Different from dual SMA crossover (fast/slow). BTC SMA 125 tested: entry when close > 125-day SMA, exit when close < 125-day SMA. Result: Calmar 3.506, profit factor 15.641 (25 trades — small sample), max drawdown -17.0%.
+
+**Why SMA outperforms ADX on BTC** — BTC has slower, longer-duration institutional trends vs ETH's faster reactive trends. A 125-day SMA filters noise below 4-month timeframe — only major multi-month moves trigger signals. ADX on 14-day period is too sensitive, exiting BTC positions during normal consolidations within larger trends. The 125-day SMA functions simultaneously as regime filter and entry signal.
+
+**Benchmark Comparison** — Comparing active strategies against passive alternatives (buy and hold, equal-weight basket) to determine if complexity is justified. Key finding: buy and hold ETH returned only 12.9%/yr over 2018-2026 despite ETH's occasional massive rallies — ADX at 67.4%/yr significantly outperforms. Equal-weight crypto basket (BTC, ETH, BNB, SOL, ADA rebalanced monthly) returned 43.4%/yr — better than single-asset hold due to diversification and rebalancing effect.
+
+**Calmar Ratio** — Annual Return divided by absolute Max Drawdown. Primary ranking metric for leveraged strategy selection. Does not assume normal return distribution. Directly relevant when drawdown triggers margin calls. Above 1.0 acceptable, 2.0 strong, 3.0 exceptional. Stays approximately constant across leverage levels — leverage scales both return and drawdown proportionally.
+
+**Per-trade vs Daily Equity Curve Returns** — Per-trade compounded returns chain trade returns sequentially with no idle time — overstates annual return by assuming capital is always deployed. Daily equity curve correctly models idle cash periods (ETH ADX is flat ~9 months/year) — gives honest annual return. Per-trade: ETH ADX 67.4%/yr. Daily equity curve: 9.0%/yr. Always use daily equity curve for strategy comparison and benchmarking.
+
+**Sharpe Correction (per-trade annualisation bug)** — Previous Sharpe calculations used per-trade returns × sqrt(365), treating each trade as a 1-day return regardless of actual hold period. This massively inflated Sharpe (ADX: 4.695 wrong vs 0.817 correct). Fix: build daily equity curve, calculate daily returns, annualise with sqrt(365). Correct Sharpe values: ADX 0.817, BB 1.040, RSI 1.205.
+
+**Trailing Stop Loss** — A stop-loss that moves in the direction of the trade as price improves, locking in profits. Percentage trailing: stop = highest_price_since_entry × (1 - trail_pct). ATR trailing: stop = highest_price_since_entry - (multiplier × ATR). For trend-following strategies, trailing stops lock in profits during strong trends and should outperform fixed stops. Two types to be tested in Week 6 on ETH ADX and BTC SMA.
+
+**ATR (Average True Range)** — Volatility indicator measuring average daily price range. True Range = max(high-low, |high-prev_close|, |low-prev_close|). ATR = Wilder exponential moving average of True Range. Used as volatility-adaptive trailing stop distance — stop widens during volatile markets, tightens during calm. Created by J. Welles Wilder (same as ADX and RSI).
+
+**Isolated Margin (Binance Spot)** — Each position has its own collateral pool. Borrowing occurs only when a position is open — no interest when flat. Interest charged hourly on borrowed amount. Auto-Repay handles automatic loan repayment when position closes. Liquidation when equity/position falls below 5% maintenance margin. UK retail restricted to spot margin (FCA bans crypto derivatives). Preliminary finding: ETH ADX interest costs are nearly negligible (~$30 total over 108 trades at 2x leverage) due to short average hold times.
+
+**Leverage Grid Search** — Finding optimal leverage by testing multiple levels (1.0x-5.0x) and ranking by Calmar ratio after interest costs. Safety buffer: minimum historical margin ratio must stay above 25%. Intraday liquidation risk modelled using daily LOW prices. Stop-loss slippage 2% below intended stop, liquidation slippage 3% below liquidation price.
+
+**Kelly Criterion and Leverage** — Kelly formula optimises fraction of own capital to deploy and assumes no borrowing costs. In a margin context, Kelly does not apply directly — the question becomes: what leverage multiplier maximises risk-adjusted return after borrowing costs? Leverage grid search replaces Kelly optimisation for margin strategies.
 
 ---
 
