@@ -273,52 +273,6 @@ Combining on-chain regime filters with technical entry signals creates a two-lay
 
 ---
 
-### SB010 — Real-time WebSocket price feed (Binance to EC2)
-
-**Priority:** Medium
-
-**Introduced:** Week 5 Day 2
-
-**What you understand:**
-The current bot fires once daily via cron at 00:05 UTC and is blind to intraday price movements. A WebSocket connection would stream live prices continuously from Binance to EC2, enabling real-time position monitoring and dynamic sell triggers. Binance provides a WebSocket API for this purpose.
-
-**Why deferred:**
-Not needed for a daily candle strategy. The existing Binance STOP_LOSS_LIMIT order provides sufficient intraday protection. Adding WebSocket infrastructure adds complexity without improving signal quality on daily candles.
-
-**What needs deeper study:**
-- Binance WebSocket API — maintaining persistent connections, handling reconnections
-- asyncio — Python's async library required for WebSocket connections
-- How to architect a bot combining a daily signal engine with real-time monitoring
-- When real-time monitoring adds genuine value vs introduces overtrading risk
-
-**Curriculum target:** When moving to intraday strategies
-
-**Update log:**
-- 2026-04-07: Added. Identified during Week 5 Day 2 discussion on gap risk.
-
----
-
-### SB011 — BTC independent parameter optimisation
-
-**Priority:** Medium
-
-**Introduced:** Week 5 Day 7
-
-**What you understand:**
-Cross-asset validation showed all three strategies profitable on BTC using ETH-optimised parameters, but with material performance degradation. ETH and BTC have different volatility profiles and trend characteristics — ETH trends are faster and more reactive, BTC trends are slower and longer-duration. Independent optimisation per asset is required for best performance.
-
-**What needs deeper study:**
-- Run full grid search (ADX, BB, RSI) on BTC independently and compare optimal params vs ETH
-- Identify which parameters are asset-agnostic vs asset-specific
-- Understand BTC vs ETH volatility structure differences and how they affect strategy design
-
-**Curriculum target:** Week 6
-
-**Update log:**
-- 2026-04-07: Added. BTC ADX independently optimised (ADX 19/14 3% stop). BTC SMA 125 identified as strongest BTC strategy. Full validation deferred to Week 6.
-
----
-
 ### SB012 — Crypto asset scanning and pump/dump strategies
 
 **Priority:** Medium
@@ -418,25 +372,31 @@ ATR measures average daily price range over N periods using Wilder's exponential
 
 ### SB016 — Trailing Stop Losses (percentage and ATR-based)
 
-**Priority:** High
+**Priority:** Medium
 
 **Introduced:** Week 5 Extension
 
 **What you understand:**
-A trailing stop moves up as the trade profits, locking in gains. Percentage trailing: stop = peak_price × (1 - trail_pct). ATR trailing: stop = peak_price - (multiplier × ATR). For trend-following strategies, trailing stops should outperform fixed stops by capturing more of sustained trends while still limiting losses.
+A trailing stop moves up as the trade profits, locking in gains. Percentage trailing: stop = peak_price × (1 - trail_pct). ATR trailing: stop = peak_price - (multiplier × ATR). For trend-following strategies, trailing stops outperform fixed stops by locking in profits during sustained trends.
 
-**What needs deeper study:**
-- Percentage trailing stop grid search: trail_pct 3-15% on ETH ADX — optimal value?
-- ATR trailing stop grid search: ATR period 7-21, multiplier 1.5-4.0 on ETH ADX
-- Stability analysis: do optimal trailing stop parameters sit on a plateau or a spike?
-- Comparison: trailing stop vs fixed stop on all key metrics (Calmar, Sortino, profit factor)
-- How trailing stop interacts with leverage — does it provide sufficient protection to allow higher leverage?
-- Implementation in live bot: trailing stop requires tracking peak price since entry in bot_state.json
+**Week 6 Stage 1 results (ETH ADX):**
+- Pct trail 8% (ADX 19/9): Calmar 2.559, Sortino 1.870, MaxDD −31.3%
+- ATR 9/2.5x (ADX 19/9): Calmar 2.642, Sortino 1.385, MaxDD −27.8%
+- Fixed 5% stop (corrected baseline): Calmar 2.013
+- Both trailing stop types materially outperform fixed stop
+- ATR recommended as primary (better Calmar, lower MaxDD); pct trail is simpler backup
+- Implementation requires tracking peak_price_since_entry in bot_state.json
 
-**Curriculum target:** Week 6 Stage 1a-1d (highest priority)
+**What still needs deeper study:**
+- Trailing stop interaction with leverage — does ATR trail provide sufficient margin protection at 2x?
+- Live behaviour comparison: does ATR trail exit more or less cleanly than pct trail in real fills?
+- Whether ATR period should be re-evaluated as new live data accumulates
+
+**Curriculum target:** Partially complete — bot update and leverage analysis pending (Week 7)
 
 **Update log:**
-- 2026-04-12: Added. Required before leverage optimisation. Both percentage and ATR types to be tested and compared.
+- 2026-05-02: Week 6 Stage 1 complete. ATR 9/2.5x confirmed best. Bot update pending (see A011 resolved, A015 open in ETH ADX risk register).
+- 2026-04-12: Added. Required before leverage optimisation.
 
 ---
 
@@ -568,30 +528,6 @@ Not needed for a daily candle strategy. The ADX signal is calculated on daily cl
 
 **Update log:**
 - 2026-04-07: Added. Identified during Week 5 Day 2 discussion on gap risk and 24/7 crypto trading.
-
----
-
-### SB011 — BTC independent parameter optimisation
-
-**Priority:** Medium
-
-**Introduced:** Week 5 Day 7
-
-**What you understand:**
-Cross-asset validation in Week 5 Day 7 confirmed all three strategies (ADX, BB, RSI) are profitable on BTC using ETH-optimised parameters. However performance degrades materially — RSI profit factor drops from 5.593 (ETH) to 2.450 (BTC), BB from 3.497 to 1.784. This suggests ETH-optimised parameters are not optimal for BTC. Independent BTC optimisation would find parameters better suited to BTC's specific volatility and trend characteristics.
-
-**What needs deeper study:**
-
-- Run full grid search (ADX, BB, RSI) on BTC-USD data independently from 2018-2026
-- Compare optimal BTC parameters vs ETH parameters — how different are they?
-- Identify which parameters are asset-agnostic (likely to transfer) vs asset-specific (likely to differ)
-- Understand whether a single unified parameter set can serve both assets acceptably
-- Consider whether BTC's larger market cap and different liquidity profile requires different stop-loss distances
-
-**Curriculum target:** Week 6-7
-
-**Update log:**
-- 2026-04-07: Added. Identified from cross-asset validation showing material performance degradation on BTC.
 
 ---
 
@@ -844,6 +780,32 @@ A complete glossary of every meaningful concept introduced during the curriculum
 **Leverage Grid Search** — Finding optimal leverage by testing multiple levels (1.0x-5.0x) and ranking by Calmar ratio after interest costs. Safety buffer: minimum historical margin ratio must stay above 25%. Intraday liquidation risk modelled using daily LOW prices. Stop-loss slippage 2% below intended stop, liquidation slippage 3% below liquidation price.
 
 **Kelly Criterion and Leverage** — Kelly formula optimises fraction of own capital to deploy and assumes no borrowing costs. In a margin context, Kelly does not apply directly — the question becomes: what leverage multiplier maximises risk-adjusted return after borrowing costs? Leverage grid search replaces Kelly optimisation for margin strategies.
+
+---
+
+### Week 6
+
+**Trailing Stop Confirmed Outperformance (Stage 1 result)** — Stage 1 optimisation on ETH ADX confirmed that trailing stops materially outperform the live fixed 5% stop. Best results with 0.15% round-trip costs: percentage trail 8% (ADX 19/9, Calmar 2.559, Sortino 1.870), ATR 9/2.5x (ADX 19/9, Calmar 2.642, Sortino 1.385). Both beat the corrected fixed-stop baseline (Calmar 2.013). ATR trail recommended as primary — slightly better Calmar and lower MaxDD (−27.8% vs −31.6%). Pct trail is close second and simpler to implement. The trailing stop improvement is genuine: trailing stops lock in profits during sustained trends and reduce average losing trade size by exiting later but from a higher peak.
+
+**Composite Score (Multi-Metric Normalised Ranking)** — Method for ranking strategies across multiple competing objectives. Steps: (1) collect Calmar, Sortino, Annual%, MaxDD across grid; (2) apply min-max normalisation per metric to [0, 1]; (3) take equal-weight mean. MaxDD: all-negative, less negative = better = higher normalised value — no inversion needed if normalised correctly. Result is a single composite score [0, 1] where 1.0 = best on all metrics simultaneously. Primary use: comparing strategies within a grid search when no single metric dominates.
+
+**Per-Trade MaxDD vs Daily Mark-to-Market MaxDD** — Two fundamentally different drawdown measures that are frequently confused. Per-trade MaxDD: peak-to-trough on the sequence of completed trade returns, using `np.cumprod(1 + rets)`. Does not see within-trade price swings — only captures drawdowns between consecutive trade exits. Daily MtM MaxDD: peak-to-trough on the full daily equity curve (portfolio marked to market every day using closing prices). Always worse than per-trade MaxDD because it captures intraday price swings while a position is open. Example: BTC SMA Candidate A — per-trade MaxDD −17.8%, daily MtM MaxDD −30.5%. For live trading, daily MtM MaxDD is what you experience watching your account. Both must be reported.
+
+**Stability Thresholds: STABLE / MARGINAL / FRAGILE** — Classification of parameter stability from a composite score sweep. Method: vary each parameter independently, count what fraction of values produce composite ≥ 0.7. STABLE: >60% of values pass (broad plateau, robust edge). MARGINAL: 40–60% pass (some sensitivity, acceptable). FRAGILE: <40% pass (performance concentrated in a narrow range, likely overfitting). A MARGINAL result is not a disqualifier but requires explicit acknowledgement and ongoing monitoring. BTC SMA primary (SMA 135/25%): 50.5% MARGINAL.
+
+**Parameter Boundary Overfitting** — When the best grid search result sits at the maximum or minimum edge of the tested parameter range, it signals the grid was too narrow — the true optimum likely lies outside it. Example: BTC SMA trail sweep showed Calmar continuing to improve at 25% → 27.5% → 30% (the boundary). This means the strategy may be implicitly optimised toward the widest feasible trail rather than a genuine structural peak. Fix: always extend the range until the performance curve clearly peaks and flattens before accepting a result. This check is now in the Live Trading Checklist.
+
+**Return Concentration Risk** — When a disproportionate share of backtest returns originates from a single year or trade, the headline performance metric is misleading. BTC SMA: 76.2% of the full-period compounded return (+2664%, 2018–2026) came from 2021 alone. Ex-2021 annual return drops from 48.9% to ~29%. An investor evaluating on full-period metrics will systematically overestimate forward returns. Fix: always report both full-period and ex-outlier metrics. Set return expectations on the ex-outlier figure for planning purposes.
+
+**Walk-Forward Identical Results with Fixed Parameters** — When running walk-forward validation with fixed (non-re-optimised) parameters, expanding and rolling window methods produce IDENTICAL test-period results. This is because the same strategy with the same parameters runs on the same test data regardless of how the training window is defined. The expanding/rolling distinction only matters when you re-optimise parameters in each training window — a more rigorous but computationally expensive approach. With fixed parameters, running "both methods" is a documentation exercise, not a genuine dual test. Low-frequency strategies (3–5 trades/year) make true walk-forward re-optimisation impractical.
+
+**Cross-Period Trade** — A trade that enters during the training period of a walk-forward window but exits during the test period. These trades are legitimate (the strategy was live and generated the signal correctly), but they inflate test-period performance by carrying unrealised profit from before the test window began. Must be flagged explicitly in walk-forward reports. Example: Window 3 (2024) — one trade entered Oct 2023 (training), exited Jun 2024 (test), +128% gross. Without this cross-period trade, Window 3 would show net-negative results from the remaining 6 trades.
+
+**Cross-Asset Validation Failure** — When a strategy optimised on one asset fails to generate acceptable performance on another asset using identical parameters. Failure is informative: it suggests the edge is asset-specific rather than arising from a universal market structure. BTC SMA 120/25% on ETH: Sortino 0.505 (vs 1.246 on BTC), Calmar 0.291 (vs 2.752), daily MtM MaxDD −67.7% (vs −30.5%), 8 whipsaw trades in 2022 (vs 2 on BTC). The ETH failure is explained by ETH's higher volatility generating more false crossovers — same SMA period that filters noise on BTC is insufficient on ETH. Cross-asset failure does not automatically mean the strategy is worthless on the original asset, but it raises the concern that the original asset may change its own characteristics over time.
+
+**NO-GO Decision with Documented Rationale** — The formal end-point of a validation pipeline. A NO-GO means "do not deploy capital to this strategy at this time," not "this strategy is permanently discarded." The NO-GO must be accompanied by: (1) the specific criterion that failed, (2) the evidence, (3) the fallback plan. BTC SMA Stage 2e: ETH cross-asset failure → NO-GO → fallback to BTC ADX 19/14 (SI001). A documented NO-GO is a risk management success, not a failure — it prevented capital from being deployed to a strategy with insufficient validation.
+
+**Per-Strategy Risk Register** — A living document tracking each known risk for a specific strategy, with ID, category, status, priority, description, impact, and fix/rationale. Separate from the master assumptions register. Required before any deployment decision. Items are HIGH (must resolve before deployment), MEDIUM (resolve or formally accept with rationale), or LOW (monitor). Open items remain open until either resolved or superseded. The register is version-controlled alongside the code.
 
 ---
 
