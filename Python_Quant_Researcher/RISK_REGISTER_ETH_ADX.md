@@ -171,7 +171,7 @@ After trailing stop deployment and 20+ live trades, run joint optimisation of AT
 
 **Category:** Strategy
 
-**Status:** Open
+**Status:** Open — decision made, monitoring in progress
 
 **Priority:** Medium
 
@@ -182,18 +182,17 @@ Stage 1 optimisation (Weeks 6) found ADX threshold 19, period 9 consistently out
 
 However, the ADX parameter change was identified through in-sample optimisation across 8.3 years of data. The improvement (+0.629 Calmar) is material but has not been validated through true out-of-sample testing. Changing both the ADX parameters AND the stop type simultaneously is two changes at once, which makes attribution harder if live performance deviates.
 
-**Options:**
-1. Deploy trailing stop with live ADX 20/10 (conservative — ATR 9/2.5x gives Calmar 2.156, +0.143 vs baseline)
-2. Deploy trailing stop with ADX 19/9 (primary recommendation — Calmar 2.642, +0.629 vs baseline)
+**Decision (Week 7, 2026-05-02):**
+Conservative path selected: deploy ATR trailing stop with current ADX 20/10 parameters first. Rationale:
+- One change at a time (stop type only) makes live performance attribution cleaner.
+- ATR 9/2.5x on ADX 20/10 still improves baseline: Calmar 2.156 vs 2.013 (+0.143). Not a neutral hold.
+- After 20+ live trades with ADX 20/10 + ATR stop, compare live win rate and profit factor to backtest. If metrics track, evaluate ADX 19/9 parameter change at that point.
+- If ADX 20/10 live performance materially underperforms ADX 20/10 backtest, investigate cause before changing ADX params.
 
-**Fix:**
-Two paths depending on risk appetite:
-- Conservative: deploy ADX 20/10 + ATR 9/2.5x first, accumulate 20+ live trades, then evaluate ADX parameter change
-- Primary: deploy ADX 19/9 + ATR 9/2.5x, monitor for 20+ live trades, compare to backtest
-
-**Target:** Week 7 decision point — choose deployment path
+**Next review target:** After 20 live trades (trailing stop). Expected: Week 8–9 depending on trade frequency (~1–2 trades/month on ETH ADX).
 
 **Update log:**
+- 2026-05-02: Decision made. Conservative path (ADX 20/10 + ATR 9/2.5x) selected. ADX 19/9 deferred to post-20-trade review. Target: Week 8–9.
 - 2026-05-01: Raised. Stage 1d complete. Deployment path to be chosen in Week 7.
 
 ---
@@ -238,5 +237,5 @@ Two paths depending on risk appetite:
 | After 50 live trades | Full parameter re-evaluation; consider true walk-forward on updated data |
 | Before leveraged deployment | A013 and A014 resolved; liquidation price documented; safety buffer confirmed ≥25% |
 | Sharpe < 0.5 over 30 live trades | Pause live trading, full strategy review |
-| Week 7 | Choose deployment path for A015 (ADX 20/10 conservative vs ADX 19/9 primary) |
+| Week 7 (complete) | A015 decision made: conservative path — deploy ADX 20/10 + ATR 9/2.5x, review ADX 19/9 after 20 live trades |
 | Every 6 months | Full parameter re-evaluation on rolling window |

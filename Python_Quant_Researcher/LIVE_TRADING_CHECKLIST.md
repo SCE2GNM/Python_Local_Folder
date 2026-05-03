@@ -31,6 +31,8 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
   (1) Expanding window (anchored) — training period always starts at inception, grows with each window. Tests whether strategy works as more history accumulates.
   (2) Rolling window (sliding) — fixed-length training period slides forward, old data drops off. Tests whether strategy works across different market regimes including periods where exceptional years are excluded from training data.
   Both methods must pass (profitable in all windows) before deployment. If rolling window fails due to very small sample size per window (fewer than 5 trades), document explicitly with written rationale for proceeding or not.
+  **Fixed-parameter note:** When using fixed parameters without per-window re-optimisation, expanding and rolling window results are mathematically identical. If this is the case, document it explicitly — do not present two identical result sets as independent validation. True walk-forward with per-window re-optimisation is the stronger test and is the standard to target.
+- [ ] Buy-and-hold relative threshold check — confirm the strategy clears all three bars vs passive B&H for the same asset over the same period: (1) Annual return ≥ 2.0× B&H annual return; (2) Daily MtM MaxDD ≤ 0.50× B&H MaxDD; (3) Sortino ≥ 1.5× B&H Sortino. Report all three ratios explicitly. A strategy that beats B&H on one metric but not all three does not have a clear edge over passive holding.
 - [ ] Stability analysis passed — key parameters stable across ≥50% of sub-periods
 - [ ] Minimum 30 trades in full-period backtest (fewer than 30 = do not deploy)
 - [ ] MaxDD figure confirmed and labelled correctly — per-trade MaxDD (peak-to-trough on completed trade returns) and daily mark-to-market MaxDD (worst intraday portfolio value vs peak) are different measures. Both must be reported. Daily mark-to-market is what you experience watching a live account.
@@ -124,5 +126,6 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
+*Template version: 1.1 — updated 2026-05-02: added B&H relative threshold check; added fixed-parameter walk-forward note*
 *Template version: 1.0 — created 2026-05-01*
 *Review and update this template after any deployment incident or process change.*
