@@ -60,26 +60,29 @@ def compute_atr(high, low, close, period):
 def run_pct_trail(closes, lows, signals, dates, trail_pct):
     position = 0
     entry_price = peak_price = stop_price = 0.0
+    entry_date = None
     trades = []
     for i in range(1, len(closes)):
         low, close, signal = lows[i], closes[i], signals[i]
         if position == 1:
             if low <= stop_price:
                 trades.append({
-                    'entry_date': dates[i - 1], 'entry_price': entry_price,
+                    'entry_date': entry_date,   'entry_price': entry_price,
                     'exit_date': dates[i],      'exit_price': stop_price,
                     'return': (stop_price - entry_price) / entry_price,
                     'exit_reason': 'TRAIL_STOP',
                 })
                 position = 0
+                entry_date = None
             elif not signal:
                 trades.append({
-                    'entry_date': dates[i - 1], 'entry_price': entry_price,
+                    'entry_date': entry_date,   'entry_price': entry_price,
                     'exit_date': dates[i],      'exit_price': close,
                     'return': (close - entry_price) / entry_price,
                     'exit_reason': 'ADX_EXIT',
                 })
                 position = 0
+                entry_date = None
             else:
                 if close > peak_price:
                     peak_price = close
@@ -87,6 +90,7 @@ def run_pct_trail(closes, lows, signals, dates, trail_pct):
         elif position == 0 and signal:
             entry_price = peak_price = close
             stop_price  = close * (1 - trail_pct)
+            entry_date  = dates[i]
             position = 1
     return trades
 
@@ -98,26 +102,29 @@ def run_pct_trail(closes, lows, signals, dates, trail_pct):
 def run_atr_trail(closes, lows, signals, atr_values, dates, multiplier):
     position = 0
     entry_price = peak_price = stop_price = 0.0
+    entry_date = None
     trades = []
     for i in range(1, len(closes)):
         low, close, signal, atr = lows[i], closes[i], signals[i], atr_values[i]
         if position == 1:
             if low <= stop_price:
                 trades.append({
-                    'entry_date': dates[i - 1], 'entry_price': entry_price,
+                    'entry_date': entry_date,   'entry_price': entry_price,
                     'exit_date': dates[i],      'exit_price': stop_price,
                     'return': (stop_price - entry_price) / entry_price,
                     'exit_reason': 'TRAIL_STOP',
                 })
                 position = 0
+                entry_date = None
             elif not signal:
                 trades.append({
-                    'entry_date': dates[i - 1], 'entry_price': entry_price,
+                    'entry_date': entry_date,   'entry_price': entry_price,
                     'exit_date': dates[i],      'exit_price': close,
                     'return': (close - entry_price) / entry_price,
                     'exit_reason': 'ADX_EXIT',
                 })
                 position = 0
+                entry_date = None
             else:
                 if close > peak_price:
                     peak_price = close
@@ -126,6 +133,7 @@ def run_atr_trail(closes, lows, signals, atr_values, dates, multiplier):
         elif position == 0 and signal:
             entry_price = peak_price = close
             stop_price  = close - multiplier * atr
+            entry_date  = dates[i]
             position = 1
     return trades
 

@@ -1,3 +1,11 @@
+> DEPRECATED — 2026-05-01
+> This file is superseded by:
+> - RISK_REGISTER_ETH_ADX.md (ADX strategy risk register)
+> - STRATEGY_RISK_REGISTER_TEMPLATE.md (template for new strategies)
+> Do not update this file. It is retained as audit trail for Weeks 1-5 only.
+
+---
+
 # Risk & Assumptions Register
 ## ADX 20/10 ETH Trading Strategy
 

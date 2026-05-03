@@ -1,303 +1,146 @@
 # Stage 2 — Interactive Parallel Coordinates (Plotly HTML)
-# Saves: Week_6_Notebooks/results/stage2_parallel_coordinates_interactive.html
+# Rebuilt using go.Parcoords for native browser drag-to-reorder axes.
+# Previous version used go.Scatter with manual axis lines — axes were NOT draggable.
+#
+# go.Parcoords features:
+#   - Drag any axis left/right to reorder
+#   - Brush an axis to filter/highlight matching strategies
+#   - Shift+click to add multiple range selections
+#   - Double-click axis label to clear its selection
 #
 # Each line = one (SMA, trail%) strategy from the extended Stage 2a grid (171 combos)
-# Axes: Annual%, Sortino, MaxDD (↑ = less negative = better), Calmar, Trades
-# Colour: Annual Return % (green = high, red = low)
-# Hover: SMA period, trail%, Annual%, MaxDD%, Sortino, Calmar, Trades, composite
-# Click a line to highlight it; click again (or double-click) to reset
+# Colour: Annual Return % (RdYlGn — red = low, green = high)
+# Saves: Week_6_Notebooks/results/stage2_parallel_coordinates_interactive.html
 
 import os
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import plotly.express as px
 
 SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__))
 RESULTS_DIR = os.path.join(SCRIPT_DIR, 'results')
 DATA_DIR    = os.path.join(SCRIPT_DIR, '..', 'data')
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-DIV_ID = 'btc-sma-parcoords'
-
-PRIMARY_SMA     = 135;  PRIMARY_TRAIL   = 25.0
-SECONDARY_SMA   = 145;  SECONDARY_TRAIL = 20.0
+PRIMARY_SMA   = 135;  PRIMARY_TRAIL   = 25.0
+SECONDARY_SMA = 145;  SECONDARY_TRAIL = 20.0
 
 # ---------------------------------------------------------------------------
 # Data
 # ---------------------------------------------------------------------------
 csv_path = os.path.join(DATA_DIR, 'stage2a_results_extended.csv')
 df = pd.read_csv(csv_path).reset_index(drop=True)
-print(f"Loaded {len(df)} rows")
+print(f"Loaded {len(df)} strategies from {csv_path}")
 
-# Keep composite from CSV (normalised within the 171-combo grid)
-# annual_return and max_drawdown already stored as % (e.g. 46.9, -15.1)
+# Candidate marker column: 2 = primary, 1 = secondary, 0 = other
+def cand_type(row):
+    if row['sma_period'] == PRIMARY_SMA and abs(row['trail_pct'] - PRIMARY_TRAIL) < 0.1:
+        return 2
+    if row['sma_period'] == SECONDARY_SMA and abs(row['trail_pct'] - SECONDARY_TRAIL) < 0.1:
+        return 1
+    return 0
 
-# ---------------------------------------------------------------------------
-# Axes: order, raw column, display label, value format
-# ---------------------------------------------------------------------------
-AXES = [
-    ('annual_return', 'Annual Return %',            '.1f', '%'),
-    ('sortino',       'Sortino',                    '.3f', ''),
-    ('max_drawdown',  'Max DD %<br>↑ = less negative', '.1f', '%'),
-    ('calmar',        'Calmar',                     '.3f', ''),
-    ('total_trades',  'Trades',                     '.0f', ''),
-]
-N_AXES = len(AXES)
-X_POS  = list(range(N_AXES))
+df['cand'] = df.apply(cand_type, axis=1)
 
-# Normalise each axis to [0, 1] for display
-# MaxDD: all-negative; minmax gives most-negative → 0 (bottom), least-negative → 1 (top)  ✓
-col_min = {col: df[col].min() for col, *_ in AXES}
-col_max = {col: df[col].max() for col, *_ in AXES}
+# Sort so primary/secondary are drawn last (on top of other lines)
+df = df.sort_values('cand', ascending=True).reset_index(drop=True)
 
-def norm_col(col):
-    lo, hi = col_min[col], col_max[col]
-    return (df[col] - lo) / (hi - lo) if hi > lo else pd.Series(0.5, index=df.index)
-
-df_n = pd.DataFrame({col: norm_col(col) for col, *_ in AXES})
-
-# ---------------------------------------------------------------------------
-# Line colours: RdYlGn by annual return
-# ---------------------------------------------------------------------------
-ann_min = col_min['annual_return']
-ann_max = col_max['annual_return']
-ann_pct_norm = ((df['annual_return'] - ann_min) / (ann_max - ann_min)).tolist()
-line_colors = px.colors.sample_colorscale('RdYlGn', ann_pct_norm)
+n_primary   = (df['cand'] == 2).sum()
+n_secondary = (df['cand'] == 1).sum()
+print(f"  Primary candidates: {n_primary}  |  Secondary candidates: {n_secondary}")
 
 # ---------------------------------------------------------------------------
 # Figure
 # ---------------------------------------------------------------------------
-fig = go.Figure()
-
-# -- Invisible dummy trace for the colorbar --------------------------------
-fig.add_trace(go.Scatter(
-    x=[None], y=[None],
-    mode='markers',
-    marker=dict(
+fig = go.Figure(go.Parcoords(
+    line=dict(
+        color=df['annual_return'],
         colorscale='RdYlGn',
         showscale=True,
-        cmin=ann_min,
-        cmax=ann_max,
-        color=[ann_min, ann_max],
+        cmin=df['annual_return'].min(),
+        cmax=df['annual_return'].max(),
         colorbar=dict(
-            title=dict(text='Annual<br>Return %', side='right', font=dict(size=11)),
+            title=dict(text='Annual<br>Return %', side='right',
+                       font=dict(size=11, color='#333')),
             thickness=18,
-            len=0.72,
-            y=0.52,
-            yanchor='middle',
+            len=0.75,
+            y=0.5, yanchor='middle',
             ticksuffix='%',
             tickfont=dict(size=10),
         ),
     ),
-    hoverinfo='skip',
-    showlegend=False,
+    dimensions=[
+        dict(
+            label='SMA Period',
+            values=df['sma_period'],
+            range=[df['sma_period'].min() - 2, df['sma_period'].max() + 2],
+            tickformat='d',
+        ),
+        dict(
+            label='Trail (pct)',
+            values=df['trail_pct'],
+            range=[df['trail_pct'].min() - 1, df['trail_pct'].max() + 1],
+            tickformat='.1f',
+        ),
+        dict(
+            label='Annual Return %',
+            values=df['annual_return'].round(1),
+            tickformat='.1f',
+        ),
+        dict(
+            label='Sortino',
+            values=df['sortino'].round(3),
+            tickformat='.2f',
+        ),
+        dict(
+            label='Max DD % (up=better)',
+            values=df['max_drawdown'].round(1),
+            tickformat='.1f',
+        ),
+        dict(
+            label='Calmar',
+            values=df['calmar'].round(3),
+            tickformat='.2f',
+        ),
+        dict(
+            label='Trades',
+            values=df['total_trades'],
+            tickformat='d',
+        ),
+        dict(
+            label='Composite',
+            values=df['composite'].round(3),
+            tickformat='.3f',
+        ),
+        dict(
+            label='Candidate (2=Primary)',
+            values=df['cand'],
+            range=[-0.1, 2.1],
+            tickvals=[0, 1, 2],
+            ticktext=['Other', 'Alt', 'Primary'],
+        ),
+    ],
+    labelangle=0,
+    unselected=dict(line=dict(opacity=0.04, color='gray')),
 ))
 
-# -- One Scatter trace per strategy ----------------------------------------
-for idx in df.index:
-    row   = df.loc[idx]
-    is_pri = bool(row['sma_period'] == PRIMARY_SMA   and abs(row['trail_pct'] - PRIMARY_TRAIL)   < 0.1)
-    is_sec = bool(row['sma_period'] == SECONDARY_SMA and abs(row['trail_pct'] - SECONDARY_TRAIL) < 0.1)
-
-    y_vals = [df_n.loc[idx, col] for col, *_ in AXES]
-
-    # Repeat hover data once per axis point so tooltip fires everywhere along the line
-    low_n_flag = ' [!low n]' if str(row['low_trades']).strip().lower() == 'true' else ''
-    label = (f"SMA {int(row['sma_period'])} / trail {row['trail_pct']:.1f}%"
-             + (' ★ PRIMARY'   if is_pri  else '')
-             + (' ● SECONDARY' if is_sec  else '')
-             + low_n_flag)
-
-    cd_row = [
-        int(row['sma_period']),  # 0
-        row['trail_pct'],        # 1
-        row['annual_return'],    # 2
-        row['max_drawdown'],     # 3
-        row['sortino'],          # 4
-        row['calmar'],           # 5
-        int(row['total_trades']),# 6
-        row['composite'],        # 7
-        label,                   # 8
-    ]
-    customdata = [cd_row] * N_AXES
-
-    base_lw = 3.5 if is_pri else (2.8 if is_sec else 1.4)
-    base_op = 0.95 if (is_pri or is_sec) else 0.60
-
-    fig.add_trace(go.Scatter(
-        x=X_POS,
-        y=y_vals,
-        mode='lines',
-        line=dict(color=line_colors[idx], width=base_lw),
-        opacity=base_op,
-        customdata=customdata,
-        hovertemplate=(
-            '<b>%{customdata[8]}</b><br>'
-            '<br>'
-            'Annual Return: <b>%{customdata[2]:.1f}%</b><br>'
-            'Max Drawdown: %{customdata[3]:.1f}%<br>'
-            'Sortino: %{customdata[4]:.3f}<br>'
-            'Calmar: %{customdata[5]:.3f}<br>'
-            'Trades: %{customdata[6]}<br>'
-            'Composite: %{customdata[7]:.3f}'
-            '<extra></extra>'
-        ),
-        name=label,
-        showlegend=(is_pri or is_sec),
-        meta={'base_lw': float(base_lw), 'base_op': float(base_op)},
-    ))
-
-# ---------------------------------------------------------------------------
-# Axis shapes (vertical lines) and annotations
-# ---------------------------------------------------------------------------
-shapes = []
-for j in range(N_AXES):
-    shapes.append(dict(
-        type='line', layer='above',
-        x0=j, x1=j, y0=0.0, y1=1.0,
-        line=dict(color='#888888', width=1.6),
-    ))
-
-annotations = []
-for j, (col, label, fmt, suffix) in enumerate(AXES):
-    lo = col_min[col]
-    hi = col_max[col]
-
-    # Format bottom (lo) and top (hi) tick labels
-    if col in ('annual_return', 'max_drawdown'):
-        lo_str = f'{lo:.1f}%'
-        hi_str = f'{hi:.1f}%'
-    elif col == 'total_trades':
-        lo_str = f'{int(lo)}'
-        hi_str = f'{int(hi)}'
-    else:
-        lo_str = f'{lo:.2f}'
-        hi_str = f'{hi:.2f}'
-
-    # Axis label (above the chart)
-    annotations.append(dict(
-        x=j, y=1.13, xref='x', yref='y',
-        text=f'<b>{label}</b>',
-        showarrow=False,
-        font=dict(size=11, color='#222222'),
-        xanchor='center', yanchor='bottom',
-        align='center',
-    ))
-    # Min value (bottom)
-    annotations.append(dict(
-        x=j, y=-0.04, xref='x', yref='y',
-        text=lo_str,
-        showarrow=False,
-        font=dict(size=9, color='#666666'),
-        xanchor='center', yanchor='top',
-    ))
-    # Max value (top)
-    annotations.append(dict(
-        x=j, y=1.04, xref='x', yref='y',
-        text=hi_str,
-        showarrow=False,
-        font=dict(size=9, color='#666666'),
-        xanchor='center', yanchor='bottom',
-    ))
-
 fig.update_layout(
-    shapes=shapes,
-    annotations=annotations,
     title=dict(
-        text='BTC SMA Strategy Space — Interactive Parallel Coordinates'
-             '<br><sup>Click a line to highlight  ·  Click again to reset  ·  '
-             'Hover for full metrics  ·  171 strategies (SMA 80–170 × trail 5–25%)</sup>',
-        font=dict(size=15, color='#1a1a1a'),
+        text=(
+            f'BTC SMA Strategy Space — Parallel Coordinates  '
+            f'({len(df)} strategies)<br>'
+            f'<sup>Drag axes to reorder  ·  Brush an axis to filter  ·  '
+            f'Shift+brush for multiple ranges  ·  Double-click axis to clear  |  '
+            f'Primary: SMA {PRIMARY_SMA} / trail {PRIMARY_TRAIL}%  ·  '
+            f'Alt: SMA {SECONDARY_SMA} / trail {SECONDARY_TRAIL}%</sup>'
+        ),
+        font=dict(size=13, color='#1a1a1a'),
         x=0.5, xanchor='center', y=0.97,
     ),
-    xaxis=dict(
-        range=[-0.45, N_AXES - 0.55],
-        showgrid=False, zeroline=False,
-        showticklabels=False,
-        showline=False,
-    ),
-    yaxis=dict(
-        range=[-0.12, 1.22],
-        showgrid=False, zeroline=False,
-        showticklabels=False,
-        showline=False,
-    ),
-    hovermode='closest',
-    plot_bgcolor='#fafafa',
+    height=660,
+    margin=dict(l=80, r=140, t=95, b=40),
     paper_bgcolor='white',
-    height=620,
-    width=1150,
-    margin=dict(l=40, r=110, t=90, b=50),
-    legend=dict(
-        title=dict(text='Candidates', font=dict(size=11)),
-        x=1.10, y=0.98,
-        xanchor='left', yanchor='top',
-        bgcolor='rgba(255,255,255,0.9)',
-        bordercolor='#aaaaaa',
-        borderwidth=1,
-        font=dict(size=10),
-    ),
+    plot_bgcolor='#fafafa',
 )
-
-# ---------------------------------------------------------------------------
-# Click-to-highlight JavaScript
-# ---------------------------------------------------------------------------
-# Reads each trace's initial opacity and line.width from plotDiv.data
-# so the reset correctly restores per-trace base values.
-click_js = f"""
-(function() {{
-    var plotDiv = document.getElementById('{DIV_ID}');
-    if (!plotDiv) {{ return; }}
-
-    // Cache base state from trace data on first load
-    var baseState = plotDiv.data.map(function(t) {{
-        return {{
-            op: typeof t.opacity === 'number' ? t.opacity : 0.60,
-            lw: (t.line && typeof t.line.width === 'number') ? t.line.width : 1.4
-        }};
-    }});
-
-    var highlighted = null;
-
-    function resetAll() {{
-        var ops = baseState.map(function(s) {{ return s.op; }});
-        var lws = baseState.map(function(s) {{ return s.lw; }});
-        Plotly.restyle(plotDiv, {{'opacity': ops, 'line.width': lws}});
-        highlighted = null;
-    }}
-
-    plotDiv.on('plotly_click', function(evt) {{
-        if (!evt || !evt.points || evt.points.length === 0) return;
-        var clicked = evt.points[0].curveNumber;
-
-        if (highlighted === clicked) {{
-            resetAll();
-            return;
-        }}
-
-        var n   = plotDiv.data.length;
-        var ops = [];
-        var lws = [];
-        for (var i = 0; i < n; i++) {{
-            if (i === clicked) {{
-                ops.push(1.0);
-                lws.push(Math.max(baseState[i].lw, 3.5));
-            }} else {{
-                ops.push(0.06);
-                lws.push(Math.min(baseState[i].lw, 0.6));
-            }}
-        }}
-        Plotly.restyle(plotDiv, {{'opacity': ops, 'line.width': lws}});
-        highlighted = clicked;
-    }});
-
-    plotDiv.on('plotly_doubleclick', function() {{
-        resetAll();
-        return false;   // prevent default zoom-reset
-    }});
-}})();
-"""
 
 # ---------------------------------------------------------------------------
 # Save
@@ -305,12 +148,18 @@ click_js = f"""
 out_path = os.path.join(RESULTS_DIR, 'stage2_parallel_coordinates_interactive.html')
 fig.write_html(
     out_path,
-    div_id=DIV_ID,
-    full_html=True,
     include_plotlyjs='cdn',
-    post_script=click_js,
-    config={'displayModeBar': True, 'displaylogo': False,
-            'modeBarButtonsToRemove': ['lasso2d', 'select2d']},
+    config={
+        'displayModeBar': True,
+        'displaylogo': False,
+        'modeBarButtonsToRemove': ['lasso2d', 'select2d'],
+    },
 )
-print(f"Saved → {out_path}")
-print(f"  {len(df)} strategy lines  |  click-to-highlight enabled")
+sz = os.path.getsize(out_path) / 1024
+print(f"Saved → results/stage2_parallel_coordinates_interactive.html  ({sz:.0f} KB)")
+print(f"\nUsage:")
+print(f"  - Drag any axis header left/right to reorder axes")
+print(f"  - Click and drag on an axis to create a filter range (brush)")
+print(f"  - Shift+drag to add a second range on the same axis")
+print(f"  - Double-click an axis label to clear its filter")
+print(f"  - Use 'Candidate (2=Primary)' axis to isolate primary/alt strategies")

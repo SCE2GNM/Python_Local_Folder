@@ -88,6 +88,7 @@ def run_backtest_atr(
     entry_price: float = 0.0
     peak_price:  float = 0.0
     stop_price:  float = 0.0
+    entry_date:  object = None
     trades:      list  = []
 
     for i in range(1, len(closes)):
@@ -100,7 +101,7 @@ def run_backtest_atr(
             # Stop was set at yesterday's close — check against today's low
             if low <= stop_price:
                 trades.append({
-                    'entry_date':  dates[i - 1],
+                    'entry_date':  entry_date,
                     'entry_price': entry_price,
                     'exit_date':   dates[i],
                     'exit_price':  stop_price,
@@ -108,10 +109,11 @@ def run_backtest_atr(
                     'exit_reason': 'TRAIL_STOP',
                 })
                 position = 0
+                entry_date = None
 
             elif not signal:
                 trades.append({
-                    'entry_date':  dates[i - 1],
+                    'entry_date':  entry_date,
                     'entry_price': entry_price,
                     'exit_date':   dates[i],
                     'exit_price':  close,
@@ -119,6 +121,7 @@ def run_backtest_atr(
                     'exit_reason': 'ADX_EXIT',
                 })
                 position = 0
+                entry_date = None
 
             else:
                 # Still long — trail stop upward with today's close
@@ -131,6 +134,7 @@ def run_backtest_atr(
             entry_price = close
             peak_price  = close
             stop_price  = close - multiplier * atr
+            entry_date  = dates[i]
             position    = 1
 
     return trades

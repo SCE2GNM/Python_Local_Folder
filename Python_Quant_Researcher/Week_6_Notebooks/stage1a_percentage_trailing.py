@@ -54,6 +54,7 @@ def run_backtest_trailing(
     entry_price: float = 0.0
     peak_price:  float = 0.0
     stop_price:  float = 0.0
+    entry_date:  object = None
     trades:      list  = []
 
     for i in range(1, len(closes)):
@@ -65,7 +66,7 @@ def run_backtest_trailing(
             # Stop check comes before peak update (stop was set at yesterday's close)
             if low <= stop_price:
                 trades.append({
-                    'entry_date':  dates[i - 1],
+                    'entry_date':  entry_date,
                     'entry_price': entry_price,
                     'exit_date':   dates[i],
                     'exit_price':  stop_price,
@@ -73,9 +74,10 @@ def run_backtest_trailing(
                     'exit_reason': 'TRAIL_STOP',
                 })
                 position = 0
+                entry_date = None
             elif not signal:
                 trades.append({
-                    'entry_date':  dates[i - 1],
+                    'entry_date':  entry_date,
                     'entry_price': entry_price,
                     'exit_date':   dates[i],
                     'exit_price':  close,
@@ -83,6 +85,7 @@ def run_backtest_trailing(
                     'exit_reason': 'ADX_EXIT',
                 })
                 position = 0
+                entry_date = None
             else:
                 # Still long — trail the stop upward with today's close
                 if close > peak_price:
@@ -93,6 +96,7 @@ def run_backtest_trailing(
             entry_price = close
             peak_price  = close
             stop_price  = peak_price * (1 - trail_pct)
+            entry_date  = dates[i]
             position    = 1
 
     return trades
