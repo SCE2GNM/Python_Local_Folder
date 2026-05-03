@@ -4,7 +4,7 @@
 **Asset / Exchange:** ETHUSDT / Binance Spot (unleveraged → leveraged planned)
 **Version:** v2.0 (trailing stop)
 **Date created:** 2026-03-20
-**Last updated:** 2026-05-01
+**Last updated:** 2026-05-03
 **Updated by:** Greg + Claude
 
 ---
@@ -182,17 +182,23 @@ Stage 1 optimisation (Weeks 6) found ADX threshold 19, period 9 consistently out
 
 However, the ADX parameter change was identified through in-sample optimisation across 8.3 years of data. The improvement (+0.629 Calmar) is material but has not been validated through true out-of-sample testing. Changing both the ADX parameters AND the stop type simultaneously is two changes at once, which makes attribution harder if live performance deviates.
 
-**Decision (Week 7, 2026-05-02):**
-Conservative path selected: deploy ATR trailing stop with current ADX 20/10 parameters first. Rationale:
-- One change at a time (stop type only) makes live performance attribution cleaner.
-- ATR 9/2.5x on ADX 20/10 still improves baseline: Calmar 2.156 vs 2.013 (+0.143). Not a neutral hold.
-- After 20+ live trades with ADX 20/10 + ATR stop, compare live win rate and profit factor to backtest. If metrics track, evaluate ADX 19/9 parameter change at that point.
-- If ADX 20/10 live performance materially underperforms ADX 20/10 backtest, investigate cause before changing ADX params.
+**Decision (Week 7, 2026-05-03) — UPDATED:**
+Primary path selected: deploy ADX 19/9 + percentage trailing stop 8%.
 
-**Next review target:** After 20 live trades (trailing stop). Expected: Week 8–9 depending on trade frequency (~1–2 trades/month on ETH ADX).
+Rationale:
+- Candidate A (ADX 19/9, pct 8%) wins on annual return (80.1% vs 73.4%) and Sortino (1.780 vs 1.423).
+- Candidate B (ATR) only wins on MaxDD by 3.5pp (−27.8% vs −31.3%) which is ~$52 on $1,500 capital — immaterial at this scale.
+- Under the return-first framework with documented drawdown tolerance, A is the correct choice.
+
+Note: this changes two things simultaneously (ADX parameters from 20/10 to 19/9, AND stop type from fixed 5% to pct 8% trailing). If live performance deviates from backtest, attribution of cause will require careful analysis.
+
+Deployment deferred until all Stage 3–5 backtesting is complete. Live bot update to happen at end of Week 6.
+
+**Next review target:** End of Week 6 (deployment). After 20 live trades, compare live metrics to Stage 1d backtest (Calmar 2.557, Sortino 1.780, Annual 80.1%).
 
 **Update log:**
-- 2026-05-02: Decision made. Conservative path (ADX 20/10 + ATR 9/2.5x) selected. ADX 19/9 deferred to post-20-trade review. Target: Week 8–9.
+- 2026-05-03: Decision revised. Primary path: ADX 19/9 + pct 8% trailing stop. Annual 80.1% and Sortino 1.780 win vs ATR candidate. MaxDD gap 3.5pp immaterial at $1,500 capital. Deployment deferred to end of Week 6.
+- 2026-05-02: Conservative path (ADX 20/10 + ATR 9/2.5x) initially selected. Revised 2026-05-03.
 - 2026-05-01: Raised. Stage 1d complete. Deployment path to be chosen in Week 7.
 
 ---
@@ -216,7 +222,7 @@ Conservative path selected: deploy ATR trailing stop with current ADX 20/10 para
 | Strategy | Status | Capital | Position Size | Notes |
 |---|---|---|---|---|
 | ADX 20/10 ETH (fixed stop) | Live | $1,000 | 12.41% Kelly | Live since 2026-04-04; to be replaced by trailing stop version |
-| ADX 19/9 ETH (ATR trailing stop) | Planned | $1,000 | 12.41% Kelly (recalibrate post-deployment) | Replaces fixed-stop version — not additive |
+| ADX 19/9 ETH (pct 8% trailing stop) | Planned | $1,000 | 12.41% Kelly (recalibrate post-deployment) | Replaces fixed-stop version — not additive |
 | ETH ADX (leveraged) | Planned | $1,500 | 100% own capital | Pending A013 (leverage optimisation) |
 
 **Capital scaling rules:**
@@ -237,5 +243,5 @@ Conservative path selected: deploy ATR trailing stop with current ADX 20/10 para
 | After 50 live trades | Full parameter re-evaluation; consider true walk-forward on updated data |
 | Before leveraged deployment | A013 and A014 resolved; liquidation price documented; safety buffer confirmed ≥25% |
 | Sharpe < 0.5 over 30 live trades | Pause live trading, full strategy review |
-| Week 7 (complete) | A015 decision made: conservative path — deploy ADX 20/10 + ATR 9/2.5x, review ADX 19/9 after 20 live trades |
+| Week 7 (complete) | A015 decision updated: primary path — ADX 19/9 + pct 8% trailing stop. Deployment at end of Week 6 backtesting. |
 | Every 6 months | Full parameter re-evaluation on rolling window |
