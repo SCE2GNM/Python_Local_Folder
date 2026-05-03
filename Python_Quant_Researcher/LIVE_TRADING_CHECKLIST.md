@@ -36,6 +36,8 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 - [ ] Stability analysis passed — key parameters stable across ≥50% of sub-periods
 - [ ] Minimum 30 trades in full-period backtest (fewer than 30 = do not deploy)
 - [ ] MaxDD figure confirmed and labelled correctly — per-trade MaxDD (peak-to-trough on completed trade returns) and daily mark-to-market MaxDD (worst intraday portfolio value vs peak) are different measures. Both must be reported. Daily mark-to-market is what you experience watching a live account.
+- [ ] Equity curve construction verified — when comparing multiple strategies, all use identical daily mark-to-market construction. Portfolio value updated every calendar day based on the closing price of any open position. Not updated only at trade exits. Inconsistent construction between strategies creates misleading visual comparisons (e.g., one strategy shows smooth intraday tracking, another shows flat periods with spikes at exits — the difference is a bug, not a strategy characteristic).
+- [ ] Interactive HTML chart produced for all multi-metric comparisons — static PNG acceptable for quick reference only. The deployment document must include an interactive Plotly HTML chart for the equity curve and drawdown profile, allowing hover inspection of exact values at any date. Minimum hover data: date, portfolio value, drawdown from peak %, position open/flat, days in trade if open.
 - [ ] Backtest data range documented (start date, end date, source)
 - [ ] No look-ahead bias confirmed (signals computed from data available at bar close only)
 
@@ -65,26 +67,26 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 - [ ] Full trade cycle tested on Binance testnet (entry → hold → exit via stop or signal)
 - [ ] Daily loss limit explicitly reviewed — default 2% is inappropriate for daily candle strategies. Must be set to a strategy-appropriate level or removed, with written rationale documented
 - [ ] Bot handles edge cases: no signal, consecutive signals, gap opens
-- [ ] Automated performance monitoring configured —
-  do NOT rely on manual trade counting as review trigger.
+- [ ] Automated performance monitoring configured.
+  Do NOT use manual trade-count review triggers
+  for low-frequency strategies (<5 trades/year).
   Bot must automatically:
-  (1) Log all metrics after every trade closes to
+  (1) Log metrics after every trade closes to
       data/[strategy]_live_performance_log.csv:
-      date, entry, exit, return%, running annual return%,
-      running Sortino, running MaxDD%, consecutive losses
+      date, return%, running annual return%,
+      running Sortino, running MaxDD%,
+      consecutive loss count
   (2) Send Telegram alert when any threshold breached:
-      - Running annual return < 50% of backtest expectation
-      - Running per-trade MaxDD exceeds backtest MaxDD
-      - 3 consecutive losing trades
-      - Running Sortino drops below 0.6
+      running annual return < 50% of backtest expectation,
+      running per-trade MaxDD exceeds backtest MaxDD,
+      3 consecutive losing trades,
+      running Sortino drops below 0.6
   (3) Send quarterly Telegram performance summary
       (cron every 90 days) regardless of alerts
 - [ ] Review triggers are time-based not trade-count-based
-  for low-frequency strategies (<5 trades/year):
-  Quarterly automated review mandatory.
+  for low-frequency strategies.
+  Quarterly automated review mandatory minimum.
   Annual full parameter re-evaluation mandatory.
-  Trade-count triggers only appropriate for strategies
-  generating 10+ trades per year.
 
 ---
 
@@ -146,7 +148,7 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
-*Template version: 1.2 — updated 2026-05-03: added automated performance monitoring item; added time-based review trigger item for low-frequency strategies*
+*Template version: 1.3 — updated 2026-05-03: added equity curve construction verification item; added interactive HTML chart requirement; updated automated monitoring wording*
 *Template version: 1.1 — updated 2026-05-02: added B&H relative threshold check; added fixed-parameter walk-forward note*
 *Template version: 1.0 — created 2026-05-01*
 *Review and update this template after any deployment incident or process change.*

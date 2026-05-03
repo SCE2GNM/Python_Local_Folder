@@ -77,20 +77,23 @@ def compute_atr(high, low, close, period):
 
 def run_pct_trail(closes, lows, signals, dates, trail_pct):
     pos = ep = pk = sp = 0.0
+    entry_date = None
     trades = []
     for i in range(1, len(closes)):
         lo, cl, sig = lows[i], closes[i], signals[i]
         if pos == 1:
             if lo <= sp:
-                trades.append({'entry_date': dates[i-1], 'entry_price': ep,
+                trades.append({'entry_date': entry_date, 'entry_price': ep,
                                 'exit_date': dates[i],   'exit_price':  sp,
                                 'return': (sp - ep) / ep, 'exit_reason': 'TRAIL_STOP'})
                 pos = ep = pk = sp = 0.0
+                entry_date = None
             elif not sig:
-                trades.append({'entry_date': dates[i-1], 'entry_price': ep,
+                trades.append({'entry_date': entry_date, 'entry_price': ep,
                                 'exit_date': dates[i],   'exit_price':  cl,
                                 'return': (cl - ep) / ep, 'exit_reason': 'ADX_EXIT'})
                 pos = ep = pk = sp = 0.0
+                entry_date = None
             else:
                 if cl > pk:
                     pk = cl
@@ -99,25 +102,29 @@ def run_pct_trail(closes, lows, signals, dates, trail_pct):
             ep = pk = cl
             sp = cl * (1 - trail_pct)
             pos = 1
+            entry_date = dates[i]
     return trades
 
 
 def run_atr_trail(closes, lows, signals, atr_vals, dates, mult):
     pos = ep = pk = sp = 0.0
+    entry_date = None
     trades = []
     for i in range(1, len(closes)):
         lo, cl, sig, atr = lows[i], closes[i], signals[i], atr_vals[i]
         if pos == 1:
             if lo <= sp:
-                trades.append({'entry_date': dates[i-1], 'entry_price': ep,
+                trades.append({'entry_date': entry_date, 'entry_price': ep,
                                 'exit_date': dates[i],   'exit_price':  sp,
                                 'return': (sp - ep) / ep, 'exit_reason': 'TRAIL_STOP'})
                 pos = ep = pk = sp = 0.0
+                entry_date = None
             elif not sig:
-                trades.append({'entry_date': dates[i-1], 'entry_price': ep,
+                trades.append({'entry_date': entry_date, 'entry_price': ep,
                                 'exit_date': dates[i],   'exit_price':  cl,
                                 'return': (cl - ep) / ep, 'exit_reason': 'ADX_EXIT'})
                 pos = ep = pk = sp = 0.0
+                entry_date = None
             else:
                 if cl > pk:
                     pk = cl
@@ -127,29 +134,34 @@ def run_atr_trail(closes, lows, signals, atr_vals, dates, mult):
             ep = pk = cl
             sp = cl - mult * atr
             pos = 1
+            entry_date = dates[i]
     return trades
 
 
 def run_fixed_stop(closes, lows, signals, dates, stop_pct):
     pos = ep = sp = 0.0
+    entry_date = None
     trades = []
     for i in range(1, len(closes)):
         lo, cl, sig = lows[i], closes[i], signals[i]
         if pos == 1:
             if lo <= sp:
-                trades.append({'entry_date': dates[i-1], 'entry_price': ep,
+                trades.append({'entry_date': entry_date, 'entry_price': ep,
                                 'exit_date': dates[i],   'exit_price':  sp,
                                 'return': (sp - ep) / ep, 'exit_reason': 'FIXED_STOP'})
                 pos = ep = sp = 0.0
+                entry_date = None
             elif not sig:
-                trades.append({'entry_date': dates[i-1], 'entry_price': ep,
+                trades.append({'entry_date': entry_date, 'entry_price': ep,
                                 'exit_date': dates[i],   'exit_price':  cl,
                                 'return': (cl - ep) / ep, 'exit_reason': 'ADX_EXIT'})
                 pos = ep = sp = 0.0
+                entry_date = None
         elif pos == 0 and sig:
             ep = cl
             sp = cl * (1 - stop_pct)
             pos = 1
+            entry_date = dates[i]
     return trades
 
 

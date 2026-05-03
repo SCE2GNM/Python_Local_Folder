@@ -99,8 +99,15 @@ Deployment path: Only deploy if BTC SMA (CONDITIONAL GO) is not yet ready due to
 | **Target Week** | Week 9 |
 | **Date Added** | 2026-05-03 |
 
+**⚠ Do NOT overlook at start of Week 9 — review this entry explicitly before beginning Week 9 work.**
+
 **Notes:**
-BTC SMA and BTC ADX perform differently by regime: SMA is better in slow sustained trends (2020–2021 bull run, −6.6% in 2022 bear market) while ADX is better in volatile multi-wave bull markets and V-shaped recoveries (Ann +42.3%, more responsive to re-entries). Running both simultaneously allocates capital to the weaker strategy in any given regime.
+BTC SMA and BTC ADX perform differently by regime, with clear year-by-year evidence:
+- 2021 (volatile multi-wave bull): ADX +467% vs SMA +236% — ADX wins decisively
+- 2022 (sustained bear): SMA −7% vs ADX −42% — SMA wins decisively
+- 2020 (V-shaped recovery): ADX +28% vs SMA +6% — ADX captures more of the initial bounce
+
+Running both simultaneously allocates capital to the weaker strategy in any given regime. A classifier that correctly identifies regime type in advance could significantly improve overall BTC returns.
 
 Research question: can a regime classifier identify in advance which strategy to deploy, or how to weight between them?
 
@@ -127,15 +134,17 @@ Dependency: both BTC SMA and BTC ADX must be live and generating trade logs befo
 | **Target Week** | Week 8–9 |
 | **Date Added** | 2026-05-03 |
 
+**Review at start of Week 8 and Week 9.**
+
 **Notes:**
-Trend-following strategies miss V-shaped recoveries because confirmation signals (SMA crossover, ADX threshold) arrive after the initial bounce. Key observation: BTC SMA in 2020 returned only +6% vs B&H +303% — the entire gain was in the V-shaped recovery before any SMA signal fired.
+Trend-following strategies miss V-shaped recoveries because confirmation signals arrive after the initial bounce. Year-by-year evidence: 2020 V-shaped recovery — SMA +6%, ADX +28% vs B&H +303%. The entire B&H gain was in the crash-recovery move before any trend signal fired.
 
 Three research directions:
 
-(1) Mean reversion entries during crashes — RSI/Bollinger Band already validated for ETH (ETH RSI 14/43/48). Investigate whether a similar oversold-entry strategy on BTC captures crash-recovery returns that trend strategies miss.
+(1) Mean reversion entries during crash — RSI and Bollinger Bands already validated and partially address this (ETH RSI 14/43/48 deployed). Investigate whether a similar oversold-entry strategy on BTC captures crash-recovery returns that trend strategies miss.
 
-(2) Volatility breakout strategies — on the Week 8 curriculum. Volatility expansion after compression often precedes V-shaped recoveries. Research whether breakout entries on VIX-equivalent (crypto fear index) or ATR expansion signal captures early recovery moves.
+(2) Volatility breakout strategies — covered in Week 8 curriculum. Volatility expansion after compression often precedes V-shaped recoveries. Research whether breakout entries on ATR expansion or volatility regime signal captures early recovery moves.
 
-(3) Combined portfolio: trend + mean reversion — running a trend-following strategy alongside a mean reversion strategy should smooth cross-regime performance. In bear/recovery regimes the mean reversion strategy earns while trend is flat/negative; in sustained bull runs the trend strategy earns while mean reversion chops. Investigate correlation of returns between ETH ADX and ETH RSI strategies already live.
+(3) Combined portfolio of trend + mean reversion — running trend alongside mean reversion should smooth cross-regime performance. In bear/recovery regimes the mean reversion strategy earns while trend is flat/negative; in sustained bull runs the trend strategy earns while mean reversion chops. Test formally in Week 9 using correlation of returns between ETH ADX and ETH RSI strategies already live.
 
-Priority below SI003 because the mean reversion component (ETH RSI) is already deployed — the incremental value is in the BTC application and portfolio combination analysis.
+Priority below SI003 because the mean reversion component (ETH RSI) is already deployed — the incremental value is in the BTC application and the Week 9 portfolio combination analysis.

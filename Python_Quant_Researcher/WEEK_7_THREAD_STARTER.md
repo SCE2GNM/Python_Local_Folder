@@ -7,6 +7,15 @@
 
 ---
 
+## Standing Instructions for All Future Weeks
+
+These instructions apply to every week from Week 7 onward. Read before starting any weekly work.
+
+**At the start of Week 9, before beginning any work:**
+Explicitly review SI003 (BTC Regime-Switching: SMA vs ADX Rotation) and SI004 (V-shaped recovery strategies) in `STRATEGY_IDEAS_LOG.md`. These ideas were identified during Week 6 validation and contain specific regime-by-year evidence. Do not begin Week 9 multi-strategy portfolio work without reviewing them — they directly inform what to build.
+
+---
+
 ## Context for Claude Code
 
 This file provides full context for Week 7. Read this before doing anything else.
