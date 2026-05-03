@@ -84,3 +84,58 @@ Full metrics (corrected): Ann +42.3%, MaxDD −42.0% per-trade / −45.2% MtM, S
 B&H comparison: Ann 2.10× B&H (BTC SMA); MaxDD 0.37× B&H. Note BTC ADX fares worse in 2022 (−42.0% vs B&H −65.3%) but SMA is much better (−6.6%).
 
 Deployment path: Only deploy if BTC SMA (CONDITIONAL GO) is not yet ready due to capital constraints or additional validation requirements.
+
+---
+
+### SI003 — BTC Regime-Switching: SMA vs ADX Rotation
+
+| Field | Value |
+|---|---|
+| **ID** | SI003 |
+| **Name** | BTC Regime-Switching: SMA vs ADX Rotation |
+| **Type** | Trend Following / Portfolio |
+| **Source** | Week 6 observation |
+| **Priority** | HIGH |
+| **Target Week** | Week 9 |
+| **Date Added** | 2026-05-03 |
+
+**Notes:**
+BTC SMA and BTC ADX perform differently by regime: SMA is better in slow sustained trends (2020–2021 bull run, −6.6% in 2022 bear market) while ADX is better in volatile multi-wave bull markets and V-shaped recoveries (Ann +42.3%, more responsive to re-entries). Running both simultaneously allocates capital to the weaker strategy in any given regime.
+
+Research question: can a regime classifier identify in advance which strategy to deploy, or how to weight between them?
+
+Candidate classifiers to investigate:
+- Volatility-based: realised vol or ATR regime (low vol → SMA, high vol → ADX)
+- Indicator-based: trending vs ranging regime (ADX level itself as meta-signal)
+- ML-based: classify regime using lagged volatility, return autocorrelation, drawdown depth
+
+Directly relevant to Week 9 multi-strategy portfolio work. If a classifier can correctly assign regime even 60% of the time, the combined strategy should outperform either standalone on risk-adjusted metrics. Potential to capture both the SMA's bear-market capital preservation and the ADX's volatile-regime responsiveness.
+
+Dependency: both BTC SMA and BTC ADX must be live and generating trade logs before regime-switching research is meaningful.
+
+---
+
+### SI004 — V-Shaped Recovery Strategies
+
+| Field | Value |
+|---|---|
+| **ID** | SI004 |
+| **Name** | V-Shaped Recovery Strategies |
+| **Type** | Mean Reversion / Volatility |
+| **Source** | Week 6 observation |
+| **Priority** | MEDIUM |
+| **Target Week** | Week 8–9 |
+| **Date Added** | 2026-05-03 |
+
+**Notes:**
+Trend-following strategies miss V-shaped recoveries because confirmation signals (SMA crossover, ADX threshold) arrive after the initial bounce. Key observation: BTC SMA in 2020 returned only +6% vs B&H +303% — the entire gain was in the V-shaped recovery before any SMA signal fired.
+
+Three research directions:
+
+(1) Mean reversion entries during crashes — RSI/Bollinger Band already validated for ETH (ETH RSI 14/43/48). Investigate whether a similar oversold-entry strategy on BTC captures crash-recovery returns that trend strategies miss.
+
+(2) Volatility breakout strategies — on the Week 8 curriculum. Volatility expansion after compression often precedes V-shaped recoveries. Research whether breakout entries on VIX-equivalent (crypto fear index) or ATR expansion signal captures early recovery moves.
+
+(3) Combined portfolio: trend + mean reversion — running a trend-following strategy alongside a mean reversion strategy should smooth cross-regime performance. In bear/recovery regimes the mean reversion strategy earns while trend is flat/negative; in sustained bull runs the trend strategy earns while mean reversion chops. Investigate correlation of returns between ETH ADX and ETH RSI strategies already live.
+
+Priority below SI003 because the mean reversion component (ETH RSI) is already deployed — the incremental value is in the BTC application and portfolio combination analysis.
