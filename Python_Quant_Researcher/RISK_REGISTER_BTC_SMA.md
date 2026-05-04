@@ -4,8 +4,8 @@
 **Asset / Exchange:** BTCUSDT / Binance Spot (proposed)
 **Version:** v1.1 — Status revised to CONDITIONAL GO
 **Date created:** 2026-05-02
-**Last updated:** 2026-05-02
-**Updated by:** Greg
+**Last updated:** 2026-05-04
+**Updated by:** Greg + Claude
 
 ---
 
@@ -200,6 +200,65 @@ Accept as structural to low-frequency trend-following. The full-period n=34 prov
 
 ---
 
+### BS008 — Margin drawdown in worst historical crash at 2.0x leverage
+
+**Category:** Strategy
+
+**Status:** Open — accepted, no action required on leverage
+
+**Priority:** Medium
+
+**Raised:** Week 6 Stage 4 buffer analysis (2026-05-04)
+
+**Description:**
+BTC SMA at 2.0x leverage survives the worst historical single-day BTC drop
+(−38.6%, 2020-03-12) from a fresh entry: margin ratio falls from 50.0% to
+18.6% — below both the 33% working minimum and 25% hard floor, but above the
+5% liquidation threshold. The position survives.
+
+From the worst historical backtest margin ratio (45.3% — observed when a long
+position is near its peak drawdown but before stop fires), the same −38.6% drop
+reduces MR to 11.0% — still above liquidation, but significantly below the 25%
+hard floor. The experience would be severe (MR nearly halved from worst
+observed position) but the account is not wiped.
+
+The categorical liquidation check confirms 2.0x is SAFE: the worst historical
+BTC single-day drop does NOT liquidate a freshly-entered position. 2.5x fails
+this check (MR at entry 40%, worst drop reduces to 2.3% — liquidated). 2.0x is
+therefore the confirmed maximum leverage for BTC SMA deployment.
+
+**Impact:**
+In a 2020 COVID crash scenario with an open position at its worst historical MR
+(45.3%), the account MR drops to 11.0%. This is 6pp above liquidation threshold
+(5%) — a narrow margin. Position survives but the day would be alarming. If the
+scenario were compounded with a second large daily drop before recovery, MR
+could breach the liquidation level.
+
+**Primary mitigation:**
+25% trailing stop (from peak) fires before the worst intraday lows in all 8+
+years of backtest data. BTC's 25% wide trail means the stop fires substantially
+before a −38.6% intraday move would materialise on an unhedged position. The
+trailing stop is the primary line of defence, not the margin buffer.
+
+**Secondary mitigation:**
+Margin ratio Telegram alert at 35% provides early warning when MR is declining
+toward the danger zone, enabling manual review before the position enters the
+severe drawdown zone.
+
+**No action required:**
+2.0x leverage is confirmed categorically safe (survives worst historical drop
+from fresh entry above 5% maintenance margin). This item is a disclosure of
+the worst-case scenario at 2.0x, not a reason to reduce leverage further.
+Monitor first 5 live trades for any unexpected MR behaviour.
+
+**Update log:**
+- 2026-05-04: Raised. Buffer analysis complete. BTC SMA 2.0× confirmed SAFE
+  from fresh entry (MR falls to 18.6%). 2.5× fails categorical check and is
+  not deployed. Monitoring requirement (35% alert) added to
+  LIVE_TRADING_CHECKLIST.md and STRATEGIC_FRAMEWORK.md.
+
+---
+
 ## Resolved Items
 
 | ID | Description | Resolution summary | Resolved | Week / Date |
@@ -208,6 +267,7 @@ Accept as structural to low-frequency trend-following. The full-period n=34 prov
 
 ---
 
+*Register version: 1.2 — updated 2026-05-04: added BS008 (Medium) — margin drawdown in worst historical crash at 2.0× leverage; confirmed 2.0× categorically safe, 2.5× unsafe.*
 *Register version: 1.1 — updated 2026-05-02: status revised from NO-GO to CONDITIONAL GO. ETH cross-asset failure reframed as asset-specificity finding.*
 *Previous version: v1.0 (NO-GO) — created 2026-05-02 following completion of Stage 2 (2a–2e) validation.*
 *Next review: Week 7 pre-deployment, when BTC capital allocation is confirmed.*

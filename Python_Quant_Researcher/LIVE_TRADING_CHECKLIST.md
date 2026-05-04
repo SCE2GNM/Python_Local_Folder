@@ -107,6 +107,19 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 - [ ] Post-exit verification: bot queries margin account after every close to confirm outstanding loan balance = zero. If non-zero, send immediate Telegram alert with loan balance amount.
 - [ ] Telegram alert configured for any margin account anomaly: failed borrow, failed repay, residual loan balance, margin ratio approaching 33% buffer.
 
+- [ ] Categorical liquidation check completed:
+  Confirm that at recommended leverage, the worst historical single-day
+  price drop for that asset does NOT liquidate the position from a fresh
+  entry. If it does, reduce leverage until this condition is met.
+  This is a hard requirement — not satisfied by buffer percentage alone.
+  Reference: STRATEGIC_FRAMEWORK.md — Safety Buffer evidence-based framework.
+
+- [ ] Margin ratio alert configured in live bot:
+  ETH strategies: Telegram alert when margin ratio drops below 40%
+  BTC strategies: Telegram alert when margin ratio drops below 35%
+  These are early warning thresholds — not liquidation levels. They
+  provide time for manual intervention before the danger zone.
+
 **Leverage documentation (complete if applicable):**
 
 | Field | Value |
@@ -176,6 +189,7 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
+*Template version: 1.5 — updated 2026-05-04: added categorical liquidation check and margin ratio alert items to §4 Capital and Margin*
 *Template version: 1.4 — updated 2026-05-04: added §6 Pre-Deployment Critical Review (8 items: code review, stress test, equity curve, risk register, regime acknowledgement, parameter check, slippage buffer, leverage factor of safety)*
 *Template version: 1.3 — updated 2026-05-03: added equity curve construction verification item; added interactive HTML chart requirement; updated automated monitoring wording*
 *Template version: 1.1 — updated 2026-05-02: added B&H relative threshold check; added fixed-parameter walk-forward note*

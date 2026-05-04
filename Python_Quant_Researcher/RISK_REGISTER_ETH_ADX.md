@@ -4,7 +4,7 @@
 **Asset / Exchange:** ETHUSDT / Binance Spot (unleveraged → leveraged planned)
 **Version:** v2.0 (trailing stop)
 **Date created:** 2026-03-20
-**Last updated:** 2026-05-03
+**Last updated:** 2026-05-04
 **Updated by:** Greg + Claude
 
 ---
@@ -200,6 +200,63 @@ Deployment deferred until all Stage 3–5 backtesting is complete. Live bot upda
 - 2026-05-03: Decision revised. Primary path: ADX 19/9 + pct 8% trailing stop. Annual 80.1% and Sortino 1.780 win vs ATR candidate. MaxDD gap 3.5pp immaterial at $1,500 capital. Deployment deferred to end of Week 6.
 - 2026-05-02: Conservative path (ADX 20/10 + ATR 9/2.5x) initially selected. Revised 2026-05-03.
 - 2026-05-01: Raised. Stage 1d complete. Deployment path to be chosen in Week 7.
+
+---
+
+### A016 — Tail liquidation risk at 1.9x leverage in extreme crash events
+
+**Category:** Strategy
+
+**Status:** Open — accepted with mitigations documented
+
+**Priority:** High
+
+**Raised:** Week 6 Stage 4 buffer analysis (2026-05-04)
+
+**Description:**
+ETH ADX at 1.9x leverage survives the worst historical single-day ETH drop
+(−42.9%, 2020-03-12) from a fresh entry: margin ratio falls from 52.6% to
+17.0% — below the 25% hard floor but above the 5% liquidation threshold.
+However, if the position is at the worst historical backtest margin ratio
+(34.4% — observed when an open position has moved against entry by ~35%), the
+same −42.9% drop reduces MR to −14.9%: liquidation.
+
+This requires two extreme conditions simultaneously: worst margin drawdown AND
+worst single-day price collapse. Probability is low but non-zero. The 2020
+COVID crash and 2021 May flash crash demonstrate that extreme events cluster.
+
+**Impact:**
+In a combined worst-case scenario, the full leveraged position is liquidated
+before the trailing stop fires. This is structurally different from a stop-loss
+loss — the account value at liquidation is close to zero (not just a trade loss).
+At $1,500 capital, this would be total loss of the leveraged allocation.
+
+**Primary mitigation:**
+ATR trailing stop (9/2.5x or pct 8%) has historically exited positions before
+the worst intraday lows were reached across 8+ years of backtest data. In every
+historical occurrence of a large adverse move, the stop fired in the preceding
+period when the peak-to-current drawdown exceeded the stop threshold. The stop
+provides genuine protection but is not a mathematical guarantee in gap events.
+
+**Secondary mitigation:**
+Margin ratio Telegram alert at 40% provides early warning when MR is declining
+toward the danger zone, allowing manual intervention before the extreme scenario
+materialises. At 40% MR with a −42.9% drop, resulting MR = 3.5% (near
+liquidation) — the 40% alert is therefore the critical early warning level.
+
+**Residual risk:**
+Gap events (large overnight price moves between candle close and next open) and
+liquidity crises (stop order cannot fill at intended price) can bypass the
+trailing stop. These scenarios are structurally unhedgeable at this leverage
+level. They are inherent to holding leveraged positions in a 24/7 crypto market.
+
+**Target:** Add margin ratio monitoring (40% alert) to live bot before leveraged
+deployment. This is a prerequisite for leveraged ETH ADX live trading.
+
+**Update log:**
+- 2026-05-04: Raised. Buffer analysis complete. ETH ADX 1.9× confirmed SAFE
+  from fresh entry but VULNERABLE at worst historical MR. Monitoring requirement
+  added to LIVE_TRADING_CHECKLIST.md and STRATEGIC_FRAMEWORK.md.
 
 ---
 
