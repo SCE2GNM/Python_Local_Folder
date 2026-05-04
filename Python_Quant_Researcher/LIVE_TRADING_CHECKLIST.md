@@ -135,9 +135,31 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
-## 6. Sign-off
+## 6. Pre-Deployment Critical Review
 
-- [ ] All above items checked PASS (or formally accepted with documented rationale)
+**Complete this section last, after all other sections are checked. These items require stepping back from the mechanics and reviewing the strategy as a whole.**
+
+- [ ] Code review completed — live bot logic verified to match backtest logic exactly: entry condition, exit condition, stop type and parameters, position sizing method, order type (market/limit/stop), cost model. Any divergence between backtest and live code documented with rationale.
+
+- [ ] Factor of safety stress test completed — run strategy with degraded parameters: (a) win rate reduced by 20%; (b) average loss increased by 20%; (c) transaction costs doubled; (d) stop slippage doubled. Strategy must remain profitable (annual return > 15%) under all four scenarios. Document stress test results.
+
+- [ ] Equity curve produced for all strategies: leveraged version vs unleveraged same strategy vs asset buy-and-hold benchmark. Log scale. Daily MtM. Interactive HTML. Year-by-year breakdown panels included.
+
+- [ ] All Risk Register items reviewed: High priority: all resolved. Medium priority: all resolved or formally accepted with written rationale. No new unregistered assumptions introduced during backtesting. Register version number and date confirmed current.
+
+- [ ] Regime change acknowledgement — deployer confirms awareness that all backtesting covers 2018-present and strategy performance in fundamentally different future regimes (prolonged low volatility, regulatory change, structural market shift) cannot be guaranteed. Capital at risk acknowledged.
+
+- [ ] Independent parameter check — confirm chosen parameters are not at a grid boundary, sit on a plateau of the annual return curve, and pass stability analysis. Document which stability tests were run and results.
+
+- [ ] Slippage buffer confirmed — modelled slippage is at or above expected real-world slippage for the asset and position size. Document modelled vs expected real slippage.
+
+- [ ] For leveraged strategies only: Factor of safety on leverage — confirm strategy remains above 25% safety buffer if MaxDD worsens by 20% in live trading vs backtest. Calculate: at chosen leverage, what is the safety buffer if the worst historical drawdown increases by 20%?
+
+---
+
+## 7. Sign-off
+
+- [ ] All above items (sections 1–6) checked PASS (or formally accepted with documented rationale)
 - [ ] Expected drawdown profile reviewed and accepted:
   - Expected max drawdown: _____%
   - Worst historical drawdown in backtest: _____%
@@ -154,6 +176,7 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
+*Template version: 1.4 — updated 2026-05-04: added §6 Pre-Deployment Critical Review (8 items: code review, stress test, equity curve, risk register, regime acknowledgement, parameter check, slippage buffer, leverage factor of safety)*
 *Template version: 1.3 — updated 2026-05-03: added equity curve construction verification item; added interactive HTML chart requirement; updated automated monitoring wording*
 *Template version: 1.1 — updated 2026-05-02: added B&H relative threshold check; added fixed-parameter walk-forward note*
 *Template version: 1.0 — created 2026-05-01*
