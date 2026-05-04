@@ -40,6 +40,7 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 - [ ] Interactive HTML chart produced for all multi-metric comparisons — static PNG acceptable for quick reference only. The deployment document must include an interactive Plotly HTML chart for the equity curve and drawdown profile, allowing hover inspection of exact values at any date. Minimum hover data: date, portfolio value, drawdown from peak %, position open/flat, days in trade if open.
 - [ ] Backtest data range documented (start date, end date, source)
 - [ ] No look-ahead bias confirmed (signals computed from data available at bar close only)
+- [ ] Slippage assumptions calibrated to actual position size and asset liquidity — not generic defaults. For small positions (<$500) on liquid pairs (ETHUSDT, BTCUSDT on Binance): stop slippage 0.25%, liquidation slippage 0.5% are appropriate conservative assumptions. Generic 2%/3% figures are unrealistic at this scale and will understate leverage optimality. Review actual fill data after 10 live trades and update if evidence warrants. Document slippage assumption used and rationale in every backtest.
 
 ---
 

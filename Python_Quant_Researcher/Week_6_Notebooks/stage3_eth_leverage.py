@@ -12,8 +12,8 @@ Borrowed: (leverage-1) × own equity at trade entry (fixed for duration)
 Liquidation price: entry × (leverage-1) / (leverage × (1-maintenance_margin))
   → price at which margin_ratio = maintenance_margin = 5%
   → margin_ratio = 1 - (leverage-1)×entry / (leverage×current_price)
-Stop slippage:  2% below intended stop price
-Liq slippage:   3% below liquidation price
+Stop slippage:  0.25% below intended stop price
+Liq slippage:   0.5% below liquidation price
 Safety buffer:  minimum margin ratio across all bars while in any position (using daily LOW)
 
 Pauses after Stage 3a. Stages 3b and 3c run on instruction.
@@ -39,8 +39,8 @@ os.makedirs(DATA_DIR, exist_ok=True)
 COSTS        = 0.0015    # 0.15% round-trip on notional (scaled by leverage)
 INT_RATE     = 0.00015   # 0.015%/day on borrowed amount
 MAINT_MARGIN = 0.05      # 5% maintenance margin
-STOP_SLIP    = 0.02      # 2% below intended stop price
-LIQ_SLIP     = 0.03      # 3% below liquidation price
+STOP_SLIP    = 0.0025    # 0.25% below intended stop price (calibrated: small pos, liquid ETHUSDT)
+LIQ_SLIP     = 0.005     # 0.5% below liquidation price (calibrated: small pos, liquid ETHUSDT)
 SAFETY_WARN  = 33.0      # working minimum buffer %
 SAFETY_VETO  = 25.0      # hard floor veto % — auto-reject regardless of return
 CAPITAL      = 1500.0    # live capital ($)
