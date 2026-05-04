@@ -167,7 +167,7 @@ Priority below SI003 because the mean reversion component (ETH RSI) is already d
 Review compute requirements at scheduled milestones. MacBook M3 8GB is sufficient for daily candle backtesting through at least Week 12. Do not upgrade hardware — use cloud services instead.
 
 - **Week 10 (ML training):** Consider Google Colab (free) if local Random Forest / XGBoost training takes >30 minutes per model.
-- **Week 13 (large backtests):** Consider EC2 overnight runs for grids >50,000 combinations or minute-level intraday data. EC2 already available at 15.134.135.221.
+- **Week 13 (large backtests):** Consider EC2 overnight runs for grids >50,000 combinations or minute-level intraday data. EC2 already available at 3.104.101.30 (Elastic IP, ap-southeast-2).
 - **Week 20+ (HFT):** Dedicated cloud infrastructure required. Local MacBook not suitable for latency-sensitive execution. Review co-location and cloud exchange connectivity at that point.
 
 General rule: any computation expected to take >2 hours on local Mac should run on EC2 instead. EC2 c5.2xlarge (8 vCPUs, 16GB RAM) costs ~$0.34/hour — a 6-hour run costs ~$2. Google Colab free for ML workloads.

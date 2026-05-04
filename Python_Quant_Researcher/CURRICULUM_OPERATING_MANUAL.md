@@ -265,7 +265,7 @@ Before closing any week:
 Python_Quant_Researcher/
 
 **EC2:**
-15.134.135.221, ap-southeast-2 (Sydney)
+3.104.101.30, ap-southeast-2 (Sydney) — Elastic IP (permanent)
 Live bot: day5_production_bot.py
 Cron: 00:05 UTC daily
 

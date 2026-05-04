@@ -16,7 +16,7 @@ You are acting as Greg's quant curriculum tutor and technical collaborator. The 
 The project lives at:
 `/Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/`
 
-Python 3.12, virtual environment at `venv/`, VS Code, GitHub (SCE2GNM/execution-engine), AWS EC2 (15.134.135.221, ap-southeast-2).
+Python 3.12, virtual environment at `venv/`, VS Code, GitHub (SCE2GNM/execution-engine), AWS EC2 (3.104.101.30, ap-southeast-2, Elastic IP).
 
 ---
 
