@@ -807,6 +807,8 @@ A complete glossary of every meaningful concept introduced during the curriculum
 
 **Per-Strategy Risk Register** — A living document tracking each known risk for a specific strategy, with ID, category, status, priority, description, impact, and fix/rationale. Separate from the master assumptions register. Required before any deployment decision. Items are HIGH (must resolve before deployment), MEDIUM (resolve or formally accept with rationale), or LOW (monitor). Open items remain open until either resolved or superseded. The register is version-controlled alongside the code.
 
+**Leverage as a Strategy Multiplier** — When leverage is available, strategy selection should not be based solely on 1× performance. A strategy with lower raw return but lower drawdown and higher Sortino may support higher safe leverage, producing better final levered returns than a higher-raw-return strategy constrained to lower leverage by its drawdown profile. Example: Strategy A at 60% annual, −40% MaxDD, optimal leverage 1.5× = 90% effective return. Strategy B at 40% annual, −15% MaxDD, optimal leverage 3.0× = 120% effective return. Strategy B wins despite lower raw performance. Implication: Sortino and MaxDD are leverage multipliers — in a leveraged portfolio, maximising Sortino subject to a return floor is a better objective than maximising raw return. Joint optimisation of strategy parameters and leverage simultaneously is the theoretically correct approach. Sequential optimisation (strategy first, leverage second) may miss the global optimum.
+
 ---
 
 ## Concepts Mastered

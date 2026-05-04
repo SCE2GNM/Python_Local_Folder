@@ -48,5 +48,31 @@ Treat all sources critically. Always verify that cited papers use proper out-of-
 
 ---
 
+## Phase 2 — Validation
+
+*(To be documented)*
+
+---
+
+## Phase 3 — Optimisation
+
+### Leverage Screening
+
+**Run after top 20 strategy parameter combinations identified.**
+
+After ranking the top 20 combinations by annual return at 1×:
+
+1. Run a preliminary leverage grid (1.0× to 3.0×, 0.5× steps) for each of the top 20.
+2. Re-rank the top 20 by leveraged annual return, subject to safety buffer ≥ 33%.
+3. If the ranking shifts from the 1× ranking, run full leverage optimisation (1.0×–5.0×, 0.1× steps) on the top 3 combinations.
+4. Final strategy selection is based on leveraged performance, not 1× performance.
+
+**Rationale:** Strategies with lower raw return but lower drawdown and higher Sortino may support higher safe leverage, producing better final returns than a higher-raw-return strategy constrained to lower leverage by its drawdown profile. The 1× winner is not always the leveraged winner.
+
+Low MaxDD and high Sortino are leverage multipliers, not just quality filters — weight them more heavily when leverage is planned. Joint optimisation of strategy parameters and leverage simultaneously is the theoretically correct approach. Sequential optimisation (strategy first, leverage second) may miss the global optimum.
+
+---
+
+*Pipeline version: 1.1 — updated 2026-05-04: added Phase 2/3 stubs; added §Leverage Screening under Phase 3*
 *Pipeline version: 1.0 — created 2026-05-04*
 *Update this document after any process change or post-deployment review.*
