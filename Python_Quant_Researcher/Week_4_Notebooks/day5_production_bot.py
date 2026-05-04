@@ -25,6 +25,7 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 from ta.trend import ADXIndicator
+import requests
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -62,6 +63,62 @@ CANDLES_NEEDED = 50
 
 # State file — bot's memory between daily runs
 STATE_FILE = os.path.join(BASE_DIR, 'data', 'bot_state.json')
+
+# Telegram alerting
+TELEGRAM_TOKEN   = os.getenv('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TELEGRAM ALERTING
+# ══════════════════════════════════════════════════════════════════════════════
+
+def send_telegram(message):
+    """Send a Telegram message. Fails silently if not configured or network error."""
+    if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
+        logger.warning("Telegram not configured — alert not sent")
+        return
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        requests.post(url, json={'chat_id': TELEGRAM_CHAT_ID, 'text': message},
+                      timeout=10)
+        logger.info(f"📱 Telegram sent: {message[:80]}")
+    except Exception as e:
+        logger.warning(f"Telegram send failed: {e}")
+
+
+def check_api_trading_permission(executor):
+    """
+    Verify the API key has trading permission before attempting any order.
+    Uses Binance test order endpoint — validates permission without placing a real order.
+    Returns True if trading is permitted, False if not.
+    """
+    if executor.dry_run:
+        return True
+    try:
+        from binance.exceptions import BinanceAPIException
+        executor.client.create_test_order(
+            symbol   = SYMBOL,
+            side     = 'BUY',
+            type     = 'MARKET',
+            quantity = 0.01
+        )
+        logger.info("✅ API trading permission confirmed")
+        return True
+    except Exception as e:
+        code = getattr(e, 'code', None)
+        if code == -2015:
+            date_str = datetime.now().strftime('%Y-%m-%d')
+            msg = (f"🚨 API TRADING PERMISSION DENIED on {date_str} — "
+                   f"bot cannot trade. Error: {code}. "
+                   f"Go to Binance → API Management → enable 'Spot & Margin Trading'.")
+            logger.error(msg)
+            send_telegram(msg)
+            return False
+        # Any other error (e.g. MIN_NOTIONAL, LOT_SIZE) means permission IS granted
+        # — the test order was rejected on order validation, not on key permission
+        logger.info(f"✅ API trading permission confirmed (test order filter: {getattr(e, 'code', e)})")
+        return True
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # STATE MANAGEMENT
@@ -253,6 +310,10 @@ def place_stop_loss(executor, quantity, entry_price, stop_pct=0.05):
         }
     except Exception as e:
         logger.error(f"❌ Stop-loss placement failed: {e}")
+        send_telegram(
+            f"🚨 STOP-LOSS FAILED on {datetime.now().strftime('%Y-%m-%d')}: {e}. "
+            f"Position is OPEN with NO STOP PROTECTION. Intervene immediately."
+        )
         return None
 
 def cancel_stop_loss(executor, order_id):
@@ -273,6 +334,10 @@ def cancel_stop_loss(executor, order_id):
         logger.info(f"✅ Stop-loss order {order_id} cancelled")
     except Exception as e:
         logger.warning(f"Could not cancel stop-loss {order_id}: {e}")
+        send_telegram(
+            f"⚠️ STOP-LOSS CANCEL FAILED on {datetime.now().strftime('%Y-%m-%d')}: {e}. "
+            f"Order {order_id} may still be active. Check for duplicate sell orders on Binance."
+        )
 
 def check_stop_loss_triggered(executor, state):
     """
@@ -300,6 +365,11 @@ def check_stop_loss_triggered(executor, state):
             logger.warning(f"   Entry: ${state['entry_price']:,.2f}")
             logger.warning(f"   Fill:  ${fill_price:,.2f}")
             logger.warning(f"   P&L:   {pnl_pct:.2%}")
+            send_telegram(
+                f"🛑 STOP-LOSS HIT on {datetime.now().strftime('%Y-%m-%d')}: "
+                f"Entry ${state['entry_price']:,.2f} → Fill ${fill_price:,.2f} "
+                f"({pnl_pct:+.2%}). Position closed. Now FLAT."
+            )
             return True
         return False
     except Exception as e:
@@ -332,6 +402,11 @@ def run():
         dry_run     = DRY_RUN,
         use_testnet = USE_TESTNET
     )
+
+    # ── Step 2b: Verify API trading permission ────────────────────────────────
+    # Alerts immediately via Telegram if key lacks trading permission.
+    # Does not abort — continues to log balance/signal for diagnostic value.
+    check_api_trading_permission(executor)
 
     # ── Step 3: Get account balance ───────────────────────────────────────────
     usdt_balance = executor.get_balance('USDT')   # [VARIABLE - float]
@@ -415,6 +490,17 @@ def run():
                 logger.info(f"✅ LONG entered: {eth_bought:.5f} ETH @ ${entry_price:,.2f}")
                 logger.info(f"   Stop-loss: ${state['stop_loss_price']:,.2f} "
                             f"(-{RISK_CONFIG['stop_loss_pct']:.0%})")
+                send_telegram(
+                    f"✅ BUY EXECUTED on {datetime.now().strftime('%Y-%m-%d')}: "
+                    f"{eth_bought:.4f} ETH @ ${entry_price:,.2f}. "
+                    f"Stop at ${state['stop_loss_price']:,.2f}."
+                )
+            else:
+                send_telegram(
+                    f"🚨 BUY FAILED on {datetime.now().strftime('%Y-%m-%d')}: "
+                    f"Could not enter LONG. ADX={signal_data['adx']:.1f}. "
+                    f"Check Binance API — trading permission may be disabled."
+                )
 
     elif position == 'LONG' and signal == 'FLAT':
         # ── EXIT ──────────────────────────────────────────────────────────────
@@ -440,6 +526,17 @@ def run():
             state = DEFAULT_STATE.copy()
             state['position'] = 'FLAT'
             save_state(state)
+            send_telegram(
+                f"✅ SELL EXECUTED on {datetime.now().strftime('%Y-%m-%d')}: "
+                f"Closed @ ${exit_price:,.2f} | "
+                f"P&L: {pnl_pct:+.2%} (${pnl_usd:+,.2f}). Now FLAT."
+            )
+        else:
+            send_telegram(
+                f"🚨 SELL FAILED on {datetime.now().strftime('%Y-%m-%d')}: "
+                f"Could not exit LONG position (entry ${state['entry_price']:,.2f}). "
+                f"Stop-loss may be cancelled. Check Binance immediately."
+            )
 
     elif position == 'LONG' and signal == 'LONG':
         # ── HOLD ──────────────────────────────────────────────────────────────
@@ -459,6 +556,15 @@ def run():
     logger.info("─" * 65)
     rm.get_status(current_balance=portfolio)
     logger.info("=" * 65)
+
+    # ── Step 9: Daily health check Telegram ──────────────────────────────────
+    # Sent every run regardless of outcome. If this message doesn't arrive
+    # by 00:10 UTC, the bot did not run — investigate cron and EC2 health.
+    send_telegram(
+        f"✅ Bot ran {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}: "
+        f"Signal={signal}, Position={position}, "
+        f"Balance=${usdt_balance:,.2f} USDT | ${portfolio:,.2f} total"
+    )
 
 if __name__ == '__main__':
     run()
