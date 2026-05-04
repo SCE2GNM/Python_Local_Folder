@@ -207,10 +207,11 @@ def place_stop_loss(executor, quantity, entry_price, stop_pct=0.05):
     This is placed IMMEDIATELY after buying ETH.
     It lives on Binance's servers — fires automatically even if our bot crashes.
 
-    The stop-loss is a STOP_LOSS_LIMIT order:
-        Stop price:  entry_price × (1 - stop_pct)   e.g. $2,000 × 0.95 = $1,900
-        Limit price: stop_price × 0.99               e.g. $1,900 × 0.99 = $1,881
-                     (slightly below stop to ensure fill)
+    The stop-loss is a STOP_LOSS (market) order:
+        Stop price: entry_price × (1 - stop_pct)   e.g. $2,000 × 0.95 = $1,900
+        When triggered, executes at best available market price.
+        Guaranteed exit — no limit price, no risk of order sitting unfilled
+        if price gaps past a limit level.
 
     Args:
         executor    [TradingExecutor]: our executor
@@ -222,11 +223,9 @@ def place_stop_loss(executor, quantity, entry_price, stop_pct=0.05):
         dict: order details including order_id
         None: if DRY_RUN or failed
     """
-    stop_price  = round(entry_price * (1 - stop_pct), 2)  # [VARIABLE - float]
-    limit_price = round(stop_price * 0.99, 2)              # [VARIABLE - float] fill buffer
+    stop_price = round(entry_price * (1 - stop_pct), 2)  # [VARIABLE - float]
 
-    logger.info(f"Placing stop-loss: {quantity} ETH | "
-                f"Stop: ${stop_price:,.2f} | Limit: ${limit_price:,.2f}")
+    logger.info(f"Placing stop-loss: {quantity} ETH | Stop: ${stop_price:,.2f}")
 
     if executor.dry_run:
         logger.info("DRY RUN — Stop-loss simulated, not placed on Binance")
@@ -234,27 +233,23 @@ def place_stop_loss(executor, quantity, entry_price, stop_pct=0.05):
             'dry_run':    True,
             'order_id':   'DRY_RUN_STOP',
             'stop_price': stop_price,
-            'limit_price': limit_price,
             'quantity':   quantity
         }
 
     try:
         from binance.exceptions import BinanceAPIException
         order = executor.client.create_order(
-            symbol      = executor.symbol,
-            side        = 'SELL',
-            type        = 'STOP_LOSS_LIMIT',
-            timeInForce = 'GTC',             # Good Till Cancelled — stays until filled
-            quantity    = quantity,
-            stopPrice   = str(stop_price),
-            price       = str(limit_price)
+            symbol    = executor.symbol,
+            side      = 'SELL',
+            type      = 'STOP_LOSS',
+            quantity  = quantity,
+            stopPrice = str(stop_price)
         )
         logger.info(f"✅ Stop-loss order placed on Binance: ID {order['orderId']}")
         return {
-            'order_id':    order['orderId'],
-            'stop_price':  stop_price,
-            'limit_price': limit_price,
-            'quantity':    quantity
+            'order_id':   order['orderId'],
+            'stop_price': stop_price,
+            'quantity':   quantity
         }
     except Exception as e:
         logger.error(f"❌ Stop-loss placement failed: {e}")
@@ -296,7 +291,10 @@ def check_stop_loss_triggered(executor, state):
             orderId = state['stop_loss_order_id']
         )
         if order['status'] == 'FILLED':
-            fill_price = float(order['price'])
+            # STOP_LOSS market orders fill at market price; order['price'] is 0.
+            # Actual fill price = total quote spent / total base filled.
+            fill_price = (float(order['cummulativeQuoteQty']) /
+                          float(order['executedQty']))
             pnl_pct    = (fill_price - state['entry_price']) / state['entry_price']
             logger.warning(f"🛑 STOP-LOSS TRIGGERED overnight!")
             logger.warning(f"   Entry: ${state['entry_price']:,.2f}")

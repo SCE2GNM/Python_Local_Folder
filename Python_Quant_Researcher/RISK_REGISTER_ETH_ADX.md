@@ -271,6 +271,7 @@ deployment. This is a prerequisite for leveraged ETH ADX live trading.
 | A006 | Parameters not re-optimised after adding stop-loss | Joint optimisation complete; live ADX 20/10 + 5% stop acceptable; best combo noted | Week 5 Day 3 | 2026-04-07 |
 | A007 | Portfolio-level simulator not built | Portfolio simulator built; 5 sizing strategies compared; Kelly confirmed | Week 5 Day 2 | 2026-04-07 |
 | A011 | Fixed stop-loss not trailing; trailing stop not backtested | Stage 1 complete (Week 6). ATR trailing stop (ADX 19/9, ATR 9/2.5x) outperforms fixed stop on all metrics: Calmar 2.642 vs 2.013, Max DD −27.8% vs −31.6%, 0.15% round-trip costs included. Percentage trail 8% is close second. Deployment recommendation: ATR 9/2.5x primary, pct 8% secondary. | Week 6 Stage 1d | 2026-05-01 |
+| A017 | Live bot used STOP_LOSS_LIMIT since deployment 2026-04-04 | STOP_LOSS_LIMIT creates gap risk: if ETH price gaps below the limit price during a crash, the stop order does not fill and the position remains open with no protection. Fixed 2026-05-04: changed to STOP_LOSS (market execution on trigger) — guaranteed exit at best available price. Also fixed fill price read in check_stop_loss_triggered (market orders return price=0; actual fill = cummulativeQuoteQty / executedQty). Deployed to EC2 and confirmed live. | Week 6 / 2026-05-04 |
 
 ---
 
