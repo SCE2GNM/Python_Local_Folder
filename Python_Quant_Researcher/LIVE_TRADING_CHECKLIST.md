@@ -89,6 +89,12 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
   Quarterly automated review mandatory minimum.
   Annual full parameter re-evaluation mandatory.
 
+- [ ] Stop-loss order type confirmed as stop-market (guaranteed execution) not
+  stop-limit (execution not guaranteed if price gaps past limit). On Binance
+  use type="STOP_LOSS" which executes as a market order on trigger.
+  STOP_LOSS_LIMIT is incorrect for this strategy — price gaps can leave the
+  order unfilled, leaving full position exposure until the next candle close.
+
 ---
 
 ## 4. Capital and Margin
@@ -189,6 +195,7 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
+*Template version: 1.6 — updated 2026-05-04: added stop order type requirement (STOP_LOSS not STOP_LOSS_LIMIT) to §3 Bot Mechanics*
 *Template version: 1.5 — updated 2026-05-04: added categorical liquidation check and margin ratio alert items to §4 Capital and Margin*
 *Template version: 1.4 — updated 2026-05-04: added §6 Pre-Deployment Critical Review (8 items: code review, stress test, equity curve, risk register, regime acknowledgement, parameter check, slippage buffer, leverage factor of safety)*
 *Template version: 1.3 — updated 2026-05-03: added equity curve construction verification item; added interactive HTML chart requirement; updated automated monitoring wording*
