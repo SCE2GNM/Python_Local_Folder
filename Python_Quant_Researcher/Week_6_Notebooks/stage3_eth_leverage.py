@@ -12,6 +12,7 @@ Borrowed: (leverage-1) × own equity at trade entry (fixed for duration)
 Liquidation price: entry × (leverage-1) / (leverage × (1-maintenance_margin))
   → price at which margin_ratio = maintenance_margin = 5%
   → margin_ratio = 1 - (leverage-1)×entry / (leverage×current_price)
+Signal logic: ADX >= threshold & +DI > -DI  (matches Stage 1b exactly — no SMA filter)
 Stop slippage:  0.25% below intended stop price
 Liq slippage:   0.5% below liquidation price
 Safety buffer:  minimum margin ratio across all bars while in any position (using daily LOW)
@@ -69,8 +70,8 @@ def get_signals(adx_thresh, adx_per):
     adx      = ind.adx().values
     plus_di  = ind.adx_pos().values
     minus_di = ind.adx_neg().values
-    sma200   = eth['Close'].rolling(200).mean().values
-    return (closes > sma200) & (adx > adx_thresh) & (plus_di > minus_di)
+    # No SMA filter — matches Stage 1b signal logic exactly (adx >= thresh & +DI > -DI)
+    return (adx >= adx_thresh) & (plus_di > minus_di)
 
 def get_atr(period):
     prev = eth['Close'].shift(1)
