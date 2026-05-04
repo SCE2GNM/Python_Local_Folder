@@ -161,24 +161,40 @@ print(f"1.9×: {ann19*100:.1f}%/yr  MaxDD {maxdd19:.1f}%  ({len(t19)} trades)")
 print(f"1.0×: {ann10*100:.1f}%/yr  MaxDD {maxdd10:.1f}%  ({len(t10)} trades)")
 print(f"ETH:  {ann_bh*100:.1f}%/yr  MaxDD {maxdd_bh:.1f}%")
 
-# ── Entry / exit marker coordinates on 1.9x curve ────────────────────────────
+# ── Entry / exit marker coordinates — both curves ────────────────────────────
 date_to_i = {dt: i for i, dt in enumerate(dates)}
-entry_x, entry_y = [], []
-adx_x,   adx_y   = [], []
-stop_x,  stop_y  = [], []
+
+entry_x19, entry_y19 = [], []
+adx_x19,   adx_y19   = [], []
+stop_x19,  stop_y19  = [], []
 
 for t in t19:
     ei = date_to_i.get(pd.Timestamp(t['entry_date']))
     xi = date_to_i.get(pd.Timestamp(t['exit_date']))
     if ei is not None:
-        entry_x.append(dates[ei]); entry_y.append(float(eq19[ei]))
+        entry_x19.append(dates[ei]); entry_y19.append(float(eq19[ei]))
     if xi is not None:
         if t['exit_reason'] == 'ADX_EXIT':
-            adx_x.append(dates[xi]); adx_y.append(float(eq19[xi]))
-        else:  # TRAIL_STOP or LIQUIDATION
-            stop_x.append(dates[xi]); stop_y.append(float(eq19[xi]))
+            adx_x19.append(dates[xi]); adx_y19.append(float(eq19[xi]))
+        else:
+            stop_x19.append(dates[xi]); stop_y19.append(float(eq19[xi]))
 
-n_entries = len(entry_x); n_adx = len(adx_x); n_stop = len(stop_x)
+entry_x10, entry_y10 = [], []
+adx_x10,   adx_y10   = [], []
+stop_x10,  stop_y10  = [], []
+
+for t in t10:
+    ei = date_to_i.get(pd.Timestamp(t['entry_date']))
+    xi = date_to_i.get(pd.Timestamp(t['exit_date']))
+    if ei is not None:
+        entry_x10.append(dates[ei]); entry_y10.append(float(eq10[ei]))
+    if xi is not None:
+        if t['exit_reason'] == 'ADX_EXIT':
+            adx_x10.append(dates[xi]); adx_y10.append(float(eq10[xi]))
+        else:
+            stop_x10.append(dates[xi]); stop_y10.append(float(eq10[xi]))
+
+n_entries = len(entry_x19); n_adx = len(adx_x19); n_stop = len(stop_x19)
 
 # ── Custom hover data (list-of-lists supports mixed types in Plotly) ──────────
 dates_list = list(dates)
@@ -240,43 +256,54 @@ fig.add_trace(go.Scatter(
     ),
 ), row=1, col=1)
 
-# — Entry markers —
+# — Markers: 1.9× curve —
 fig.add_trace(go.Scatter(
-    x=entry_x, y=entry_y,
-    mode='markers',
-    name=f'Entry ×{n_entries}',
-    marker=dict(symbol='triangle-up', size=9, color='#2ecc71',
-                line=dict(color='#1a7a36', width=1)),
-    hovertemplate=(
-        '<b>▲ ENTRY</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×'
-        '<extra></extra>'
-    ),
+    x=entry_x19, y=entry_y19, mode='markers',
+    name=f'▲ Entry ×{n_entries}',
+    marker=dict(symbol='triangle-up', size=5, opacity=0.55, color='#2ecc71',
+                line=dict(color='#1a7a36', width=0.5)),
+    hovertemplate='<b>▲ ENTRY (1.9×)</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×<extra></extra>',
 ), row=1, col=1)
 
-# — ADX exit markers (red) —
 fig.add_trace(go.Scatter(
-    x=adx_x, y=adx_y,
-    mode='markers',
-    name=f'ADX Exit ×{n_adx}',
-    marker=dict(symbol='triangle-down', size=9, color='#e74c3c',
-                line=dict(color='#8b0000', width=1)),
-    hovertemplate=(
-        '<b>▼ EXIT (signal)</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×'
-        '<extra></extra>'
-    ),
+    x=adx_x19, y=adx_y19, mode='markers',
+    name=f'▼ ADX Exit ×{n_adx}',
+    marker=dict(symbol='triangle-down', size=5, opacity=0.55, color='#e74c3c',
+                line=dict(color='#8b0000', width=0.5)),
+    hovertemplate='<b>▼ EXIT signal (1.9×)</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×<extra></extra>',
 ), row=1, col=1)
 
-# — Stop exit markers (orange) —
 fig.add_trace(go.Scatter(
-    x=stop_x, y=stop_y,
-    mode='markers',
-    name=f'Stop Exit ×{n_stop}',
-    marker=dict(symbol='triangle-down', size=9, color='#e67e22',
-                line=dict(color='#7d3c00', width=1)),
-    hovertemplate=(
-        '<b>▼ EXIT (stop)</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×'
-        '<extra></extra>'
-    ),
+    x=stop_x19, y=stop_y19, mode='markers',
+    name=f'▼ Stop Exit ×{n_stop}',
+    marker=dict(symbol='triangle-down', size=5, opacity=0.55, color='#e67e22',
+                line=dict(color='#7d3c00', width=0.5)),
+    hovertemplate='<b>▼ EXIT stop (1.9×)</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×<extra></extra>',
+), row=1, col=1)
+
+# — Markers: 1.0× curve (same dates, different y-values; legend hidden to avoid duplication) —
+fig.add_trace(go.Scatter(
+    x=entry_x10, y=entry_y10, mode='markers',
+    name='▲ Entry (1.0×)', showlegend=False,
+    marker=dict(symbol='triangle-up', size=5, opacity=0.55, color='#2ecc71',
+                line=dict(color='#1a7a36', width=0.5)),
+    hovertemplate='<b>▲ ENTRY (1.0×)</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×<extra></extra>',
+), row=1, col=1)
+
+fig.add_trace(go.Scatter(
+    x=adx_x10, y=adx_y10, mode='markers',
+    name='▼ ADX Exit (1.0×)', showlegend=False,
+    marker=dict(symbol='triangle-down', size=5, opacity=0.55, color='#e74c3c',
+                line=dict(color='#8b0000', width=0.5)),
+    hovertemplate='<b>▼ EXIT signal (1.0×)</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×<extra></extra>',
+), row=1, col=1)
+
+fig.add_trace(go.Scatter(
+    x=stop_x10, y=stop_y10, mode='markers',
+    name='▼ Stop Exit (1.0×)', showlegend=False,
+    marker=dict(symbol='triangle-down', size=5, opacity=0.55, color='#e67e22',
+                line=dict(color='#7d3c00', width=0.5)),
+    hovertemplate='<b>▼ EXIT stop (1.0×)</b><br>%{x|%Y-%m-%d}<br>Portfolio: %{y:.3f}×<extra></extra>',
 ), row=1, col=1)
 
 # — Drawdown panel —
