@@ -95,6 +95,26 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
   STOP_LOSS_LIMIT is incorrect for this strategy — price gaps can leave the
   order unfilled, leaving full position exposure until the next candle close.
 
+- [ ] Silent failure prevention confirmed: bot sends Telegram alert on ANY
+  failed order (buy, sell, stop-loss placement, stop-loss cancellation).
+  No exception should fail silently. Verify by checking the except blocks
+  in the bot code — every one must call send_telegram().
+
+- [ ] Daily health check Telegram message configured: bot sends one status
+  message per run (signal, position, balance) regardless of whether it
+  traded. If message is not received by 00:10 UTC, investigate immediately —
+  absence means bot did not run, not that nothing happened.
+
+- [ ] Pre-flight API permission check: bot calls create_test_order() at
+  startup to verify trading permissions before attempting any real order.
+  If permission denied (-2015), immediate Telegram alert sent. Confirmed in
+  code: check_api_trading_permission() runs before balance fetch each day.
+
+- [ ] Post-deployment verification: after any deployment, monitor for at
+  least 3 consecutive successful Telegram health check messages before
+  considering deployment complete. Silence does not mean success — it may
+  mean the bot is not running or Telegram is misconfigured.
+
 ---
 
 ## 4. Capital and Margin
@@ -195,6 +215,7 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
+*Template version: 1.7 — updated 2026-05-04: added silent failure prevention, daily health check, API permission check, and post-deployment verification items to §3 Bot Mechanics*
 *Template version: 1.6 — updated 2026-05-04: added stop order type requirement (STOP_LOSS not STOP_LOSS_LIMIT) to §3 Bot Mechanics*
 *Template version: 1.5 — updated 2026-05-04: added categorical liquidation check and margin ratio alert items to §4 Capital and Margin*
 *Template version: 1.4 — updated 2026-05-04: added §6 Pre-Deployment Critical Review (8 items: code review, stress test, equity curve, risk register, regime acknowledgement, parameter check, slippage buffer, leverage factor of safety)*
