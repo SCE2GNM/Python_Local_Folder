@@ -281,6 +281,19 @@ WEEK_[N]_RESEARCH_BRIEF.md (current week)
 
 ---
 
+## Compute Resources — Upgrade Review Schedule
+
+**Week 10 (Machine Learning):** Review whether Google Colab is needed for Random Forest and XGBoost model training. 8GB MacBook M3 may be sufficient but ML training is CPU and RAM intensive. Use Colab (free) if local training takes >30 minutes per model. No hardware purchase needed — cloud is the right solution.
+
+**Week 13 (Professional Backtesting):** Review whether EC2 is needed for large-scale backtests. If moving to minute-level intraday data or running grids exceeding 50,000 combinations, run on EC2 overnight rather than blocking local Mac. EC2 c5.2xlarge (8 vCPUs, 16GB RAM) costs ~$0.34/hour — a 6-hour computation costs ~$2.
+
+**Week 20+ (HFT/Low-Latency):** Dedicated cloud infrastructure will be required. Local MacBook is not suitable for latency-sensitive execution. Review co-location options and cloud exchange connectivity at that point.
+
+**General rule:** Before any computation that will take more than 2 hours on local Mac, consider running on EC2 instead. The Mac stays free and EC2 cost is negligible.
+
+---
+
+*Version 1.1 — updated 2026-05-04: added Compute Resources section*
 *Version 1.0 — created Week 6, 2026-05-04*
 *Update this document when processes change.*
 *Never update mid-week — only at week boundaries.*

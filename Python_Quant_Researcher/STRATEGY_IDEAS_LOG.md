@@ -148,3 +148,26 @@ Three research directions:
 (3) Combined portfolio of trend + mean reversion — running trend alongside mean reversion should smooth cross-regime performance. In bear/recovery regimes the mean reversion strategy earns while trend is flat/negative; in sustained bull runs the trend strategy earns while mean reversion chops. Test formally in Week 9 using correlation of returns between ETH ADX and ETH RSI strategies already live.
 
 Priority below SI003 because the mean reversion component (ETH RSI) is already deployed — the incremental value is in the BTC application and the Week 9 portfolio combination analysis.
+
+---
+
+### SI005 — Cloud Compute Review Schedule
+
+| Field | Value |
+|---|---|
+| **ID** | SI005 |
+| **Name** | Cloud Compute Review Schedule |
+| **Type** | Infrastructure |
+| **Source** | Week 6 planning |
+| **Priority** | HIGH |
+| **Target Week** | Weeks 10, 13, 20 |
+| **Date Added** | 2026-05-04 |
+
+**Notes:**
+Review compute requirements at scheduled milestones. MacBook M3 8GB is sufficient for daily candle backtesting through at least Week 12. Do not upgrade hardware — use cloud services instead.
+
+- **Week 10 (ML training):** Consider Google Colab (free) if local Random Forest / XGBoost training takes >30 minutes per model.
+- **Week 13 (large backtests):** Consider EC2 overnight runs for grids >50,000 combinations or minute-level intraday data. EC2 already available at 15.134.135.221.
+- **Week 20+ (HFT):** Dedicated cloud infrastructure required. Local MacBook not suitable for latency-sensitive execution. Review co-location and cloud exchange connectivity at that point.
+
+General rule: any computation expected to take >2 hours on local Mac should run on EC2 instead. EC2 c5.2xlarge (8 vCPUs, 16GB RAM) costs ~$0.34/hour — a 6-hour run costs ~$2. Google Colab free for ML workloads.
