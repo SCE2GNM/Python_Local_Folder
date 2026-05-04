@@ -171,3 +171,24 @@ Review compute requirements at scheduled milestones. MacBook M3 8GB is sufficien
 - **Week 20+ (HFT):** Dedicated cloud infrastructure required. Local MacBook not suitable for latency-sensitive execution. Review co-location and cloud exchange connectivity at that point.
 
 General rule: any computation expected to take >2 hours on local Mac should run on EC2 instead. EC2 c5.2xlarge (8 vCPUs, 16GB RAM) costs ~$0.34/hour — a 6-hour run costs ~$2. Google Colab free for ML workloads.
+
+---
+
+### SI006 — Multi-Exchange Execution for Large Positions
+
+| Field | Value |
+|---|---|
+| **ID** | SI006 |
+| **Name** | Multi-Exchange Execution for Large Positions |
+| **Type** | Infrastructure |
+| **Source** | Week 6 observation |
+| **Priority** | LOW |
+| **Target Week** | Week 18–20 |
+| **Date Added** | 2026-05-04 |
+
+**Notes:**
+When single position size exceeds $5,000–$10,000, consider splitting execution across Binance (primary) and Coinbase/Kraken (secondary) to reduce exchange outage risk. Binance documented infrastructure failures during the October 2025 crash ($683M total compensation paid to affected users). At current position sizes (<$1,500 per strategy), the operational complexity of multi-exchange execution is not justified — a single exchange outage would cost less than the overhead of maintaining dual exchange connectivity.
+
+Not worth implementing until position sizes grow to the $5,000–$10,000 range where exchange outage risk becomes material relative to the engineering cost.
+
+Review at Week 18–20 (Docker/infrastructure professionalisation phase) when bot architecture is being rebuilt for production. At that point, assess: whether position sizes have grown to the threshold, whether Binance outage history since Week 6 warrants earlier action, and whether Coinbase or Kraken APIs are sufficiently compatible with existing bot logic to justify dual-exchange support.
