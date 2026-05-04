@@ -101,6 +101,11 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 - [ ] For leveraged strategies: liquidation price calculated and documented below
 - [ ] For leveraged strategies: safety buffer confirmed ≥25% above liquidation at entry
 - [ ] For leveraged strategies: current borrow interest rate confirmed on Binance Margin Data page
+- [ ] Margin buy order uses `sideEffectType="MARGIN_BUY"` to explicitly borrow at entry. Without this parameter the order executes as unleveraged even on a margin account.
+- [ ] Margin sell order uses `sideEffectType="AUTO_REPAY"` to repay loan and accrued interest simultaneously at exit.
+- [ ] Bot state file records `borrowed_amount` at entry for post-exit verification.
+- [ ] Post-exit verification: bot queries margin account after every close to confirm outstanding loan balance = zero. If non-zero, send immediate Telegram alert with loan balance amount.
+- [ ] Telegram alert configured for any margin account anomaly: failed borrow, failed repay, residual loan balance, margin ratio approaching 33% buffer.
 
 **Leverage documentation (complete if applicable):**
 
