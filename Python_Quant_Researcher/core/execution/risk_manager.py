@@ -124,7 +124,7 @@ class RiskManager:
 
         logger.info(f"RiskManager initialised")
         logger.info(f"  Initial balance:    ${initial_balance:,.2f}")
-        logger.info(f"  Position size:      {self.position_pct:.0%} of available USDT")
+        logger.info(f"  Kelly fraction:     {self.position_pct:.2%} of capital to RISK per trade")
         logger.info(f"  Stop loss:          {self.stop_loss_pct:.0%} per trade")
         logger.info(f"  Max daily loss:     {self.max_daily_loss_pct:.0%} of account")
         logger.info(f"  Max drawdown:       {self.max_drawdown_pct:.0%} from peak")
@@ -159,13 +159,18 @@ class RiskManager:
         """
         [METHOD] Calculate how much USDT to deploy in the next trade.
 
-        Uses percentage of available balance so positions scale with
-        account size — this is what enables compounding.
+        Kelly fraction is the fraction of capital to RISK per trade, not to deploy.
+        Correct formula: position_size = (Kelly% × capital) / stop%
+        This ensures maximum possible loss = Kelly% × capital regardless of stop distance.
+
+        The $5 fee buffer ensures the order fits within available balance after fees.
+        Update stop_loss_pct when stop type changes (e.g. fixed 5% → trail 8%).
 
         Example:
-            $1,000 account, position_pct=0.95 → trade $950
-            $1,500 account, position_pct=0.95 → trade $1,425
-            $800  account, position_pct=0.95 → trade $760
+            $1,000 account, Kelly=12.41%, stop=5%:
+                risk   = 0.1241 × $1,000   = $124.10
+                size   = $124.10 / 0.05    = $2,482  → capped at $995 ($1,000 - $5 buffer)
+                max loss = $995 × 5%       = $49.75  ≈ 4.975% of capital (unleveraged cap)
 
         Args:
             usdt_balance [float]: Available USDT balance
@@ -174,11 +179,13 @@ class RiskManager:
             float: USDT amount to use for the trade
         """
         # Kelly fraction is the fraction of capital to RISK, not to deploy.
-        # Correct size = risk_amount / stop_pct, capped at available balance.
+        # Size = risk / stop_pct, capped at (balance - $5 fee buffer).
         risk_amount   = self.position_pct * usdt_balance
-        position_size = min(usdt_balance, risk_amount / self.stop_loss_pct)
+        fee_buffer    = 5.0
+        position_size = min(usdt_balance - fee_buffer, risk_amount / self.stop_loss_pct)
         logger.info(f"Position size: ${position_size:,.2f} "
-                    f"(Kelly risk ${risk_amount:,.2f} / stop {self.stop_loss_pct:.0%})")
+                    f"(Kelly risk ${risk_amount:,.2f} / stop {self.stop_loss_pct:.0%}, "
+                    f"cap ${usdt_balance - fee_buffer:.2f})")
         return position_size
 
     # ── Stop Loss Calculator ──────────────────────────────────────────────────

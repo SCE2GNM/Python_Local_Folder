@@ -462,7 +462,10 @@ def run():
         if not can_trade:
             logger.warning(f"🛑 TRADE BLOCKED by RiskManager: {reason}")
         else:
-            # Kelly position sizing (size = Kelly_risk / stop_pct, capped at balance)
+            # Kelly sizing: risk Kelly_fraction of capital
+            # Position size = (Kelly% × capital) / stop%
+            # This ensures maximum loss = Kelly% × capital
+            # regardless of stop distance
             position_usdt = rm.calculate_position_size(usdt_balance=usdt_balance)
 
             # Execute buy
