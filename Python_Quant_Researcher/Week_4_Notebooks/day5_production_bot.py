@@ -462,10 +462,8 @@ def run():
         if not can_trade:
             logger.warning(f"🛑 TRADE BLOCKED by RiskManager: {reason}")
         else:
-            # Kelly position sizing
+            # Kelly position sizing (size = Kelly_risk / stop_pct, capped at balance)
             position_usdt = rm.calculate_position_size(usdt_balance=usdt_balance)
-            logger.info(f"Position size: ${position_usdt:,.2f} "
-                        f"(Kelly 12.41% of ${usdt_balance:,.2f})")
 
             # Execute buy
             buy_result = executor.execute_buy(amount_usdt=position_usdt)

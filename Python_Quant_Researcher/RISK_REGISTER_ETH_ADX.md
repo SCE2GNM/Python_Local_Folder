@@ -4,7 +4,7 @@
 **Asset / Exchange:** ETHUSDT / Binance Spot (unleveraged → leveraged planned)
 **Version:** v2.0 (trailing stop)
 **Date created:** 2026-03-20
-**Last updated:** 2026-05-04
+**Last updated:** 2026-05-05
 **Updated by:** Greg + Claude
 
 ---
@@ -273,6 +273,7 @@ deployment. This is a prerequisite for leveraged ETH ADX live trading.
 | A011 | Fixed stop-loss not trailing; trailing stop not backtested | Stage 1 complete (Week 6). ATR trailing stop (ADX 19/9, ATR 9/2.5x) outperforms fixed stop on all metrics: Calmar 2.642 vs 2.013, Max DD −27.8% vs −31.6%, 0.15% round-trip costs included. Percentage trail 8% is close second. Deployment recommendation: ATR 9/2.5x primary, pct 8% secondary. | Week 6 Stage 1d | 2026-05-01 |
 | A017 | Live bot used STOP_LOSS_LIMIT since deployment 2026-04-04 | STOP_LOSS_LIMIT creates gap risk: if ETH price gaps below the limit price during a crash, the stop order does not fill and the position remains open with no protection. Fixed 2026-05-04: changed to STOP_LOSS (market execution on trigger) — guaranteed exit at best available price. Also fixed fill price read in check_stop_loss_triggered (market orders return price=0; actual fill = cummulativeQuoteQty / executedQty). Deployed to EC2 and confirmed live. | Week 6 / 2026-05-04 |
 | A018 | No Telegram alert on failed order execution — silent failures unreported | Bot deployed 2026-04-04 with no Telegram alert on failed buy/sell/stop orders. Silent failure discovered 2026-05-04: 23 consecutive failed buy attempts (Apr 12 – May 4) went unreported. ADX signal was LONG from Apr 10 at ~$2,245; current price $2,355 (+4.9% missed). Root cause: Binance API key missing "Enable Spot & Margin Trading" permission. Secondary cause: no order-failure alert in bot. Fixed 2026-05-04: (1) Telegram alerts added for all failed orders and all successful trades; (2) daily health check message sent every run; (3) startup API permission check added using create_test_order; (4) API key recreated with trading permission enabled. | Week 6 / 2026-05-04 |
+| A019 | Position sizing used Kelly fraction as SIZE not RISK — deployed only 12.41% of capital per trade | `calculate_position_size` in `risk_manager.py` computed `usdt_balance × position_pct` (= Kelly fraction × balance = $124), treating Kelly as a deployment fraction. Correct formula: `min(usdt_balance, (position_pct × usdt_balance) / stop_pct)` = min($1000, $2482) = $1000. Kelly fraction is the fraction of capital to RISK, not deploy. Risk = position × stop_pct; rearranged: position = Kelly_risk / stop_pct. Discovered 2026-05-05 after first live trade deployed $124 instead of $1000. Fixed 2026-05-05: `risk_manager.py` formula corrected and deployed to EC2. Position manually topped up via emergency buy (0.367 ETH @ $2370.97). New blended entry $2368.52, stop $2250.09 (order 46346312221), 0.419 ETH total. | Week 6 / 2026-05-05 | RESOLVED |
 
 ---
 

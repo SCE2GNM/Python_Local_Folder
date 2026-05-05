@@ -56,9 +56,10 @@ logger = logging.getLogger(__name__)     # [OBJECT] our logger instance
 
 RISK_CONFIG = {                          # [VARIABLE - dict] risk parameters
 
-    # Position sizing
-    'position_pct':      0.1241,           # Use 95% of available USDT per trade
-                                         # (keep 5% as buffer for fees)
+    # Position sizing — Kelly fraction (fraction of capital to RISK per trade)
+    # Position size = (position_pct × capital) / stop_loss_pct, capped at balance
+    # e.g. Kelly 12.41%, stop 5%: risk=$124, size=$2,482 → capped at $1,000
+    'position_pct':      0.1241,
 
     # Per-trade stop loss
     'stop_loss_pct':     0.05,           # Exit trade if price drops 5%
@@ -172,9 +173,12 @@ class RiskManager:
         Returns:
             float: USDT amount to use for the trade
         """
-        position_size = usdt_balance * self.position_pct  # [VARIABLE - float]
+        # Kelly fraction is the fraction of capital to RISK, not to deploy.
+        # Correct size = risk_amount / stop_pct, capped at available balance.
+        risk_amount   = self.position_pct * usdt_balance
+        position_size = min(usdt_balance, risk_amount / self.stop_loss_pct)
         logger.info(f"Position size: ${position_size:,.2f} "
-                    f"({self.position_pct:.0%} of ${usdt_balance:,.2f})")
+                    f"(Kelly risk ${risk_amount:,.2f} / stop {self.stop_loss_pct:.0%})")
         return position_size
 
     # ── Stop Loss Calculator ──────────────────────────────────────────────────
