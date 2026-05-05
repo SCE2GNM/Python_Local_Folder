@@ -73,6 +73,56 @@ Low MaxDD and high Sortino are leverage multipliers, not just quality filters �
 
 ---
 
+## Phase 4 — Stability Analysis
+
+*(To be documented)*
+
+---
+
+## Phase 5 — Walk-Forward Validation
+
+*(To be documented)*
+
+---
+
+## Phase 6 — Deployment Decision
+
+### Position Sizing — Kelly Criterion
+
+Kelly fraction f* is the **risk fraction per trade** — the maximum possible loss as a percentage of total capital. It is not the fraction of capital to deploy as position size.
+
+**Correct formula:**
+
+```
+Position size = (f* × Capital) / Stop loss %
+```
+
+This ensures: `Position × Stop% = f* × Capital`
+i.e. maximum loss = Kelly fraction of capital, regardless of stop distance.
+
+**Example:** f*=12.41%, Capital=$1,000, Stop=8%
+```
+Risk amount = 0.1241 × $1,000 = $124.10
+Position    = $124.10 / 0.08  = $1,551
+Cap at available capital if unleveraged.
+```
+
+**NEVER implement Kelly as:**
+```
+Position = f* × Capital   (= $124 — WRONG)
+```
+This treats Kelly as a deployment fraction, not a risk fraction. It undersizes the position by a factor of 1/stop_pct. At a 5% stop, the position is 20× too small; actual risk per trade is 0.62% of capital instead of the intended 12.41%.
+
+**For leveraged strategies:** Kelly determines the risk per trade; leverage determines the capital efficiency. These are separate decisions — do not conflate them. Kelly optimisation assumes no borrowing costs and applies to own-capital sizing. For margin strategies, run a leverage grid search after Kelly sizing is confirmed.
+
+**Implementation notes:**
+- Always apply a small fee buffer: `min(balance − $5, position_size)`
+- When stop distance changes (e.g. fixed 5% → trail 8%), recalculate position size using the new stop — the formula handles this automatically if `stop_loss_pct` in `RISK_CONFIG` is kept current
+- Kelly fraction itself should be recalibrated after every 20+ live trades as win rate and reward:risk ratios accumulate from real data
+
+---
+
+*Pipeline version: 1.2 — updated 2026-05-05: added Phase 4/5 stubs; added Phase 6 with Kelly position sizing*
 *Pipeline version: 1.1 — updated 2026-05-04: added Phase 2/3 stubs; added §Leverage Screening under Phase 3*
 *Pipeline version: 1.0 — created 2026-05-04*
 *Update this document after any process change or post-deployment review.*
