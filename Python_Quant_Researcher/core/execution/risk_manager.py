@@ -62,7 +62,7 @@ RISK_CONFIG = {                          # [VARIABLE - dict] risk parameters
     'position_pct':      0.1241,
 
     # Per-trade stop loss
-    'stop_loss_pct':     0.05,           # Exit trade if price drops 5%
+    'stop_loss_pct':     0.08,           # Trailing stop distance 8% (Stage 1b validated, was 5% fixed)
 
     # Daily loss limit
     'max_daily_loss_pct': 0.02,          # Stop trading if down 2% of account today

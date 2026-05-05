@@ -25,6 +25,28 @@ list. Key points reproduced here for cross-reference:
 
 ## Live Bot Requirements
 
+### Trailing Stop Implementation
+
+**Standard:** Bot-managed trailing stop using `STOP_LOSS` (market) orders updated 4× per day.
+
+Binance Spot does not support native trailing stops (`TRAILING_STOP_MARKET` is a Futures-only order type, not available to UK retail traders under FCA rules). Use bot-managed trailing stop with 4 daily `STOP_LOSS` order updates at 00:05, 06:05, 12:05, 18:05 UTC:
+
+- **00:05** — signal run: full ADX logic + trailing stop update
+- **06:05, 12:05, 18:05** — stop_update runs: trailing stop check only, no entry/exit decisions
+
+On each run when position is LONG:
+1. Get current ETH price from Binance ticker (fast, no candle download)
+2. If `current_price > peak_price_since_entry`: raise stop to `current_price × (1 − trail_pct)`, cancel old STOP_LOSS order, place new one, update state file, send Telegram
+3. If `current_price ≤ peak`: log no-change, no Telegram (avoids noise on quiet runs)
+
+**Implementation:** `callbackRate` parameter is Futures-only. For Spot, compute stop price in bot and place `STOP_LOSS` order at that price. Re-place whenever peak is updated.
+
+**Known deviation from backtest:** The backtest trailing stop updated once per day at close. Bot-managed updates at 4× daily may trigger stop raises from intraday highs that the daily backtest would have missed. This is a **positive deviation** — it locks in more gains on intraday spikes. Expect slightly more frequent stop updates than backtest suggested; trailing stop triggers may also differ marginally.
+
+**State file:** Track `peak_price_since_entry` (high-water mark, never decreases). On entry: `peak = entry_price`. Update whenever stop moves up.
+
+---
+
 ### Stop Order Type
 
 **Standard:** `type="STOP_LOSS"` (market execution on trigger)

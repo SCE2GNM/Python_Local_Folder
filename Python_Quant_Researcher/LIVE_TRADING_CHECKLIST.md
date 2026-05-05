@@ -115,6 +115,12 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
   considering deployment complete. Silence does not mean success — it may
   mean the bot is not running or Telegram is misconfigured.
 
+- [ ] Trailing stop update frequency confirmed: minimum 4 times per day
+  (00:05, 06:05, 12:05, 18:05 UTC) for daily candle strategies.
+  Signal decisions (entry/exit) only at daily candle close run.
+  Intraday runs update trailing stop only — never make entry or exit decisions.
+  Confirm all 4 cron entries active (`crontab -l` on EC2).
+
 ---
 
 ## 4. Capital and Margin
