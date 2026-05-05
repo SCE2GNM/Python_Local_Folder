@@ -282,6 +282,11 @@ def place_stop_loss(executor, quantity, entry_price, stop_pct=0.05):
     """
     stop_price = round(entry_price * (1 - stop_pct), 2)  # [VARIABLE - float]
 
+    # Floor quantity to 3dp — fee may be deducted from ETH leaving
+    # slightly less than the buy executedQty in the free balance.
+    import math
+    quantity = math.floor(quantity * 1000) / 1000
+
     logger.info(f"Placing stop-loss: {quantity} ETH | Stop: ${stop_price:,.2f}")
 
     if executor.dry_run:
@@ -488,8 +493,8 @@ def run():
 
                 save_state(state)
                 logger.info(f"✅ LONG entered: {eth_bought:.5f} ETH @ ${entry_price:,.2f}")
-                logger.info(f"   Stop-loss: ${state['stop_loss_price']:,.2f} "
-                            f"(-{RISK_CONFIG['stop_loss_pct']:.0%})")
+                stop_display = f"${state['stop_loss_price']:,.2f}" if state['stop_loss_price'] else "NONE — place manually"
+                logger.info(f"   Stop-loss: {stop_display} (-{RISK_CONFIG['stop_loss_pct']:.0%})")
                 send_telegram(
                     f"✅ BUY EXECUTED on {datetime.now().strftime('%Y-%m-%d')}: "
                     f"{eth_bought:.4f} ETH @ ${entry_price:,.2f}. "
@@ -545,7 +550,8 @@ def run():
         logger.info(f"  Current:   ${eth_price:,.2f}")
         unrealised = (eth_price - state['entry_price']) / state['entry_price']
         logger.info(f"  Unrealised P&L: {unrealised:+.2%}")
-        logger.info(f"  Stop-loss: ${state['stop_loss_price']:,.2f}")
+        stop_display = f"${state['stop_loss_price']:,.2f}" if state['stop_loss_price'] else "NONE"
+        logger.info(f"  Stop-loss: {stop_display}")
 
     else:
         # ── WAIT ──────────────────────────────────────────────────────────────
