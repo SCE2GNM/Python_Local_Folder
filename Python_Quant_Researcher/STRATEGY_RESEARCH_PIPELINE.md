@@ -79,9 +79,51 @@ Low MaxDD and high Sortino are leverage multipliers, not just quality filters �
 
 ---
 
-## Phase 5 — Walk-Forward Validation
+## Phase 5 — Stress Testing
 
 *(To be documented)*
+
+### Kelly Criterion and Leverage Interaction
+
+**Kelly-optimal leverage:**
+
+```
+Lev_kelly = f* / stop_loss_pct
+```
+
+Example: f*=12.41%, stop=8% → Lev_kelly = 0.1241 / 0.08 = **1.55×**
+
+This is the leverage level that maximises long-run growth according to Kelly theory — the point where the risk fraction of levered capital equals f*.
+
+**Buffer-constrained maximum leverage:**
+
+Determined by safety buffer analysis — the highest leverage at which the worst historical intraday move does not cause liquidation (margin ratio stays above 5% maintenance threshold, working minimum 25%). See STRATEGIC_FRAMEWORK.md for categorical liquidation check methodology.
+
+**Deployment rule:**
+
+| Condition | Action |
+|---|---|
+| Kelly leverage < buffer maximum | Use Kelly leverage — growth-optimal |
+| Kelly leverage > buffer maximum | Use buffer maximum — safety-constrained |
+
+In both cases: size the position so that maximum loss = f* × own capital, regardless of leverage level.
+
+**Correct leveraged position sizing:**
+
+```
+Position = (f* × own_capital) / stop_pct
+```
+
+Deploy this position size from available (own + borrowed) capital. Do not automatically deploy 100% of available leveraged capital — the position size is determined by the Kelly risk formula, not by how much capital the broker will lend.
+
+Example: f*=12.41%, own_capital=$1,000, stop=8%, Kelly leverage=1.55×
+```
+Position    = $124.10 / 0.08 = $1,551
+Own capital = $1,000
+Borrow      = $551
+Leverage    = $1,551 / $1,000 = 1.55× ✓
+Max loss    = $1,551 × 8% = $124.10 = 12.41% of own capital ✓
+```
 
 ---
 
@@ -122,6 +164,7 @@ This treats Kelly as a deployment fraction, not a risk fraction. It undersizes t
 
 ---
 
+*Pipeline version: 1.3 — updated 2026-05-05: added §Kelly Criterion and Leverage Interaction under Phase 5*
 *Pipeline version: 1.2 — updated 2026-05-05: added Phase 4/5 stubs; added Phase 6 with Kelly position sizing*
 *Pipeline version: 1.1 — updated 2026-05-04: added Phase 2/3 stubs; added §Leverage Screening under Phase 3*
 *Pipeline version: 1.0 — created 2026-05-04*
