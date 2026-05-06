@@ -610,26 +610,26 @@ def run_signal():
 
     # ── Step 9: Daily health check Telegram ──────────────────────────────────
     # Sent every signal run. Absence by 00:10 UTC = bot did not run — investigate.
-    hc_lines = [
-        f"✅ Bot ran {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}",
-        f"Signal: ADX={signal_data['adx']:.1f}, {signal}",
-    ]
+    hc_lines = [f"✅ Bot ran {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"]
     if state['position'] == 'LONG' and state['entry_price']:
-        eth_qty   = state.get('position_size_eth') or eth_balance
-        entry_p   = state['entry_price']
-        peak_p    = state.get('peak_price_since_entry') or entry_p
-        stop_p    = state.get('stop_loss_price') or 0.0
-        unreal    = (eth_price - entry_p) / entry_p
+        eth_qty    = state.get('position_size_eth') or eth_balance
+        entry_p    = state['entry_price']
+        peak_p     = state.get('peak_price_since_entry') or entry_p
+        stop_p     = state.get('stop_loss_price') or 0.0
+        pnl_pct    = (eth_price - entry_p) / entry_p
+        pnl_usd    = eth_qty * (eth_price - entry_p)
         hc_lines += [
+            f"Signal: ADX={signal_data['adx']:.1f}, {signal}",
             f"Position: LONG {eth_qty:.3f} ETH @ ${entry_p:,.2f} entry",
-            f"Current price: ${eth_price:,.2f} ({unreal:+.1%} unrealised)",
+            f"Current price: ${eth_price:,.2f}",
+            f"Unrealised P&L: {pnl_pct:+.1%} (${pnl_usd:+.2f})",
             f"Peak since entry: ${peak_p:,.2f}",
             f"Trailing stop: ${stop_p:,.2f} ({TRAIL_PCT:.0%} from peak)",
             f"Cash balance: ${usdt_balance:,.2f} USDT",
         ]
     else:
         hc_lines += [
-            f"Position: FLAT",
+            f"Signal: {signal}, Position: FLAT",
             f"Cash balance: ${usdt_balance:,.2f} USDT",
         ]
     send_telegram("\n".join(hc_lines))
