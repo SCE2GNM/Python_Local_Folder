@@ -40,9 +40,11 @@ warnings.filterwarnings('ignore')
 # ── Path setup ────────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, 'core', 'execution'))
+sys.path.insert(0, BASE_DIR)
 
 from trading_executor import TradingExecutor
 from risk_manager import RiskManager, RISK_CONFIG
+from portfolio_manager import get_my_capital, update_position, get_portfolio_summary
 
 # ── Load credentials ──────────────────────────────────────────────────────────
 load_dotenv(os.path.join(BASE_DIR, '.env'))
@@ -488,6 +490,7 @@ def run_signal():
             state = DEFAULT_STATE.copy()
             state['position'] = 'FLAT'
             save_state(state)
+            update_position('eth_adx', 'FLAT', None, 0, 0)
             logger.info("Position closed by stop-loss — now FLAT")
 
     # ── Step 6: Fetch candles and calculate signal ────────────────────────────
@@ -509,11 +512,11 @@ def run_signal():
         if not can_trade:
             logger.warning(f"🛑 TRADE BLOCKED by RiskManager: {reason}")
         else:
-            # Kelly sizing: risk Kelly_fraction of capital
-            # Position size = (Kelly% × capital) / stop%
-            # This ensures maximum loss = Kelly% × capital
-            # regardless of stop distance
-            position_usdt = rm.calculate_position_size(usdt_balance=usdt_balance)
+            # Kelly sizing: use reserved_capital from portfolio_manager (stable, not live USDT
+            # balance which fluctuates as other strategies open/close positions)
+            # Position size = (Kelly% × reserved_capital) / stop%
+            my_capital    = get_my_capital('eth_adx')
+            position_usdt = rm.calculate_position_size(usdt_balance=my_capital)
 
             buy_result = executor.execute_buy(amount_usdt=position_usdt)
 
@@ -534,6 +537,7 @@ def run_signal():
                 state['peak_price_since_entry'] = entry_price
 
                 save_state(state)
+                update_position('eth_adx', 'LONG', entry_price, eth_bought, position_usdt)
                 logger.info(f"✅ LONG entered: {eth_bought:.5f} ETH @ ${entry_price:,.2f}")
                 stop_display = (f"${state['stop_loss_price']:,.2f}"
                                 if state['stop_loss_price'] else "NONE — place manually")
@@ -571,6 +575,7 @@ def run_signal():
             state = DEFAULT_STATE.copy()
             state['position'] = 'FLAT'
             save_state(state)
+            update_position('eth_adx', 'FLAT', None, 0, 0)
             send_telegram(
                 f"✅ SELL EXECUTED on {datetime.now().strftime('%Y-%m-%d')}: "
                 f"Closed @ ${exit_price:,.2f} | "
@@ -632,6 +637,7 @@ def run_signal():
             f"Signal: {signal}, Position: FLAT",
             f"Cash balance: ${usdt_balance:,.2f} USDT",
         ]
+    hc_lines.append(get_portfolio_summary(executor.client))
     send_telegram("\n".join(hc_lines))
 
 

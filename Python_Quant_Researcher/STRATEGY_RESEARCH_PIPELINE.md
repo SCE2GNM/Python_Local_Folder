@@ -164,6 +164,29 @@ This treats Kelly as a deployment fraction, not a risk fraction. It undersizes t
 
 ---
 
+### Confidence-Based Capital Allocation
+
+At deployment, allocate capital proportional to confidence score — not equal allocation.
+
+**Score each strategy (0–100) across:**
+
+| Factor | High confidence | Low confidence |
+|---|---|---|
+| Backtest sample size (primary) | n > 100 trades | n < 35 trades |
+| Stability result | STABLE | FRAGILE |
+| Walk-forward consistency | All windows profitable | Scraping through |
+| B&H relative multiple | Well above 2× threshold | Just clearing 2× |
+| Live trade count | 20+ trades accumulated | Zero (deployment) |
+
+Live trade count starts at zero for every new deployment and grows over time — initial allocation is based on backtest evidence only; subsequent rebalances incorporate live results.
+
+**Allocation metric:** Use Sortino + annual return% (equal weight). Never use Sharpe for allocation decisions — Sharpe penalises upside volatility equally with downside.
+
+**Performance-weighted rebalancing:** Do not implement until minimum 20 live trades per strategy accumulated. Below this threshold, performance differences are statistical noise, not evidence of edge.
+
+---
+
+*Pipeline version: 1.4 — updated 2026-05-06: added §Confidence-Based Capital Allocation under Phase 6*
 *Pipeline version: 1.3 — updated 2026-05-05: added §Kelly Criterion and Leverage Interaction under Phase 5*
 *Pipeline version: 1.2 — updated 2026-05-05: added Phase 4/5 stubs; added Phase 6 with Kelly position sizing*
 *Pipeline version: 1.1 — updated 2026-05-04: added Phase 2/3 stubs; added §Leverage Screening under Phase 3*

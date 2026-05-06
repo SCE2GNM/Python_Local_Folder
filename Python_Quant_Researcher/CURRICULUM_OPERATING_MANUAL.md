@@ -199,6 +199,27 @@ Deployment document must embed all charts.
 
 ---
 
+## Phase 6 — Deployment Decision
+
+### Independent Pre-Deployment Review
+
+Before any live capital deployment, conduct a
+red team review in a fresh Claude Sonnet/Opus
+session with no development context.
+
+The reviewer should actively look for problems —
+not validate decisions.
+
+This is mandatory — not optional. A strategy
+that cannot survive independent scrutiny should
+not receive live capital.
+
+See §0 of the Live Trading Checklist for the
+full briefing spec, review scope, and finding
+severity requirements.
+
+---
+
 ## Document Maintenance
 
 **Updated continuously by Claude Code:**

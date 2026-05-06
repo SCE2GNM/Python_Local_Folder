@@ -17,6 +17,42 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
+## 0. Pre-Deployment Independent Review
+
+- [ ] Independent red team review completed
+  in a FRESH Claude chat session with no
+  prior context of this strategy's development.
+  Use Claude Sonnet or Opus — not Haiku.
+
+  Reviewer briefing must include:
+  - Strategy parameters (entry/exit/stop)
+  - Full backtest results with all 20 metrics
+  - Kelly sizing calculation and position size
+  - Live bot architecture summary
+  - Completed risk register
+  - This checklist (partially completed)
+
+  Review must cover:
+  - Strategy logic and economic rationale
+  - Backtest quality and credibility
+  - Position sizing correctness
+  - Live bot risks and failure modes
+  - Missing checks and safety measures
+  - Edge cases and breaking conditions
+  - Capital allocation appropriateness
+
+  All CRITICAL findings must be resolved
+  before deployment.
+  All MAJOR findings must be resolved or
+  formally accepted with written rationale.
+  Minor findings documented in risk register.
+
+  Save the review output as:
+  `REVIEW_[STRATEGY]_[DATE].md`
+  in the project root.
+
+---
+
 ## 1. Backtest Quality
 
 - [ ] Daily equity curve method used for Sharpe and Sortino (not per-trade annualisation)
@@ -200,6 +236,8 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 - [ ] For leveraged strategies only: Factor of safety on leverage — confirm strategy remains above 25% safety buffer if MaxDD worsens by 20% in live trading vs backtest. Calculate: at chosen leverage, what is the safety buffer if the worst historical drawdown increases by 20%?
 
+- [ ] Capital allocation confidence score calculated before deployment — score strategy on: backtest sample size (primary: n > 100 = high confidence, n < 35 = low confidence), stability result (STABLE/MARGINAL/FRAGILE), walk-forward consistency (all windows profitable vs scraping through), B&H relative multiple (how far above the 2× threshold). Document score and resulting allocation. Do not allocate equal capital to a 31-trade strategy and a 103-trade strategy without justification.
+
 ---
 
 ## 7. Sign-off
@@ -221,6 +259,8 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
+*Template version: 1.9 — updated 2026-05-06: added capital allocation confidence score item to §6 Pre-Deployment Critical Review*
+*Template version: 1.8 — updated 2026-05-06: added §0 Pre-Deployment Independent Review (red team review, fresh Claude session, CRITICAL/MAJOR/Minor severity tiers, REVIEW_[STRATEGY]_[DATE].md output)*
 *Template version: 1.7 — updated 2026-05-04: added silent failure prevention, daily health check, API permission check, and post-deployment verification items to §3 Bot Mechanics*
 *Template version: 1.6 — updated 2026-05-04: added stop order type requirement (STOP_LOSS not STOP_LOSS_LIMIT) to §3 Bot Mechanics*
 *Template version: 1.5 — updated 2026-05-04: added categorical liquidation check and margin ratio alert items to §4 Capital and Margin*

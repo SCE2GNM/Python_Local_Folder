@@ -192,3 +192,26 @@ When single position size exceeds $5,000–$10,000, consider splitting execution
 Not worth implementing until position sizes grow to the $5,000–$10,000 range where exchange outage risk becomes material relative to the engineering cost.
 
 Review at Week 18–20 (Docker/infrastructure professionalisation phase) when bot architecture is being rebuilt for production. At that point, assess: whether position sizes have grown to the threshold, whether Binance outage history since Week 6 warrants earlier action, and whether Coinbase or Kraken APIs are sufficiently compatible with existing bot logic to justify dual-exchange support.
+
+---
+
+### SI007 — Performance-Weighted Capital Allocation
+
+| Field | Value |
+|---|---|
+| **ID** | SI007 |
+| **Name** | Performance-Weighted Capital Allocation |
+| **Type** | Portfolio Management |
+| **Source** | Week 6 observation |
+| **Priority** | HIGH |
+| **Target Week** | Week 9 |
+| **Date Added** | 2026-05-06 |
+
+**Notes:**
+Fixed percentage allocation holds back best-performing strategies. Solution: tiered approach — base allocation (fixed percentage, ensures diversification is preserved) plus performance pool (Sortino + annual return% weighted, 50/50 equal weight). Rebalance quarterly minimum — monthly rebalancing on 4–12 trades/year is pure noise. Requires minimum 20 live trades per strategy before allocation shifts.
+
+Confidence-based initial allocation at deployment: score each strategy on sample size, stability result, walk-forward consistency, B&H relative multiple, and live trade count. Do not allocate equal capital to a 31-trade strategy and a 103-trade strategy without justification.
+
+Dynamic opportunistic allocation (idle capital flows to active signal) deferred — forced partial exits override strategy logic and backtesting interaction effects are complex.
+
+Data collection starts now via `record_trade_result()` in portfolio_manager. Implement full framework in Week 9 multi-strategy portfolio work.
