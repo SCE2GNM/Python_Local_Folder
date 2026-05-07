@@ -48,9 +48,42 @@ Treat all sources critically. Always verify that cited papers use proper out-of-
 
 ---
 
-## Phase 2 — Validation
+## Phase 2 — Initial Backtest
 
-*(To be documented)*
+### Maximum Loss Per Trade Check
+
+Before any optimisation, calculate and explicitly state:
+- Maximum loss per trade in dollars = `position_size × stop_loss_pct`
+- Maximum loss as % of total strategy allocation
+- Maximum loss as % of total portfolio
+
+Ask explicitly: *"Is this maximum loss per trade acceptable given the strategy's win rate, average win, and sample size?"*
+
+Flag for review if maximum loss % of allocation exceeds 20% AND win rate is below 80%. This combination means a short losing streak can significantly impair the allocation before recovery is possible.
+
+**Example flag:** RSI strategy — 15% stop × $500 full deployment = $75 max loss = 15% of allocation. Backtest win rate 93.5% but expected 60–70% live. At 70% win rate and negative Kelly, this warrants reduced position size, not full allocation deployment.
+
+---
+
+### Payoff Profile Sanity Check
+
+Calculate the breakeven win rate for positive Kelly expectation:
+
+```
+p_breakeven = 1 / (1 + b)
+where b = avg_win / avg_loss_magnitude
+```
+
+If `p_breakeven > 65%`: flag as **HIGH SENSITIVITY** strategy. Win rate must be reliably above this threshold for the strategy to have positive expectancy. Document expected live win rate degradation and confirm `p_live_expected > p_breakeven` before proceeding to optimisation.
+
+**Example:** RSI strategy
+```
+b = 5.79% / 15.00% = 0.386
+p_breakeven = 1 / (1 + 0.386) = 72.1%
+Expected live win rate: 60–70%
+Result: HIGH SENSITIVITY FLAG — live win rate likely below breakeven.
+Requires Monte Carlo stress test before deployment decision.
+```
 
 ---
 
@@ -70,6 +103,29 @@ After ranking the top 20 combinations by annual return at 1×:
 **Rationale:** Strategies with lower raw return but lower drawdown and higher Sortino may support higher safe leverage, producing better final returns than a higher-raw-return strategy constrained to lower leverage by its drawdown profile. The 1× winner is not always the leveraged winner.
 
 Low MaxDD and high Sortino are leverage multipliers, not just quality filters — weight them more heavily when leverage is planned. Joint optimisation of strategy parameters and leverage simultaneously is the theoretically correct approach. Sequential optimisation (strategy first, leverage second) may miss the global optimum.
+
+---
+
+### Monte Carlo Stress Test
+
+**Required for all strategies with fewer than 100 backtest trades. Recommended for all strategies.**
+
+Run 1,000 Monte Carlo simulations at five win rate scenarios: backtest rate, 80%, 75%, 70%, 65%. For each scenario report:
+
+- Median annual return%
+- 10th percentile annual return% (bad luck)
+- 90th percentile annual return%
+- Probability of negative annual return
+- Kelly fraction at this win rate
+- Recommended position size at this win rate
+
+Flag any scenario where:
+- Kelly turns negative → **DO NOT DEPLOY at this win rate**
+- Probability of negative year exceeds 30% → flag for explicit acceptance
+
+Use results to determine deployment position size — not backtest win rate alone. If live win rate is expected to be materially lower than backtest (common for mean-reversion strategies), size position for the expected live win rate, not the backtest win rate.
+
+**This step is mandatory when n < 100 backtest trades.**
 
 ---
 
@@ -186,6 +242,7 @@ Live trade count starts at zero for every new deployment and grows over time —
 
 ---
 
+*Pipeline version: 1.5 — updated 2026-05-07: added Phase 2 (Maximum Loss Per Trade Check, Payoff Profile Sanity Check); added Monte Carlo Stress Test to Phase 3*
 *Pipeline version: 1.4 — updated 2026-05-06: added §Confidence-Based Capital Allocation under Phase 6*
 *Pipeline version: 1.3 — updated 2026-05-05: added §Kelly Criterion and Leverage Interaction under Phase 5*
 *Pipeline version: 1.2 — updated 2026-05-05: added Phase 4/5 stubs; added Phase 6 with Kelly position sizing*

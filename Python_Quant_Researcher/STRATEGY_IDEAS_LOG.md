@@ -215,3 +215,24 @@ Confidence-based initial allocation at deployment: score each strategy on sample
 Dynamic opportunistic allocation (idle capital flows to active signal) deferred — forced partial exits override strategy logic and backtesting interaction effects are complex.
 
 Data collection starts now via `record_trade_result()` in portfolio_manager. Implement full framework in Week 9 multi-strategy portfolio work.
+
+---
+
+### SI008 — Monte Carlo Simulation for Strategy Validation
+
+| Field | Value |
+|---|---|
+| **ID** | SI008 |
+| **Name** | Monte Carlo Simulation for Strategy Validation |
+| **Type** | Methodology |
+| **Source** | Week 6 observation |
+| **Priority** | HIGH |
+| **Target Week** | All future strategies |
+| **Date Added** | 2026-05-06 |
+
+**Notes:**
+Monte Carlo stress testing should be run on every strategy before deployment, especially low-frequency strategies with fewer than 50 backtest trades. Run 1,000 simulations at multiple win rate scenarios (backtest rate, 80%, 75%, 70%, 65%) to understand the full distribution of outcomes. Key outputs: median annual return, 10th percentile, probability of negative year, Kelly fraction at each win rate. Identifies strategies with fragile win-rate dependency before live capital is committed.
+
+RSI case study: backtest win rate 93.5% produced median +22.3% annual return. At 70% realistic live win rate, Kelly turns negative — strategy has no positive expectancy at that win rate. This would not have been visible from backtest metrics alone. Monte Carlo revealed the deployment position size should be based on the moderate live scenario ($341), not the backtest scenario ($495).
+
+Now incorporated into STRATEGY_RESEARCH_PIPELINE.md Phase 3 as a required step for n < 100 backtest trades.

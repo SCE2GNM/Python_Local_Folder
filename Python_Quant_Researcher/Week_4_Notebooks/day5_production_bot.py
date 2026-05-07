@@ -408,6 +408,109 @@ def update_trailing_stop(executor, state):
     return state
 
 # ══════════════════════════════════════════════════════════════════════════════
+# STOP ORDER VERIFICATION
+# ══════════════════════════════════════════════════════════════════════════════
+
+def verify_stop_order(executor, state):
+    """
+    Verify the resting stop-loss order is still active on Binance.
+    Called at the start of EVERY bot run when position is LONG.
+
+    Binance can silently cancel STOP_LOSS orders (maintenance, account flag,
+    order age timeout). Without this check, the position could be unprotected
+    for hours between scheduled runs.
+
+    Three outcomes:
+      NEW      → stop is active, return True, continue
+      FILLED   → stop triggered while bot was offline; state updated to FLAT,
+                 Telegram sent, return False
+      other    → stop cancelled by exchange; re-place immediately,
+                 Telegram alert, return True
+      no ID    → critical alert, return False
+      error    → cannot verify, alert, return False
+
+    Mutates state dict in-place on FILLED so the caller's local reference
+    reflects FLAT without requiring a state file reload.
+    """
+    if state['position'] != 'LONG':
+        return True
+
+    if executor.dry_run:
+        logger.info("DRY RUN — stop order verification skipped")
+        return True
+
+    order_id = state.get('stop_loss_order_id')
+    if not order_id:
+        msg = (f"🚨 CRITICAL on {datetime.now().strftime('%Y-%m-%d %H:%M')}: "
+               f"Position LONG but no stop order ID in state file. "
+               f"Place stop manually on Binance immediately.")
+        logger.error(msg)
+        send_telegram(msg)
+        return False
+
+    try:
+        order  = executor.client.get_order(symbol=SYMBOL, orderId=order_id)
+        status = order['status']
+
+        if status == 'NEW':
+            logger.info(f"✅ Stop order {order_id} verified active "
+                        f"@ ${state.get('stop_loss_price', 0):,.2f}")
+            return True
+
+        elif status == 'FILLED':
+            fill_price = (float(order['cummulativeQuoteQty']) /
+                          float(order['executedQty']))
+            pnl_pct = (fill_price - state['entry_price']) / state['entry_price']
+            logger.warning(f"🛑 Stop order {order_id} was FILLED at "
+                           f"${fill_price:,.2f} ({pnl_pct:+.2%}) while bot was offline")
+            send_telegram(
+                f"✅ Stop-loss triggered and filled on "
+                f"{datetime.now().strftime('%Y-%m-%d %H:%M')}: "
+                f"Entry ${state['entry_price']:,.2f} → Fill ${fill_price:,.2f} "
+                f"({pnl_pct:+.2%}). Position closed. Now FLAT."
+            )
+            for k, v in DEFAULT_STATE.items():
+                state[k] = v
+            state['position'] = 'FLAT'
+            save_state(state)
+            update_position('eth_adx', 'FLAT', None, 0, 0)
+            return False
+
+        else:
+            # CANCELLED, EXPIRED, REJECTED, PENDING_CANCEL, etc.
+            stop_price = state.get('stop_loss_price') or round(
+                state['entry_price'] * (1 - TRAIL_PCT), 2
+            )
+            logger.error(f"🚨 Stop order {order_id} status is '{status}' — "
+                         f"replacing at ${stop_price:,.2f}")
+            sl_result = place_stop_loss(executor, state['position_size_eth'], stop_price)
+            if sl_result:
+                state['stop_loss_order_id'] = sl_result['order_id']
+                save_state(state)
+                send_telegram(
+                    f"🚨 Stop order {order_id} was {status} by Binance on "
+                    f"{datetime.now().strftime('%Y-%m-%d %H:%M')}. "
+                    f"Replacement placed at ${stop_price:,.2f}."
+                )
+            else:
+                send_telegram(
+                    f"🚨 CRITICAL on {datetime.now().strftime('%Y-%m-%d %H:%M')}: "
+                    f"Stop order {order_id} was {status} AND replacement failed. "
+                    f"Position UNPROTECTED — intervene on Binance immediately."
+                )
+            return True
+
+    except Exception as e:
+        logger.error(f"Cannot verify stop order {order_id}: {e}")
+        send_telegram(
+            f"🚨 Cannot verify stop order {order_id} on "
+            f"{datetime.now().strftime('%Y-%m-%d %H:%M')}: {e}. "
+            f"Check position on Binance manually."
+        )
+        return False
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # STOP UPDATE RUN  (06:05, 12:05, 18:05 UTC)
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -432,6 +535,12 @@ def run_stop_update():
 
     executor = TradingExecutor(symbol=SYMBOL, dry_run=DRY_RUN, use_testnet=USE_TESTNET)
     check_api_trading_permission(executor)
+
+    still_open = verify_stop_order(executor, state)
+    if not still_open:
+        logger.info("Stop order was filled — position now FLAT. Nothing to update.")
+        logger.info("=" * 65)
+        return
 
     update_trailing_stop(executor, state)
 
@@ -466,6 +575,11 @@ def run_signal():
         use_testnet = USE_TESTNET
     )
     check_api_trading_permission(executor)
+
+    # ── Step 2.5: Verify stop order is still active ───────────────────────────
+    # Binance can silently cancel resting stops. This catches CANCELLED orders
+    # (re-places immediately) and FILLED orders detected offline (resets to FLAT).
+    verify_stop_order(executor, state)
 
     # ── Step 3: Get account balance and price ─────────────────────────────────
     usdt_balance = executor.get_balance('USDT')

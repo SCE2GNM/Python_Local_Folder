@@ -157,6 +157,15 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
   Intraday runs update trailing stop only — never make entry or exit decisions.
   Confirm all 4 cron entries active (`crontab -l` on EC2).
 
+- [ ] Stop order verification runs at the START of every bot execution
+  while position is LONG. Bot must query Binance for the stop order ID
+  in state file and confirm status is NEW (active).
+  If FILLED: update state to FLAT and send Telegram confirmation.
+  If CANCELLED or any other non-NEW status: place new stop immediately
+  and send Telegram alert with old order status.
+  If no order ID in state: send CRITICAL Telegram alert immediately.
+  Never assume a resting stop order placed yesterday is still active today.
+
 ---
 
 ## 4. Capital and Margin
@@ -259,6 +268,7 @@ of this checklist alongside each deployment (e.g. `checklists/CHECKLIST_ETH_ADX_
 
 ---
 
+*Template version: 2.0 — updated 2026-05-07: added stop order verification item to §3 Bot Mechanics*
 *Template version: 1.9 — updated 2026-05-06: added capital allocation confidence score item to §6 Pre-Deployment Critical Review*
 *Template version: 1.8 — updated 2026-05-06: added §0 Pre-Deployment Independent Review (red team review, fresh Claude session, CRITICAL/MAJOR/Minor severity tiers, REVIEW_[STRATEGY]_[DATE].md output)*
 *Template version: 1.7 — updated 2026-05-04: added silent failure prevention, daily health check, API permission check, and post-deployment verification items to §3 Bot Mechanics*
