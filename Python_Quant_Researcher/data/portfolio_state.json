@@ -2,11 +2,11 @@
   "total_portfolio_target": 2000,
   "allocation_pcts": {
     "eth_adx": 0.50,
-    "eth_rsi": 0.25,
-    "btc_sma": 0.25
+    "eth_rsi": 0.075,
+    "btc_sma": 0.0
   },
-  "last_rebalance_date": "2026-05-06",
-  "last_updated": "2026-05-05 00:00:00",
+  "last_rebalance_date": "2026-05-07",
+  "last_updated": "2026-05-07 00:00:00",
   "strategies": {
     "eth_adx": {
       "reserved_capital": 1000,
@@ -17,17 +17,17 @@
       "quantity": 0.419
     },
     "eth_rsi": {
-      "reserved_capital": 500,
+      "reserved_capital": 150,
       "deployed_value": 0,
-      "cash_held": 500.0,
+      "cash_held": 150.0,
       "position": "FLAT",
       "entry_price": null,
       "quantity": 0
     },
     "btc_sma": {
-      "reserved_capital": 500,
+      "reserved_capital": 0,
       "deployed_value": 0,
-      "cash_held": 500.0,
+      "cash_held": 0.0,
       "position": "FLAT",
       "entry_price": null,
       "quantity": 0

@@ -118,6 +118,59 @@ def rebalance_portfolio(binance_client):
     return total_val
 
 
+def record_trade_result(strategy_name, entry_date, exit_date, return_pct, exit_reason):
+    """
+    Record a closed trade to the strategy's live performance CSV.
+    Appends one row. Returns running stats for monitoring and scale-up decisions.
+
+    Log file: data/{strategy_name}_live_performance_log.csv
+    Fields: entry_date, exit_date, return_pct, exit_reason, win
+
+    Returns dict: n_trades, win_rate, consecutive_losses
+    """
+    import csv
+
+    log_file = os.path.join(
+        os.path.dirname(PORTFOLIO_STATE_FILE),
+        f'{strategy_name}_live_performance_log.csv'
+    )
+    fieldnames = ['entry_date', 'exit_date', 'return_pct', 'exit_reason', 'win']
+    win = 1 if return_pct > 0 else 0
+    row = {
+        'entry_date':  str(entry_date),
+        'exit_date':   str(exit_date),
+        'return_pct':  round(float(return_pct), 6),
+        'exit_reason': exit_reason,
+        'win':         win,
+    }
+    file_exists = os.path.exists(log_file)
+    with open(log_file, 'a', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row)
+
+    with open(log_file, 'r') as f:
+        rows = list(csv.DictReader(f))
+
+    n_trades  = len(rows)
+    wins      = sum(int(r['win']) for r in rows)
+    win_rate  = wins / n_trades if n_trades else 0.0
+
+    consecutive_losses = 0
+    for r in reversed(rows):
+        if int(r['win']) == 0:
+            consecutive_losses += 1
+        else:
+            break
+
+    return {
+        'n_trades':           n_trades,
+        'win_rate':           win_rate,
+        'consecutive_losses': consecutive_losses,
+    }
+
+
 def get_portfolio_summary(binance_client):
     """
     Return a formatted multi-line string for inclusion in Telegram health checks.
