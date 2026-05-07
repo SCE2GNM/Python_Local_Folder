@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Week 6 Stage 5 — Final Strategy Comparison</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#07090f;--surface:#0d1120;--s2:#111827;--border:#1e2d42;--b2:#263350;
+  --text:#e2e8f0;--muted:#64748b;--faint:#2d3f56;
+  --adx:#4ade80;--rsi:#a78bfa;--bh:#38bdf8;--gold:#f59e0b;
+  --good:#4ade80;--warn:#fbbf24;--bad:#f87171;--neut:#94a3b8
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;line-height:1.5;padding:32px 28px;max-width:1200px;margin:0 auto}
+
+/* HEADER */
+.header{text-align:center;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.header h1{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:#f8fafc;letter-spacing:2px;margin-bottom:6px}
+.header p{color:var(--muted);font-size:11px;margin-bottom:10px}
+.badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.badge{display:inline-block;padding:3px 12px;border-radius:20px;font-size:9px;font-family:'JetBrains Mono',monospace;font-weight:600;border:1px solid}
+.b-adx{color:var(--adx);border-color:#4ade8030;background:#030f07}
+.b-rsi{color:var(--rsi);border-color:#a78bfa30;background:#08051a}
+.b-gold{color:var(--gold);border-color:#f59e0b30;background:#150d02}
+.b-blue{color:var(--bh);border-color:#38bdf830;background:#02101a}
+
+/* SECTION */
+.sec{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1.5px;padding:10px 16px;background:var(--surface);border-left:3px solid var(--gold);border-radius:0 5px 5px 0;margin:28px 0 12px;text-transform:uppercase}
+
+/* DECISION BOX */
+.decision{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-bottom:24px}
+.decision h3{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--gold);margin-bottom:14px;letter-spacing:1px}
+.d-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.d-card{background:var(--s2);border-radius:8px;padding:14px 16px;border:1px solid}
+.d-card.adx{border-color:#4ade8030}
+.d-card.rsi{border-color:#a78bfa30}
+.d-card h4{font-size:11px;font-weight:700;margin-bottom:8px;font-family:'JetBrains Mono',monospace}
+.d-card.adx h4{color:var(--adx)}
+.d-card.rsi h4{color:var(--rsi)}
+.d-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #ffffff08;font-size:10px}
+.d-row:last-child{border-bottom:none}
+.d-label{color:var(--muted)}
+.d-val{font-weight:600;font-family:'JetBrains Mono',monospace}
+.good{color:var(--good)}.warn{color:var(--warn)}.bad{color:var(--bad)}.neut{color:var(--neut)}
+
+/* MASTER METRICS TABLE */
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:10px;overflow:hidden;border:1px solid var(--border);margin-bottom:8px}
+thead tr{background:#070a13}
+th{padding:9px 10px;color:var(--muted);font-size:9px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;text-align:center;border-bottom:1px solid var(--b2);font-family:'JetBrains Mono',monospace}
+th.L{text-align:left}
+td{padding:8px 10px;text-align:center;border-bottom:1px solid #ffffff07;font-size:11px;vertical-align:middle}
+td.L{text-align:left}
+tr:last-child td{border-bottom:none}
+tr.adx-row{background:#030f07}
+tr.rsi-row{background:#08051a}
+tr.bh-row{background:#02101a}
+tr.adx-row:hover,tr.rsi-row:hover,tr.bh-row:hover{filter:brightness(1.3);transition:filter .15s}
+.s-adx{color:var(--adx);font-weight:700;font-family:'JetBrains Mono',monospace}
+.s-rsi{color:var(--rsi);font-weight:700;font-family:'JetBrains Mono',monospace}
+.s-bh{color:var(--bh);font-weight:700;font-family:'JetBrains Mono',monospace}
+
+/* CHART PLACEHOLDER */
+.chart-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;min-height:300px;display:flex;flex-direction:column}
+.chart-box h3{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.chart-box p{font-size:10px;color:var(--muted);margin-bottom:16px}
+.chart-placeholder{flex:1;background:#0a0d18;border-radius:6px;border:1px dashed var(--faint);display:flex;align-items:center;justify-content:center;min-height:220px;color:var(--faint);font-size:10px;font-family:'JetBrains Mono',monospace}
+
+/* SIGN-OFF */
+.signoff{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin-top:24px}
+.signoff h3{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold);margin-bottom:14px;letter-spacing:1px}
+.so-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.so-item{background:var(--s2);border-radius:7px;padding:12px 14px;border:1px solid var(--border)}
+.so-item label{display:block;font-size:9px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.so-item .val{font-size:11px;font-weight:600}
+.so-item .val.good{color:var(--good)}
+.so-item .val.warn{color:var(--warn)}
+
+.note{font-size:9.5px;color:var(--muted);padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:6px;line-height:1.6;margin-top:6px}
+.note strong{color:var(--gold)}
+
+/* PORTFOLIO SUMMARY */
+.port-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.port-card{background:var(--surface);border-radius:8px;padding:14px;border:1px solid var(--border);text-align:center}
+.port-card .label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-family:'JetBrains Mono',monospace}
+.port-card .val{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-bottom:3px}
+.port-card .sub{font-size:9px;color:var(--muted)}
+.port-card.total{border-color:var(--gold)30;background:#120d02}
+.port-card.adx{border-color:#4ade8030;background:#030f07}
+.port-card.rsi{border-color:#a78bfa30;background:#08051a}
+.port-card.idle{border-color:var(--faint);background:#0a0d15}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>WEEK 6 — STAGE 5 FINAL COMPARISON</h1>
+  <p>Master metrics table · equity curves · deployment summary · Week 6 analytical close-out</p>
+  <div class="badges">
+    <span class="badge b-adx">ETH ADX 19/9 — LIVE</span>
+    <span class="badge b-rsi">ETH RSI 14 — VALIDATION $150</span>
+    <span class="badge b-blue">ETH B&H Benchmark</span>
+    <span class="badge b-gold">Generated: 2026-05-07</span>
+  </div>
+</div>
+
+<!-- PORTFOLIO SNAPSHOT -->
+<div class="sec">① Live Portfolio Snapshot</div>
+<div class="port-grid">
+  <div class="port-card total">
+    <div class="label">Total Portfolio</div>
+    <div class="val" style="color:var(--gold)">$1,985</div>
+    <div class="sub">vs $1,500 initial capital (+$485 unrealised)</div>
+  </div>
+  <div class="port-card adx">
+    <div class="label">ETH ADX</div>
+    <div class="val" style="color:var(--adx)">$985</div>
+    <div class="sub">LONG 0.419 ETH @ $2,368.52 | -0.7% | Stop $2,250</div>
+  </div>
+  <div class="port-card rsi">
+    <div class="label">ETH RSI</div>
+    <div class="val" style="color:var(--rsi)">$150</div>
+    <div class="sub">FLAT | $150 cash | Validation mode</div>
+  </div>
+  <div class="port-card idle">
+    <div class="label">Unallocated</div>
+    <div class="val" style="color:var(--neut)">$850</div>
+    <div class="sub">Awaiting BTC strategy validation</div>
+  </div>
+</div>
+
+<!-- DEPLOYMENT DECISIONS -->
+<div class="sec">② Deployment Decisions — Week 6</div>
+<div class="decision">
+  <h3>STRATEGIES DEPLOYED THIS WEEK</h3>
+  <div class="d-grid">
+    <div class="d-card adx">
+      <h4>ETH ADX 19/9 — LIVE ✅</h4>
+      <div class="d-row"><span class="d-label">Capital allocated</span><span class="d-val good">$1,000</span></div>
+      <div class="d-row"><span class="d-label">Currently deployed</span><span class="d-val good">$994.78 (0.419 ETH)</span></div>
+      <div class="d-row"><span class="d-label">Entry date</span><span class="d-val neut">2026-05-05</span></div>
+      <div class="d-row"><span class="d-label">Entry price (blended)</span><span class="d-val neut">$2,368.52</span></div>
+      <div class="d-row"><span class="d-label">Stop type</span><span class="d-val neut">8% trailing (4× daily)</span></div>
+      <div class="d-row"><span class="d-label">Current stop</span><span class="d-val warn">$2,250.09</span></div>
+      <div class="d-row"><span class="d-label">Peak since entry</span><span class="d-val neut">$2,399.50</span></div>
+      <div class="d-row"><span class="d-label">Kelly fraction</span><span class="d-val neut">12.41% half-Kelly</span></div>
+      <div class="d-row"><span class="d-label">Leverage</span><span class="d-val neut">1.0× (unleveraged)</span></div>
+      <div class="d-row"><span class="d-label">Validated leverage</span><span class="d-val warn">1.9× — Week 7 target</span></div>
+      <div class="d-row"><span class="d-label">Backtest annual%</span><span class="d-val good">80.1%</span></div>
+      <div class="d-row"><span class="d-label">Backtest Sortino</span><span class="d-val good">1.780</span></div>
+    </div>
+    <div class="d-card rsi">
+      <h4>ETH RSI 14 — VALIDATION $150 ⚠️</h4>
+      <div class="d-row"><span class="d-label">Capital allocated</span><span class="d-val warn">$150 (validation only)</span></div>
+      <div class="d-row"><span class="d-label">Full allocation target</span><span class="d-val neut">$500 (when validated)</span></div>
+      <div class="d-row"><span class="d-label">Current position</span><span class="d-val neut">FLAT — awaiting signal</span></div>
+      <div class="d-row"><span class="d-label">Stop type</span><span class="d-val neut">15% fixed market order</span></div>
+      <div class="d-row"><span class="d-label">Kelly fraction</span><span class="d-val warn">38.4% half-Kelly</span></div>
+      <div class="d-row"><span class="d-label">Backtest win rate</span><span class="d-val warn">93.5% (31 trades)</span></div>
+      <div class="d-row"><span class="d-label">Expected live WR</span><span class="d-val bad">60-70%</span></div>
+      <div class="d-row"><span class="d-label">Breakeven WR</span><span class="d-val bad">72.1% (Kelly=0 below this)</span></div>
+      <div class="d-row"><span class="d-label">Scale-up trigger</span><span class="d-val neut">20 live trades + WR ≥80%</span></div>
+      <div class="d-row"><span class="d-label">Stop trigger</span><span class="d-val bad">WR &lt;72% after 20 trades</span></div>
+      <div class="d-row"><span class="d-label">Backtest annual%</span><span class="d-val warn">~22% (at 93.5% WR)</span></div>
+      <div class="d-row"><span class="d-label">At realistic 70% WR</span><span class="d-val bad">-3.4% median (negative)</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- MASTER METRICS TABLE -->
+<div class="sec">③ Master 20-Metric Comparison Table</div>
+<table>
+<thead><tr>
+  <th class="L" style="width:200px">Metric</th>
+  <th>ETH ADX 19/9</th>
+  <th>ETH RSI 14</th>
+  <th>ETH B&H</th>
+</tr></thead>
+<tbody>
+<tr><td class="L" style="color:var(--gold);font-weight:600;background:#0a0d16;font-size:10px;letter-spacing:.5px" colspan="4">RETURN METRICS</td></tr>
+<tr class="adx-row">
+  <td class="L neut">Annual return %</td>
+  <td class="good">80.1%</td>
+  <td class="warn">~22%*</td>
+  <td class="neut">12.9%</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Annual return $ (on capital)</td>
+  <td class="good">$801 on $1,000</td>
+  <td class="warn">~$33 on $150</td>
+  <td class="neut">$129 on $1,000</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">B&H return multiple</td>
+  <td class="good">6.2×</td>
+  <td class="warn">~1.7×</td>
+  <td class="neut">1.0× (baseline)</td>
+</tr>
+<tr><td class="L" style="color:var(--gold);font-weight:600;background:#0a0d16;font-size:10px;letter-spacing:.5px" colspan="4">RISK METRICS</td></tr>
+<tr class="adx-row">
+  <td class="L neut">Daily MtM MaxDD %</td>
+  <td class="warn">−37.7%</td>
+  <td class="neut">Not calc'd</td>
+  <td class="bad">−81.5%</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Per-trade MaxDD %</td>
+  <td class="warn">−31.3%</td>
+  <td class="good">Low</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">B&H MaxDD fraction</td>
+  <td class="good">0.46× B&H ✅</td>
+  <td class="neut">Not calc'd</td>
+  <td class="neut">1.0×</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Max consecutive losses</td>
+  <td class="warn">7</td>
+  <td class="neut">Not calc'd</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Recovery time (worst DD)</td>
+  <td class="warn">~4 months</td>
+  <td class="neut">Not calc'd</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr><td class="L" style="color:var(--gold);font-weight:600;background:#0a0d16;font-size:10px;letter-spacing:.5px" colspan="4">QUALITY METRICS</td></tr>
+<tr class="adx-row">
+  <td class="L neut">Sortino ratio</td>
+  <td class="good">1.780 ✅</td>
+  <td class="neut">Not recalc'd</td>
+  <td class="neut">0.786</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Sharpe ratio</td>
+  <td class="good">~1.2</td>
+  <td class="neut">Not calc'd</td>
+  <td class="neut">~0.5</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">B&H Sortino multiple</td>
+  <td class="good">2.26× ✅</td>
+  <td class="neut">Not calc'd</td>
+  <td class="neut">1.0×</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Profit factor</td>
+  <td class="good">2.547</td>
+  <td class="good">5.593*</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Calmar ratio</td>
+  <td class="good">2.559</td>
+  <td class="neut">Not calc'd</td>
+  <td class="neut">~0.16</td>
+</tr>
+<tr><td class="L" style="color:var(--gold);font-weight:600;background:#0a0d16;font-size:10px;letter-spacing:.5px" colspan="4">EXECUTION METRICS</td></tr>
+<tr class="adx-row">
+  <td class="L neut">Win rate %</td>
+  <td class="neut">41.8%</td>
+  <td class="warn">93.5%*</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Avg win / avg loss ratio</td>
+  <td class="good">6.13× (wins >> losses)</td>
+  <td class="bad">0.39× (losses >> wins)</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Trades per year</td>
+  <td class="neut">~19</td>
+  <td class="neut">~4</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Total trades (8yr)</td>
+  <td class="good">158 ✅</td>
+  <td class="bad">31 ⚠️</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Avg hold days</td>
+  <td class="neut">~8 days</td>
+  <td class="neut">~7 days</td>
+  <td class="neut">Continuous</td>
+</tr>
+<tr><td class="L" style="color:var(--gold);font-weight:600;background:#0a0d16;font-size:10px;letter-spacing:.5px" colspan="4">LEVERAGE METRICS (unleveraged current — leveraged targets shown)</td></tr>
+<tr class="adx-row">
+  <td class="L neut">Safety buffer % (current)</td>
+  <td class="neut">N/A (unleveraged)</td>
+  <td class="neut">N/A</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Safety buffer % (at optimal leverage)</td>
+  <td class="warn">34.4% at 1.9× ⚠️</td>
+  <td class="neut">Not validated</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Interest cost / year $</td>
+  <td class="neut">$0 (unleveraged now)</td>
+  <td class="neut">$0 (unleveraged)</td>
+  <td class="neut">N/A</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Interest cost at optimal leverage</td>
+  <td class="neut">~$74/yr at 1.9×</td>
+  <td class="neut">Not validated</td>
+  <td class="neut">N/A</td>
+</tr>
+</tbody>
+</table>
+<div class="note">* ETH RSI metrics at backtest 93.5% win rate. At expected live win rate 70%: annual return −3.4% median, Kelly fraction negative. Deployed at $150 validation size only.<br><strong>Calmar note:</strong> Calmar ratio is context metric only — not primary decision driver. Annual return is primary objective; drawdown is disclosed risk.</div>
+
+<!-- CHART PLACEHOLDERS -->
+<div class="sec">④ Equity Curves — To Be Generated by Claude Code</div>
+
+<div class="chart-box">
+  <h3>Master Equity Curve — ETH ADX vs ETH RSI vs B&H (Log Scale)</h3>
+  <p>Daily mark-to-market portfolio value · 2018–2026 · Log scale · Entry/exit markers</p>
+  <div class="chart-placeholder">
+    [ Run stage5_final_comparison.py to generate interactive Plotly chart ]<br>
+    Save as: stage5_master_equity_curve.html
+  </div>
+</div>
+
+<div class="chart-box">
+  <h3>Drawdown Comparison — All Strategies vs B&H</h3>
+  <p>Underwater equity curves · separate lines · 2022 bear market highlighted</p>
+  <div class="chart-placeholder">
+    [ Run stage5_final_comparison.py to generate interactive Plotly chart ]<br>
+    Save as: stage5_drawdown_comparison.html
+  </div>
+</div>
+
+<div class="chart-box">
+  <h3>Year-by-Year Returns Heatmap (2018–2025)</h3>
+  <p>Rows = strategies · Columns = years · Green/red colour coded · Actual return% in each cell</p>
+  <div class="chart-placeholder">
+    [ Run stage5_final_comparison.py to generate interactive Plotly chart ]<br>
+    Save as: stage5_returns_heatmap.html
+  </div>
+</div>
+
+<!-- COMBINED PORTFOLIO -->
+<div class="sec">⑤ Combined Portfolio Expected Performance</div>
+<table>
+<thead><tr>
+  <th class="L">Scenario</th>
+  <th>ETH ADX</th><th>ETH RSI</th><th>Combined $</th><th>Combined %</th><th>Notes</th>
+</tr></thead>
+<tbody>
+<tr class="adx-row">
+  <td class="L neut">Current (unleveraged, $150 RSI)</td>
+  <td class="good">$801/yr on $1,000</td>
+  <td class="warn">~$33/yr on $150*</td>
+  <td class="good">~$834/yr</td>
+  <td class="good">~72% on $1,150</td>
+  <td class="neut">Live now</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">ETH ADX at 1.9× leverage (Week 7)</td>
+  <td class="good">$1,909/yr on $1,500</td>
+  <td class="warn">~$33/yr on $150</td>
+  <td class="good">~$1,942/yr</td>
+  <td class="good">~120% on $1,650</td>
+  <td class="neut">Week 7 target</td>
+</tr>
+<tr class="adx-row">
+  <td class="L neut">Full portfolio ($2,000, RSI scaled up)</td>
+  <td class="good">$1,909/yr on $1,500</td>
+  <td class="warn">~$220/yr on $500*</td>
+  <td class="good">~$2,129/yr</td>
+  <td class="good">~106% on $2,000</td>
+  <td class="warn">RSI at 80%+ live WR required</td>
+</tr>
+</tbody>
+</table>
+<div class="note">* RSI expected annual return based on backtest 93.5% win rate (~22%). At expected live 70% WR, RSI contribution is negative. Combined figures are optimistic — use for planning only, not as guaranteed forecast.</div>
+
+<!-- SIGN-OFF -->
+<div class="sec">⑥ Week 6 Sign-Off</div>
+<div class="signoff">
+  <h3>DEPLOYMENT AUTHORISATION RECORD</h3>
+  <div class="so-grid">
+    <div class="so-item">
+      <label>ETH ADX 19/9 Status</label>
+      <div class="val good">LIVE — Authorised ✅</div>
+    </div>
+    <div class="so-item">
+      <label>ETH RSI 14 Status</label>
+      <div class="val warn">VALIDATION — $150 only ⚠️</div>
+    </div>
+    <div class="so-item">
+      <label>BTC SMA 120 Status</label>
+      <div class="val" style="color:var(--muted)">SHELVED — deferred ⏸</div>
+    </div>
+    <div class="so-item">
+      <label>ETH ADX Leverage</label>
+      <div class="val warn">1.9× validated — Week 7 build</div>
+    </div>
+    <div class="so-item">
+      <label>Independent Reviews</label>
+      <div class="val warn">RSI: 27 findings resolved ✅<br>ADX: retrospective due Week 7</div>
+    </div>
+    <div class="so-item">
+      <label>Portfolio Manager</label>
+      <div class="val good">Deployed — all 3 bots integrated ✅</div>
+    </div>
+    <div class="so-item">
+      <label>Stop Order Type</label>
+      <div class="val good">STOP_LOSS market execution ✅</div>
+    </div>
+    <div class="so-item">
+      <label>Silent Failure Prevention</label>
+      <div class="val good">Telegram alerts + health check ✅</div>
+    </div>
+    <div class="so-item">
+      <label>Trailing Stop</label>
+      <div class="val good">4× daily cron checks ✅</div>
+    </div>
+    <div class="so-item">
+      <label>Kelly Sizing</label>
+      <div class="val good">Corrected (risk fraction) ✅</div>
+    </div>
+    <div class="so-item">
+      <label>Capital Compounding</label>
+      <div class="val good">Portfolio manager weekly rebalance ✅</div>
+    </div>
+    <div class="so-item">
+      <label>Week 7 Priority</label>
+      <div class="val warn">ETH ADX 1.9× leverage build</div>
+    </div>
+  </div>
+  <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)">
+    Authorised by: Greg (Gmac) &nbsp;|&nbsp; Date: 2026-05-07 &nbsp;|&nbsp; 
+    Curriculum Week: 6 of 24 &nbsp;|&nbsp; 
+    EC2: 3.104.101.30 (ap-southeast-2) &nbsp;|&nbsp; 
+    GitHub: SCE2GNM/execution-engine
+  </div>
+</div>
+
+</body>
+</html>

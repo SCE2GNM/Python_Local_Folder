@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategy Comparison Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;600&display=swap');
+:root{--bg:#07090f;--surface:#0d1120;--s2:#111827;--border:#1e2d42;--b2:#263350;--text:#e2e8f0;--muted:#64748b;--faint:#2d3f56;--adx:#4ade80;--adxbg:#030f07;--rsi:#a78bfa;--rsibg:#08051a;--bsma:#fb923c;--bsmabg:#120700;--badx:#38bdf8;--badxbg:#02101a;--gold:#f59e0b;--good:#4ade80;--warn:#fbbf24;--bad:#f87171;--neut:#94a3b8}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:12px;line-height:1.5;padding:28px 22px;min-width:1080px}
+h1{font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:700;color:#f8fafc;letter-spacing:2px;text-align:center;margin-bottom:5px}
+.sub{text-align:center;color:var(--muted);font-size:10px;margin-bottom:6px}
+.badge{display:block;background:var(--s2);border:1px solid var(--b2);border-radius:20px;padding:3px 14px;font-size:9px;color:var(--gold);font-family:'JetBrains Mono',monospace;width:fit-content;margin:0 auto 20px}
+.sec{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:1.5px;padding:9px 14px;background:var(--surface);border-left:3px solid var(--gold);border-radius:0 4px 4px 0;margin:20px 0 7px;text-transform:uppercase}
+table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:8px;overflow:hidden;border:1px solid var(--border);margin-bottom:6px}
+thead tr{background:#070a13}
+th{padding:8px 9px;color:var(--muted);font-size:9px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;text-align:center;border-bottom:1px solid var(--b2);font-family:'JetBrains Mono',monospace}
+th.L{text-align:left}
+td{padding:8px 9px;text-align:center;border-bottom:1px solid #ffffff07;vertical-align:middle;font-size:11px}
+td.L{text-align:left}
+tr:last-child td{border-bottom:none}
+tr.adx{background:var(--adxbg)}tr.rsi{background:var(--rsibg)}tr.bsma{background:var(--bsmabg)}tr.badx{background:var(--badxbg)}
+tr.adx:hover,tr.rsi:hover,tr.bsma:hover,tr.badx:hover{filter:brightness(1.4);transition:filter .15s}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;letter-spacing:.4px;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.tlive{background:#030f07;color:#4ade80;border:1px solid #4ade8035}
+.tbuild{background:#08051a;color:#a78bfa;border:1px solid #a78bfa35}
+.tshelf{background:#1a1510;color:#78716c;border:1px solid #78716c35}
+.tpart{background:#150e02;color:#fbbf24;border:1px solid #fbbf2435}
+.ttrend{background:#021428;color:#38bdf8;border:1px solid #38bdf835}
+.tmean{background:#0e0628;color:#c084fc;border:1px solid #c084fc35}
+.good{color:var(--good);font-weight:600}.warn{color:var(--warn);font-weight:600}.bad{color:var(--bad);font-weight:600}.neut{color:var(--neut)}
+.hi{color:var(--gold);font-weight:700}
+.ck{color:var(--good);font-size:14px}.xx{color:var(--bad);font-size:14px}.pp{color:var(--warn);font-size:14px}
+.sadx{color:var(--adx);font-weight:700;font-family:'JetBrains Mono',monospace}
+.srsi{color:var(--rsi);font-weight:700;font-family:'JetBrains Mono',monospace}
+.sbsma{color:var(--bsma);font-weight:700;font-family:'JetBrains Mono',monospace}
+.sbadx{color:var(--badx);font-weight:700;font-family:'JetBrains Mono',monospace}
+.tip{position:relative;cursor:help;border-bottom:1px dashed var(--faint)}
+.tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#1a2640;color:#e2e8f0;font-size:10px;font-family:'Inter',sans-serif;font-weight:400;line-height:1.55;padding:9px 13px;border-radius:7px;border:1px solid #2d4060;white-space:pre-line;min-width:230px;max-width:340px;text-align:left;pointer-events:none;opacity:0;z-index:9999;transition:opacity .15s ease;box-shadow:0 8px 32px #000000a0}
+.tip:hover::after{opacity:1}
+.tip-R::after{left:auto;right:0;transform:none}
+.tip-L::after{left:0;transform:none}
+.note{font-size:9.5px;color:var(--muted);padding:9px 13px;background:var(--surface);border:1px solid var(--border);border-radius:6px;line-height:1.6;margin-top:3px}
+.note strong{color:var(--gold)}
+.legend{display:flex;gap:18px;flex-wrap:wrap;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:18px;align-items:center}
+.li{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%}
+</style>
+</head>
+<body>
+
+<h1>STRATEGY COMPARISON DASHBOARD</h1>
+<p class="sub">All four strategies · validation status · backtest metrics · leverage suitability</p>
+<div class="badge">Week 6 · 2026-05-07 · Hover underlined cells for detail</div>
+
+<div class="legend">
+  <span class="hi" style="font-size:10px;margin-right:4px">STRATEGIES:</span>
+  <div class="li"><div class="dot" style="background:var(--adx)"></div><span style="color:var(--adx)">ETH ADX 19/9</span></div>
+  <div class="li"><div class="dot" style="background:var(--rsi)"></div><span style="color:var(--rsi)">ETH RSI 14</span></div>
+  <div class="li"><div class="dot" style="background:var(--bsma)"></div><span style="color:var(--bsma)">BTC SMA 120</span></div>
+  <div class="li"><div class="dot" style="background:var(--badx)"></div><span style="color:var(--badx)">BTC ADX 19/14</span></div>
+  <span style="margin-left:auto;color:var(--muted);font-size:10px">💡 Hover any underlined value for explanation</span>
+</div>
+
+<!-- IDENTITY -->
+<div class="sec">① Strategy Identity</div>
+<table>
+<thead><tr>
+  <th class="L" style="width:130px">Strategy</th>
+  <th>Type</th><th>Asset</th><th>Entry</th><th>Exit</th><th>Stop</th><th>Avg Hold</th><th>Status</th>
+</tr></thead>
+<tbody>
+<tr class="adx">
+  <td class="L"><span class="sadx">ETH ADX 19/9</span></td>
+  <td><span class="tag ttrend tip" data-tip="Trend following: enters when a strong directional trend is confirmed. Profits from sustained directional moves. Typical win rate 35-45% but large average wins compensate. Underperforms in choppy sideways markets — ADX filter helps.">Trend</span></td>
+  <td>ETHUSDT</td>
+  <td class="tip" data-tip="ADX(9) above 19 = strong trend exists.
++DI crossing above -DI = direction is upward.
+Both conditions required simultaneously.
+Entry at next day's close after signal fires.
+Parameters from joint optimisation (Week 5).">ADX&gt;19 + +DI&gt;-DI</td>
+  <td class="tip" data-tip="Exit when trend weakens:
+ADX drops below 19 (trend losing strength)
+OR +DI crosses back below -DI (direction reversing).
+Trailing stop also exits if price drops 8% from peak.">ADX reversal</td>
+  <td class="tip tip-R" data-tip="8% percentage trailing stop.
+stop = peak_price × 0.92
+Moves UP as price rises, NEVER down.
+Updated 4× daily via cron.
+Stage 1 result: Calmar 2.559 (trailing) vs 2.013 (fixed 5%).
+Implemented as STOP_LOSS market order on Binance — guaranteed execution.">8% pct trail ✅</td>
+  <td>~8 days</td>
+  <td><span class="tag tlive">LIVE ✅</span></td>
+</tr>
+<tr class="rsi">
+  <td class="L"><span class="srsi">ETH RSI 14</span></td>
+  <td><span class="tag tmean tip" data-tip="Mean reversion: bets that oversold prices will bounce back toward the mean. High win rate, small wins, occasional large losses. Complementary to trend-following — performs in ranging markets where ADX would be FLAT. Natural partner strategy to ETH ADX.">Mean Rev</span></td>
+  <td>ETHUSDT</td>
+  <td class="tip" data-tip="RSI(14) below 43 = ETH oversold.
+120-day MA filter = only enter in uptrend.
+Both conditions required simultaneously.
+The MA filter is critical — avoids catching falling knives in bear markets.">RSI&lt;43 + above 120MA</td>
+  <td class="tip" data-tip="Exit when RSI recovers above 48.
+Price has bounced from oversold back to normal.
+Quick exit signal → short ~7 day avg hold.
+Tight RSI band (43 in / 48 out) optimised Week 5.">RSI &gt; 48</td>
+  <td class="tip tip-R" data-tip="⚠️ KEY RISK: Asymmetric payoff.
+Avg win: +5.79% | Avg loss: −15.00%
+b-ratio = 5.79/15 = 0.386
+Breakeven win rate = 1/(1+0.386) = 72.1%
+Expected live WR: 60-70% → BELOW breakeven.
+Monte Carlo at 70% WR: median return −3.4%.
+Deployed at $150 validation size only.">15% fixed ⚠️</td>
+  <td>~7 days</td>
+  <td><span class="tag tbuild">BUILDING 🔧</span></td>
+</tr>
+<tr class="bsma">
+  <td class="L"><span class="sbsma">BTC SMA 120</span></td>
+  <td><span class="tag ttrend tip" data-tip="Slow trend following on BTC. Waits for price to cross the 120-day MA — very patient. Only ~4 trades/year. Captures BTC's multi-month bull runs. Holds for weeks to months. Most return concentrated in exceptional years.">Slow Trend</span></td>
+  <td>BTCUSDT</td>
+  <td class="tip" data-tip="Price crosses above the 120-day SMA.
+Very slow confirmation — trend has been building months before signal fires.
+Misses the early part of every move but avoids false signals.
+Only ~4 trades per year on average.">Price above SMA(120)</td>
+  <td class="tip" data-tip="Price crosses back below SMA(120)
+OR 25% trailing stop is hit.
+SMA exit dominates — stop only triggers ~10% of exits because the 25% trail is very wide.">Price below SMA(120)</td>
+  <td class="tip tip-R" data-tip="25% trailing stop from peak.
+Very wide — BTC has frequent 15-25% corrections within bull trends. Tighter stop = constant whipsawing.
+Optimal after Stage 2 testing: pct trail over ATR trail for BTC SMA.
+Interest cost at 2.0× leverage: ~$9.45/trade (vs ETH ADX $1.08) due to 42-day avg hold.">25% pct trail</td>
+  <td class="tip tip-R" data-tip="42-day average hold = high interest costs if leveraged.
+At 2.0×: ~$9.45 interest per trade.
+Compare ETH ADX at 1.9×: ~$1.08 per trade.
+BTC SMA is 8.8× more expensive per trade to lever — limits the leverage benefit.">~42 days ⚠️</td>
+  <td><span class="tag tshelf tip tip-R" data-tip="Shelved 2026-05-06:
+• 30 trades (thin sample)
+• 76% return from 2021 alone
+• Marginal stability (50.5%)
+• Cross-asset ETH fails (Sortino 0.505)
+NOT permanently discarded.
+Revisit: BTC sample ≥50 trades (~2028+)
+Logged in Strategy Ideas Log.">SHELVED ⏸</span></td>
+</tr>
+<tr class="badx">
+  <td class="L"><span class="sbadx">BTC ADX 19/14</span></td>
+  <td><span class="tag ttrend tip" data-tip="Trend following on BTC with BTC-specific parameters. ADX period 14 (vs 9 for ETH) reflects BTC's slower trends. ~12 trades/year. Strongest sample of all four strategies at 103 trades — most statistically reliable. Main concern: post-2022 performance only +5.4%/yr.">Trend</span></td>
+  <td>BTCUSDT</td>
+  <td class="tip" data-tip="ADX(14) above 19 confirms strong trend.
++DI above -DI confirms upward direction.
+BTC-specific parameters from independent Week 5 optimisation.
+ADX period 14 vs ETH's 9 — BTC trends develop more slowly.">ADX&gt;19 + +DI&gt;-DI</td>
+  <td>ADX reversal</td>
+  <td class="tip tip-R" data-tip="Fixed 3% stop confirmed optimal for BTC ADX.
+Unusual: trailing stops UNDERPERFORMED for BTC ADX — opposite of ETH ADX.
+Reason: BTC ADX's high frequency (103 trades) benefits from quick disciplined exits.
+Trailing stops added MtM drawdown without adding return on this strategy.">3% fixed (optimal)</td>
+  <td>~8 days</td>
+  <td><span class="tag tpart tip tip-R" data-tip="Partially validated:
+✅ Grid search, stability (MARGINAL 54.5%), walk-forward 2/3, cross-asset ETH partial (Sortino 0.794).
+❌ Monte Carlo, independent review, leverage optimisation, B&H check, full trailing stop.
+⚠️ Post-2022: only +5.4%/yr (half-split concern).
+Natural Week 7 BTC strategy candidate.">PARTIAL ⚠️</span></td>
+</tr>
+</tbody>
+</table>
+
+<!-- BACKTEST METRICS -->
+<div class="sec">② Backtest Metrics (0.15% costs + 0.25% slippage · daily equity Sortino)</div>
+<table>
+<thead><tr>
+  <th class="L">Strategy</th>
+  <th>Annual %</th><th>Per-trade MDD</th><th>Daily MtM MDD</th>
+  <th>Sortino</th><th>Win Rate</th><th>Profit Factor</th><th>Trades (8yr)</th><th>vs B&H</th>
+</tr></thead>
+<tbody>
+<tr class="adx">
+  <td class="L"><span class="sadx">ETH ADX 19/9</span></td>
+  <td class="good tip" data-tip="80.1% annual return after costs + slippage.
+ETH B&H returned 12.9%/yr same period.
+6.2× outperformance.
+8.3 years, 158 trades.
+Corrected from earlier 65.7% (ADX 20/10 params).">80.1% ✅</td>
+  <td class="warn tip" data-tip="Per-trade MaxDD: worst peak-to-trough on completed trade return sequence.
+Does NOT include within-trade price swings.
+At 1.9× leverage this worsens to −59.5%.
+Current live position (1.0× unleveraged): this is the backtest figure.">−31.3%</td>
+  <td class="warn tip" data-tip="Daily mark-to-market MaxDD: worst portfolio value vs previous peak, tracked every day including during open positions.
+This is what you see watching your live Binance balance.
+At 1.9× leverage: −59.5%.
+At 1.0× (current): this is your live experience number.">−37.7%</td>
+  <td class="good tip" data-tip="Sortino 1.780 via daily equity curve method.
+= annual return / downside-only volatility.
+1.780 is 2.26× ETH B&H Sortino (0.786).
+Passes ≥1.5× B&H threshold.
+Does NOT penalise upside volatility (unlike Sharpe).">1.780 ✅</td>
+  <td class="tip" data-tip="41.8% win rate is typical for trend-following.
+Does not need to win most trades.
+Compensates with avg wins >> avg losses.
+Profit factor 2.547 = $2.55 won per $1 lost.
+Kelly fraction 12.41% — positive and meaningful.">41.8%</td>
+  <td class="good">2.547</td>
+  <td class="good tip" data-tip="158 trades over 8.3 years = ~19/year.
+Well above 30-trade minimum for statistical reliability.
+Confidence intervals on win rate and return are tight.
+Suitable for Kelly sizing, leverage, and allocation decisions.">158 ✅</td>
+  <td class="good tip" data-tip="B&H checks:
+Annual: 80.1% vs 12.9% = 6.2× ✅ (target ≥2.0×)
+MDD: 37.7% vs B&H MDD = 0.40× ✅ (target ≤0.50×)
+Sortino: 1.780 vs 0.786 = 2.26× ✅ (target ≥1.5×)
+All three B&H thresholds pass.">6.2× ✅</td>
+</tr>
+<tr class="rsi">
+  <td class="L"><span class="srsi">ETH RSI 14</span></td>
+  <td class="warn tip" data-tip="~22% = Monte Carlo median at backtest 93.5% WR.
+At realistic live rates:
+80% WR → +6.9% median
+75% WR → −0.1% median
+70% WR → −3.4% median (negative!)
+Breakeven WR: 72.1%. Expected live: 60-70%.
+Deployed at $150 validation only.">~22%* ⚠️</td>
+  <td class="good tip" data-tip="Per-trade MDD low due to high win rate (93.5%) and fixed 15% stop.
+However: if live win rate degrades to 70%, consecutive losses become far more frequent.
+Monte Carlo 10th percentile at 70% WR: −12.7% annual.">Low</td>
+  <td class="neut tip" data-tip="Daily MtM MaxDD not yet recalculated with corrected daily equity curve method.
+Original Week 5 figure used per-trade method (inflates by 3-4×).
+Required before scaling beyond $150.
+Part of outstanding stability analysis.">Not calc'd</td>
+  <td class="neut tip" data-tip="Sortino not recalculated after per-trade bug fix.
+Original Week 5 Sortino used per-trade method — inflated by 3-4×.
+True daily equity Sortino likely 0.3-0.5.
+Required before B&H comparison.
+Currently failing B&H Sortino threshold.">Not recalc'd</td>
+  <td class="warn tip" data-tip="93.5% WR (29/31 trades) is backtest figure.
+Almost certainly overstated:
+• Only 31 trades
+• Possible 120MA filter data-mining
+• Expected live rate: 60-70%
+Breakeven WR for positive Kelly: 72.1%
+This is the single biggest concern for RSI.">93.5% ⚠️</td>
+  <td class="good tip" data-tip="Profit factor 5.593 driven by high win rate.
+29 wins × 5.79% vs 2 losses × 15%.
+If live WR degrades to 70%, profit factor likely drops below 1.0 (negative expectancy).
+The backtest figure is not reliable at realistic live win rates.">5.593 ⚠️</td>
+  <td class="bad tip" data-tip="31 trades over 8.3 years = ~4/year.
+At the absolute minimum for statistical reliability.
+95% CI on win rate: roughly 79-99% — extremely wide.
+Cannot make reliable Kelly or allocation decisions.
+Monte Carlo is essential — now complete.">31 ⚠️</td>
+  <td class="warn tip" data-tip="B&H comparison not fully calculable — Sortino not yet recalculated.
+At realistic live win rates (~70%), annual return turns negative.
+B&H multiple at realistic rates: likely below 1.0× (underperforms passive holding).
+Concerning — primary reason for $150 validation-only deployment.">~1.7× ⚠️</td>
+</tr>
+<tr class="bsma">
+  <td class="L"><span class="sbsma">BTC SMA 120</span></td>
+  <td class="good tip" data-tip="48.9% annual return on BTC. BTC B&H: 23.4%/yr (2.1× outperformance).
+⚠️ Key caveat: 76% of total return from 2021 alone.
+Ex-2021 annual return: 29.4%.
+The headline number is heavily distorted by one exceptional year.">48.9%</td>
+  <td class="good tip" data-tip="−17.8% per-trade MDD — LOWEST of all four strategies.
+This is why BTC SMA is theoretically an attractive leverage candidate.
+Lower base drawdown supports higher safe leverage.
+At 2.0× leverage: per-trade MDD becomes −45.7% — still manageable.">−17.8% ✅</td>
+  <td class="warn tip" data-tip="−35.4% daily MtM MaxDD at 1.0× unleveraged.
+At 2.0× leverage: worsens to −51.0%.
+Worst MtM drop occurs during 2021 bull run correction — not in bear market.
+Open long position was marked down during BTC's Sept 2021 correction.
+Recovered in 28 days.">−35.4%</td>
+  <td class="good tip" data-tip="Sortino 1.246 via daily equity curve.
+1.43× B&H Sortino — narrowly below 1.5× threshold.
+Accepted as marginal deviation given strong performance on other two B&H metrics.
+Ex-2021 Sortino: 0.868 (materially lower).">1.246</td>
+  <td class="warn tip" data-tip="26.7% win rate (8/30 trades) — very low.
+Compensated by enormous avg win of +77.9% vs avg loss of only −3.2%.
+b-ratio = 24.3×. Kelly fraction: 23.7%.
+The strategy wins rarely but wins big. Opposite of RSI.">26.7%</td>
+  <td class="neut">High</td>
+  <td class="bad tip" data-tip="30 trades over 8.3 years = ~3.6/year.
+Borderline — just at the 30-trade minimum.
+Walk-forward windows have only 3-7 trades each.
+Monte Carlo not yet run.
+Thin sample is primary reason BTC SMA was shelved — not the strategy logic itself.">30 ⚠️</td>
+  <td class="good tip" data-tip="BTC B&H: 23.4%/yr. BTC SMA: 48.9%/yr. Ratio: 2.1×.
+B&H checks:
+Annual: 2.1× ✅ (target ≥2.0×)
+MDD: 0.22× B&H ✅ (only 22% of B&H's −81.5% MDD)
+Sortino: 1.43× ⚠️ (narrowly below 1.5× — accepted with rationale)">2.1× ✅</td>
+</tr>
+<tr class="badx">
+  <td class="L"><span class="sbadx">BTC ADX 19/14</span></td>
+  <td class="warn tip" data-tip="42.3% annual return after cost correction.
+BTC B&H: 23.4%/yr (1.8× ratio — below 2.0× threshold).
+⚠️ Half-split: 2018-2021 = +95.1%/yr, post-2022 = only +5.4%/yr.
+The post-2022 performance is extremely weak — possible regime change.
+This is the most important concern for BTC ADX.">42.3% †</td>
+  <td class="bad tip" data-tip="−42.0% per-trade MDD — HIGHEST of all four strategies.
+Caused by strategy repeatedly entering during 2022 downtrend: 17 stop-out attempts.
+Fixed 3% stop gets triggered repeatedly as BTC trends down.
+Compare BTC SMA: only 2 trades in 2022 for −6.6%.
+At any leverage this worsens proportionally.">−42.0% ⚠️</td>
+  <td class="bad tip" data-tip="−48.4% daily MtM MDD after entry_date bug fix.
+Bug inflated original Sortino figure by ~26%.
+At leverage this worsens significantly.
+High base MDD makes leverage risky without proper buffer analysis.
+Leverage not yet validated for BTC ADX.">−48.4% ⚠️</td>
+  <td class="warn tip" data-tip="Sortino 1.143 after entry_date bug fix.
+Was 1.441 before correction — bug inflated by 26%.
+Below ETH ADX (1.780) and BTC SMA (1.246).
+B&H Sortino comparison not yet calculated.
+Lower Sortino = more painful bad days relative to good days.">1.143 †</td>
+  <td class="warn tip" data-tip="27.2% win rate (103 trades) — low but typical for trend-following.
+Unlike ETH ADX (PF 2.547), BTC ADX's profit factor is lower (~2.0).
+Post-2022 regime deterioration suggests edge may be weakening.
+103 trades is the strongest and most reliable sample of all four.">27.2%</td>
+  <td class="neut">~2.0</td>
+  <td class="good tip" data-tip="103 trades is the strongest sample of all four strategies.
+Statistical inference is much more reliable than RSI (31) or BTC SMA (30).
+Monte Carlo on 103 trades will be more meaningful than on smaller samples.
+This is the key strength of BTC ADX — the sample size.">103 ✅</td>
+  <td class="warn tip" data-tip="B&H comparison not fully calculated.
+Estimate: 42.3% vs BTC B&H 23.4% = ~1.8× — below the 2.0× threshold.
+Post-2022: +5.4%/yr vs BTC which returned strongly 2023-2025. Underperforms B&H in recent period.
+Full B&H check required before deployment decision.">~1.8× ⚠️</td>
+</tr>
+</tbody>
+</table>
+<div class="note">† BTC ADX metrics partially corrected (entry_date bug fixed, costs applied) but trailing stop not yet optimised. Post-2022 half-split: only +5.4%/yr — major regime concern.<br>* ETH RSI ~22% is Monte Carlo median at backtest 93.5% WR. At realistic 70% live WR: median −3.4% (negative expected value).</div>
+
+<!-- VALIDATION -->
+<div class="sec">③ Validation Checklist</div>
+<table>
+<thead><tr>
+  <th class="L" style="width:260px">Check</th>
+  <th>ETH ADX</th><th>ETH RSI</th><th>BTC SMA</th><th>BTC ADX</th>
+</tr></thead>
+<tbody>
+<tr><td class="L tip tip-L" data-tip="0.15% round-trip costs (0.075% each side) deducted from every trade. Previously missing from early Stage 1 backtests — caught and fixed. High-frequency strategies are most affected by cost omission.">Transaction costs applied</td>
+  <td class="ck">✅</td><td class="ck">✅</td><td class="ck">✅</td><td class="ck">✅</td></tr>
+<tr><td class="L tip tip-L" data-tip="Sortino must use daily equity curve method (daily returns), not per-trade returns. Per-trade method inflates Sortino by 3-4×. Bug discovered Week 5 (Sharpe), again Week 6 (Sortino). Fixed for ETH ADX and BTC strategies. ETH RSI not yet recalculated.">Daily equity Sortino</td>
+  <td class="ck">✅</td><td class="xx">❌ not recalc'd</td><td class="ck">✅</td><td class="ck">✅</td></tr>
+<tr><td class="L tip tip-L" data-tip="Stop loss checked against daily LOW price on every bar — intraday drops can trigger the stop even if the close is above it. Confirmed correct in all Week 6 backtests. Critical for accurate stop simulation.">Bar-by-bar low stop check</td>
+  <td class="ck">✅</td><td class="ck">✅</td><td class="ck">✅</td><td class="ck">✅</td></tr>
+<tr><td class="L tip tip-L" data-tip="Tests both percentage trail and ATR trail across a parameter grid. ETH ADX: 8% pct trail confirmed optimal over fixed and ATR. BTC SMA: 25% pct confirmed. BTC ADX: fixed 3% is BETTER than trailing stops (unusual — due to high re-entry frequency). ETH RSI: only fixed 15% tested.">Trailing stop optimised</td>
+  <td class="ck">✅ 8% pct</td><td class="pp">⚠️ fixed only</td><td class="ck">✅ 25% pct</td><td class="pp">⚠️ fixed 3% optimal</td></tr>
+<tr><td class="L tip tip-L" data-tip="Varies each parameter independently to check strategy sits on a broad plateau. STABLE >60% pass, MARGINAL 40-60%, FRAGILE <40%. MARGINAL is acceptable with monitoring. All validated strategies came in MARGINAL.">Stability analysis</td>
+  <td class="ck">✅ MARGINAL</td><td class="xx">❌ not run</td><td class="ck">✅ MARGINAL 50.5%</td><td class="ck">✅ MARGINAL 54.5%</td></tr>
+<tr><td class="L tip tip-L" data-tip="Expanding walk-forward: training always starts at inception and grows. Tests whether the strategy continues to work as more history accumulates. 2022 failures accepted for BTC strategies — bear market structural issue where strategy correctly avoided -65% B&H loss with small loss.">Walk-forward (expanding)</td>
+  <td class="ck">✅</td><td class="ck">✅ 3/3</td><td class="ck">✅ 2/3</td><td class="ck">✅ 2/3</td></tr>
+<tr><td class="L tip tip-L" data-tip="Rolling walk-forward: fixed-length training window slides forward, dropping old data. Tests edge across different regimes. With fixed parameters, expanding and rolling produce identical results — documented explicitly when this occurs.">Walk-forward (rolling)</td>
+  <td class="ck">✅</td><td class="pp">⚠️ not explicit</td><td class="ck">✅ identical</td><td class="pp">⚠️ not explicit</td></tr>
+<tr><td class="L tip tip-L" data-tip="Runs strategy on a different asset to confirm edge is structural. Failure means asset-specific edge — not automatically disqualifying if only deployed on validated asset. ETH ADX generalises well to BTC. BTC SMA fails on ETH (expected — different volatility profiles).">Cross-asset check</td>
+  <td class="ck">✅ BTC generalises</td><td class="ck">✅ BTC generalises</td><td class="xx">❌ ETH fails</td><td class="pp">⚠️ ETH partial</td></tr>
+<tr><td class="L tip tip-L" data-tip="B&H relative thresholds: Annual ≥2.0× B&H, MDD ≤0.50× B&H, Sortino ≥1.5× B&H. All three must pass or deviation formally accepted. Ensures strategy justifies its complexity over passive holding.">B&H relative thresholds</td>
+  <td class="ck">✅ all pass</td><td class="xx">❌ not calc'd</td><td class="pp">⚠️ Sortino 1.43×</td><td class="xx">❌ not calc'd</td></tr>
+<tr><td class="L tip tip-L" data-tip="1000 simulations at 5 win rate scenarios (backtest, 80%, 75%, 70%, 65%). Shows full distribution of outcomes. Mandatory for n<100 trades. Reveals win-rate sensitivity before live deployment. ETH RSI Monte Carlo showed negative Kelly at expected 70% live WR.">Monte Carlo stress test</td>
+  <td class="pp">⚠️ not yet</td><td class="ck">✅ done — concerning</td><td class="xx">❌ not run</td><td class="xx">❌ not run</td></tr>
+<tr><td class="L tip tip-L" data-tip="Breakeven WR = 1/(1+b) where b = avg_win/avg_loss. If expected live WR is below breakeven, Kelly says don't trade. ETH ADX: b=6.13, breakeven=14% (very safe). ETH RSI: b=0.386, breakeven=72.1% (dangerous — expected 60-70% live is BELOW this).">Payoff profile sanity check</td>
+  <td class="ck">✅ Kelly positive</td><td class="xx">❌ Kelly negative at live rates</td><td class="pp">⚠️ low WR risk</td><td class="pp">⚠️ low WR risk</td></tr>
+<tr><td class="L tip tip-L" data-tip="Fresh Claude chat (Sonnet, no prior context) actively looks for problems. Found 27 issues for ETH RSI including critical negative Kelly. Not yet done for ETH ADX (already live), BTC SMA (shelved), or BTC ADX (partial). Required before live deployment.">Independent review</td>
+  <td class="pp">⚠️ not done (live)</td><td class="ck">✅ 27 findings</td><td class="xx">❌ not done</td><td class="xx">❌ not done</td></tr>
+<tr><td class="L tip tip-L" data-tip="Grid search 1.0×-5.0× in 0.1× steps. Includes interest cost modelling and bar-by-bar liquidation check. Ranked by annual return% with safety buffer ≥33% working minimum and ≥25% hard floor veto. Also includes categorical liquidation test vs worst historical single-day drop.">Leverage optimised</td>
+  <td class="ck">✅ 1.9×</td><td class="xx">❌ not done</td><td class="ck">✅ 2.0×</td><td class="xx">❌ not done</td></tr>
+<tr><td class="L tip tip-L" data-tip="Kelly f* is RISK fraction not deployment fraction. Position = (f* × capital) / stop%. Ensures max loss = f* × capital. Previously misimplemented as position = f* × capital — caused 20× undersizing on live ETH ADX bot. Fixed Week 6.">Kelly correct (risk fraction)</td>
+  <td class="ck">✅ fixed</td><td class="pp">⚠️ $150 validation</td><td class="xx">❌ not calc'd</td><td class="xx">❌ not calc'd</td></tr>
+</tbody>
+</table>
+
+<!-- LEVERAGE -->
+<div class="sec">④ Leverage Suitability</div>
+<table>
+<thead><tr>
+  <th class="L" style="width:220px">Factor</th>
+  <th>ETH ADX</th><th>ETH RSI</th><th>BTC SMA</th><th>BTC ADX</th>
+</tr></thead>
+<tbody>
+<tr>
+  <td class="L tip tip-L" data-tip="Lower per-trade MDD = less loss per trade = more margin buffer when leveraged. ETH ADX and BTC SMA are best candidates. BTC ADX at −42% is worst — high drawdown at leverage risks liquidation in downtrends.">Per-trade MDD (lower = better)</td>
+  <td class="warn">−31.3%</td><td class="good">Low</td><td class="good">−17.8% ✅</td><td class="bad">−42.0%</td>
+</tr>
+<tr>
+  <td class="L tip tip-L" data-tip="Higher Sortino = more consistent returns relative to downside volatility. At leverage bad periods are amplified, so consistency matters more. ETH ADX leads at 1.780. Note: Sortino favoured over Sharpe because it does not penalise upside volatility.">Sortino (higher = better)</td>
+  <td class="good">1.780 ✅</td><td class="neut">Unknown</td><td class="warn">1.246</td><td class="warn">1.143</td>
+</tr>
+<tr>
+  <td class="L tip tip-L" data-tip="Kelly-optimal leverage = f* / stop_pct. This is the leverage that maximises long-run growth according to Kelly theory. Buffer-constrained maximum is usually higher — takes on more risk than Kelly-optimal but within safety constraints.">Kelly-optimal leverage</td>
+  <td class="good tip" data-tip="Kelly-optimal: f*=12.41% / stop 8% = 1.55×.
+Buffer maximum: 1.9×.
+Deployed at 1.9× for higher return — acceptable since it remains within safety constraints.
+At 1.9×: expected 127.3% annual return on $1,500 = $1,909/yr.">1.55× Kelly, 1.9× deployed</td>
+  <td class="neut">Not validated</td>
+  <td class="good tip" data-tip="Kelly position: (11.8% × $500) / 25% = $237.
+At 2.0×: $1,000 available. Kelly position ($237) well within available capital — not fully utilising leverage.
+Appropriate given 30-trade sample uncertainty.">2.0× validated</td>
+  <td class="neut">Not validated</td>
+</tr>
+<tr>
+  <td class="L tip tip-L" data-tip="Safety buffer = minimum historical margin ratio − Binance's 5% maintenance margin. Measured at worst intraday point using daily LOW prices across all 8+ years of backtest. Must be ≥33% working minimum.">Safety buffer at optimal leverage</td>
+  <td class="warn tip" data-tip="34.4% at 1.9× — just above 33% working minimum (1.4pp headroom).
+Margin alert set at 40% as early warning.
+Trailing stop provides primary protection — no liquidations in 8yr backtest.">34.4% at 1.9× ⚠️</td>
+  <td class="neut">—</td>
+  <td class="good tip" data-tip="45.3% at 2.0× — 12.3pp above 33% working minimum.
+Much more headroom than ETH ADX.
+Survives worst historical single-day BTC drop (−38.6%) from fresh entry.
+Categorically safe at 2.0× — chose this over 2.5× specifically.">45.3% at 2.0× ✅</td>
+  <td class="neut">—</td>
+</tr>
+<tr>
+  <td class="L tip tip-L" data-tip="Categorical liquidation test: does the worst historical single-day price drop for this asset liquidate the position at recommended leverage, even from a fresh entry? This is a hard safety test. BTC SMA 2.5× FAILS this test — liquidated even from fresh entry by −38.6% BTC drop.">Categorical liquidation test</td>
+  <td class="warn tip" data-tip="From fresh entry (MR=52.6%): survives −42.9% ETH drop (MR→17%). Above 5% liquidation threshold.
+From worst historical MR (34.4%): would be liquidated by same event.
+Probability of both simultaneously is low.
+Trailing stop + margin alert provide layered protection.">Survives from fresh entry ⚠️</td>
+  <td class="neut">—</td>
+  <td class="good tip" data-tip="BTC SMA 2.0×: worst-case −38.6% BTC drop from fresh entry → MR drops to 11%. Above 5% liquidation threshold. Position survives even the worst historical event from any starting position. Categorically safe. This is exactly why 2.0× was chosen over 2.5×.">Passes at 2.0× ✅</td>
+  <td class="neut">—</td>
+</tr>
+<tr>
+  <td class="L tip tip-L" data-tip="Interest = borrowed amount × 0.015%/day × days in position. Short hold times = low drag. BTC SMA at 42-day avg hold pays 8.8× more interest per trade than ETH ADX at 8 days, even at similar leverage levels. Annual impact on $500 capital: BTC SMA $38/yr vs ETH ADX $74/yr.">Interest drag (hold time)</td>
+  <td class="good">~$1.08/trade ✅</td><td class="good">~$1/trade</td><td class="bad">~$9.45/trade ⚠️</td><td class="good">~$1/trade</td>
+</tr>
+<tr>
+  <td class="L"><strong>Recommendation</strong></td>
+  <td class="good tip" data-tip="Best leverage candidate: highest Sortino (1.780), validated at 1.9×, short hold = low interest cost, passes categorical liquidation test.
+Expected: 127.3% annual on $1,500 = $1,909/yr.
+PRIORITY for Week 7 deployment — biggest return uplift available."><strong>YES — 1.9× ✅</strong><br><span style="font-size:9px;color:var(--muted)">$1,909/yr expected</span></td>
+  <td class="warn tip" data-tip="Do NOT leverage RSI until: 20 live trades confirm WR ≥80%, Sortino recalculated, leverage validated. At expected 70% live WR, Kelly is negative — leveraging uncertain edge amplifies losses not gains."><strong>NOT YET ⚠️</strong><br><span style="font-size:9px;color:var(--muted)">Prove edge first</span></td>
+  <td class="warn tip" data-tip="BTC SMA would be excellent at 2.0× — lowest MDD, best buffer, passes categorical test. Currently shelved due to thin sample, not leverage concerns. When it returns (Week 15+), leverage is straightforward."><strong>SHELVED ⏸</strong><br><span style="font-size:9px;color:var(--muted)">2.0× validated but deferred</span></td>
+  <td class="warn tip" data-tip="Complete validation pipeline first: Monte Carlo, independent review, leverage optimisation. Post-2022 regime concern (+5.4%/yr) — do not leverage a strategy showing possible regime deterioration without understanding why."><strong>VALIDATE FIRST ⚠️</strong><br><span style="font-size:9px;color:var(--muted)">Post-2022 regime concern</span></td>
+</tr>
+</tbody>
+</table>
+
+<!-- WHAT REMAINS -->
+<div class="sec">⑤ Remaining Work Before Full Deployment</div>
+<table>
+<thead><tr>
+  <th class="L">Strategy</th><th class="L">Outstanding Steps</th><th>Timeline</th><th>Action</th>
+</tr></thead>
+<tbody>
+<tr class="adx">
+  <td class="L"><span class="sadx">ETH ADX</span><br><span style="color:var(--muted);font-size:9px">Live unleveraged</span></td>
+  <td class="L">① Deploy leveraged version (1.9×, $1,500)<br>② Monte Carlo stress test<br>③ Independent review (retrospective)<br>④ Deployment document (HTML + charts)</td>
+  <td class="good">Week 7</td>
+  <td class="good tip" data-tip="Leverage deployment upgrades expected annual return from $670 (1.0×) to $1,909 (1.9×). Leverage validation is complete — just needs the bot to be built with margin borrow/repay logic and MARGIN_BUY order type. Highest ROI remaining task.">LEVERAGE — priority uplift</td>
+</tr>
+<tr class="rsi">
+  <td class="L"><span class="srsi">ETH RSI</span><br><span style="color:var(--muted);font-size:9px">$150 validation</span></td>
+  <td class="L">① Monitor 20 live trades for win rate<br>② Stability analysis<br>③ Recalculate Sortino<br>④ B&H relative check<br>⑤ Scale to $341 if WR ≥80% after 20 trades<br>⑥ STOP bot if WR &lt;72% after 20 trades</td>
+  <td class="warn">Ongoing</td>
+  <td class="warn tip" data-tip="Do not add capital or take action until 20 live trades accumulated. $150 is paying for information, not profit. Scale-up requires WR ≥80% confirmed in live trading. Given ~4 trades/year, 20 trades = ~5 years at current frequency. Consider RSI leverage validation if live results are strong.">WAIT for live validation</td>
+</tr>
+<tr class="bsma">
+  <td class="L"><span class="sbsma">BTC SMA</span><br><span style="color:var(--muted);font-size:9px">Shelved</span></td>
+  <td class="L">① Monte Carlo (required if revisiting)<br>② Independent review<br>③ Await BTC sample ≥50 trades (~2028)<br>④ OR find structural improvement</td>
+  <td class="neut">Deferred</td>
+  <td class="bad tip" data-tip="30 trades and 76% return concentration are structural issues — cannot be fixed by optimisation. Revisit when more BTC history exists. BTC SMA is NOT a bad strategy — it simply needs more data before deployment is justified. The leverage validation (2.0×) can be reused when it returns.">Revisit Week 15+ or 2028</td>
+</tr>
+<tr class="badx">
+  <td class="L"><span class="sbadx">BTC ADX</span><br><span style="color:var(--muted);font-size:9px">Partial validation</span></td>
+  <td class="L">① Trailing stop optimisation<br>② Full Sortino recalculation<br>③ Rolling walk-forward (explicit)<br>④ B&H relative check<br>⑤ Monte Carlo (103 trades = meaningful)<br>⑥ Independent review<br>⑦ Leverage optimisation<br>⑧ Investigate post-2022 regime concern</td>
+  <td class="warn">Week 7</td>
+  <td class="warn tip" data-tip="BTC ADX is the natural Week 7 BTC strategy candidate. Strongest sample size (103 trades) makes Monte Carlo and statistical inference much more reliable. Main question: is the post-2022 +5.4%/yr a temporary regime issue or permanent edge deterioration? Answer this before any deployment decision.">Complete validation pipeline</td>
+</tr>
+</tbody>
+</table>
+
+<div class="note" style="margin-top:16px">
+  <strong>Best leverage candidate:</strong> ETH ADX 19/9 — highest Sortino (1.780), validated 1.9×, short holds keep interest low, passes categorical liquidation test. Expected leveraged return: $1,909/yr on $1,500.
+  <br><br>
+  <strong>ETH ADX + ETH RSI are complementary:</strong> trend-following vs mean reversion on the same asset, performing in different regimes. ADX fires in strong trends, RSI fires in oversold dips. Together they provide better all-weather ETH coverage than either alone. Natural Week 9 portfolio combination candidates.
+  <br><br>
+  <strong>BTC strategy path:</strong> BTC ADX is the Week 7 priority for completing validation. BTC SMA returns when sample size permits. Never deploy capital to a BTC strategy before completing the full research pipeline including Monte Carlo and independent review.
+</div>
+
+</body>
+</html>
