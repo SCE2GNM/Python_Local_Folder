@@ -2,292 +2,280 @@
 ## DeFi Quant Engineer Curriculum
 **Student:** Greg (Gmac)
 **Week:** 7 of 24
-**Dates:** TBD
-**Status:** Planning — continuation from Week 6 (Stage 1 + Stage 2 complete)
+**Start date:** Monday 11 May 2026
+**Calendar event:** Created in Google Calendar
+**Status:** Week 6 complete (with carry-over items)
 
 ---
 
-## Standing Instructions for All Future Weeks
+## How to Use This File
 
-These instructions apply to every week from Week 7 onward. Read before starting any weekly work.
-
-**At the start of Week 9, before beginning any work:**
-Explicitly review SI003 (BTC Regime-Switching: SMA vs ADX Rotation) and SI004 (V-shaped recovery strategies) in `STRATEGY_IDEAS_LOG.md`. These ideas were identified during Week 6 validation and contain specific regime-by-year evidence. Do not begin Week 9 multi-strategy portfolio work without reviewing them — they directly inform what to build.
-
----
-
-## Context for Claude Code
-
-This file provides full context for Week 7. Read this before doing anything else.
-
-You are acting as Greg's quant curriculum tutor and technical collaborator. The teaching style is: explain concepts before writing code, one step at a time, honest assessment of weaknesses, all risks tracked in the Risk Register.
-
-The project lives at:
-`/Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/`
-
-Python 3.12, virtual environment at `venv/`, VS Code, GitHub (SCE2GNM/execution-engine), AWS EC2 (3.104.101.30, ap-southeast-2, Elastic IP).
+Read this file at the start of every Week 7
+chat session before doing anything else.
+All process standards are in the project
+documents attached to the Claude Project.
+This file contains only what is specific
+to Week 7.
 
 ---
 
-## What is live and running
+## Live Positions (as of 2026-05-07)
 
-| Strategy | Asset | Capital | Status | Notes |
-|----------|-------|---------|--------|-------|
-| ADX 20/10 (fixed stop) | ETH | $1,000 | LIVE on EC2 | To be replaced by trailing stop version |
-| RSI 14/43/48 | ETH | $500 | PENDING EC2 deployment | Deferred from Week 6 |
+### ETH ADX 19/9 — LIVE ✅
+- Capital: $1,000 allocated, $994.78 deployed
+- Position: LONG 0.419 ETH
+- Blended entry: $2,368.52 (2026-05-05)
+- Current stop: $2,250.09 (fixed — trailing
+  stop code deployed but stop not yet moved
+  because price hasn't exceeded peak of $2,399.50)
+- Stop type: STOP_LOSS market execution ✅
+- Trailing stop: 8% pct, bot-managed 4× daily
+  (00:05, 06:05, 12:05, 18:05 UTC)
+- ADX signal: LONG (ADX=31.0 as of 2026-05-07)
+- Kelly: 12.41% half-Kelly, correctly
+  implemented as risk fraction
+- Leverage: 1.0× unleveraged currently
+- Validated leverage: 1.9× (Week 7 priority)
+- Bot file: Week_4_Notebooks/day5_production_bot.py
+- EC2: 3.104.101.30 (Elastic IP — permanent)
+- Cron: 00:05 (signal), 06:05, 12:05, 18:05
+  (stop update)
 
-EC2 bot: `day5_production_bot.py` running via cron (00:05 UTC daily).
-State file: `data/bot_state.json`
-Log file: `/home/ubuntu/logs/adx_strategy.log`
-
----
-
-## Week 6 Summary — What Was Accomplished
-
-### Stage 1 — ETH ADX Trailing Stop Optimisation (complete)
-
-**Stage 1a — Percentage trailing stop grid search**
-- Grid: ADX threshold 15–22, ADX period 8–14, trail_pct 3–15%
-- Best: ADX 19/9, trail 8% → Calmar 2.559, Sortino 1.870, Ann +80.2%, MaxDD −31.3%, 158 trades
-- Results saved: `Week_6_Notebooks/results/stage1a_results.csv`
-
-**Stage 1b — ATR trailing stop grid search**
-- Grid: ADX threshold 15–22, ADX period 8–14, ATR period 7–21, multiplier 1.5–4.0
-- Best: ADX 19/9, ATR 9, multiplier 2.5x → Calmar 2.642, Sortino 1.385, Ann +73.5%, MaxDD −27.8%, 123 trades
-- Results saved: `data/stage1b_results.csv`
-
-**Stage 1c — Stability analysis**
-- Both candidates tested across year-by-year, half-split, and rolling windows
-- Live baseline (ADX 20/10, fixed 5%): Calmar 1.645 (Week 5, pre-correction) → ~2.013 (corrected with 0.15% costs)
-- ATR candidate 5/6 test years profitable; pct trail candidate similar
-- Both trailing stop types robustly outperform fixed stop
-
-**Stage 1d — Final comparison**
-- Five strategies: LIVE (ADX 20/10 fixed), CAND_A (ADX 19/9 pct 8%), CAND_B (ADX 19/9 ATR 9/2.5x), LIVE-AT (ADX 20/10 ATR 9/2.5x), LIVE-PT (ADX 20/10 pct 8%)
-- **Recommendation: Deploy ADX 19/9 + ATR 9/2.5x (CAND_B)** — Calmar 2.642, best MaxDD
-- Conservative option: LIVE-AT (ADX 20/10 + ATR 9/2.5x) — Calmar 2.156, parameter change deferred
-- A011 RESOLVED in RISK_REGISTER_ETH_ADX.md
-
-### Stage 2 — BTC SMA Full Validation (complete → NO-GO)
-
-| Stage | Status | Outcome |
-|---|---|---|
-| 2a — Grid search (SMA × trail%) | Complete | Best: SMA 120/25% (Ann 48.9%, Calmar 2.752) |
-| 2b — ATR trail grid | Complete | ATR trail decisively weaker than pct trail on BTC |
-| 2c — Stability analysis | Complete | MARGINAL (50.5% composite stability) |
-| 2d — Walk-forward validation | Complete | 2/3 windows pass (2022 bear year fails) |
-| 2e — ETH cross-asset check | Complete | **FAIL** — Sortino 0.505, MaxDD −67.7% on ETH |
-| Final recommendation | **NO-GO** | Fallback: BTC ADX 19/14 (SI001) in Week 7 |
-
-Key metrics — BTC SMA 120/25% (primary candidate):
-- Ann +48.9%, Daily MtM MaxDD −30.5%, Per-trade MaxDD −17.8%
-- Calmar 2.752, Sortino 1.246, 34 trades (2018–2026)
-- 76.2% of total return from 2021 alone. Ex-2021: ~29%/yr
-- Risk register: `RISK_REGISTER_BTC_SMA.md` (7 open items, all remain open pending NO-GO)
-
-### Other Week 6 deliverables
-- `LIVE_TRADING_CHECKLIST.md` updated with 8 new items (Sortino/Sharpe formula, exit mechanisms, grid boundary check, MaxDD labelling, cliff-edge check, walk-forward both methods, daily loss limit)
-- `STRATEGY_IDEAS_LOG.md` created with SI001 (BTC ADX 19/14)
-- `RISK_REGISTER_BTC_SMA.md` created (BS001–BS007)
-- Interactive Plotly parallel coordinates chart: `Week_6_Notebooks/results/stage2_parallel_coordinates_interactive.html`
-- `LEARNING_LOG.md` updated with Week 6 concepts
+### ETH RSI 14 — VALIDATION $150 ⚠️
+- Capital: $150 allocated (validation only —
+  NOT $500, intentional)
+- Position: FLAT — awaiting first signal
+- Stop type: 15% fixed STOP_LOSS market order
+- Monte Carlo result: negative Kelly at
+  expected 70% live win rate
+- Breakeven win rate: 72.1%
+- Scale-up trigger: 20 live trades + WR ≥80%
+- Stop trigger: WR <72% after 20 trades
+- Bot file: Week_4_Notebooks/rsi_production_bot.py
+- Cron: 00:06 UTC daily
+- Status: Bot built and deployed to EC2
+  (confirm running at start of Week 7)
 
 ---
 
-## Week 7 Priority Tasks
+## Portfolio State (as of 2026-05-07)
 
-### PRIORITY 1 — Deploy ETH ADX trailing stop to live bot
+Total portfolio value: ~$1,985
+- ETH ADX: $985 deployed (LONG), cap $1,000
+- ETH RSI: $150 cash (FLAT), cap $150
+- BTC SMA: $0 (shelved)
+- Unallocated: $850 USDT (awaiting BTC
+  strategy validation)
 
-**What needs doing:**
-Update `day5_production_bot.py` on EC2 to replace fixed 5% stop with ATR 9/2.5x trailing stop. Update `bot_state.json` schema to track `peak_price_since_entry`. This is the deployment of the A011 resolution.
-
-**Pre-deployment requirements (from RISK_REGISTER_ETH_ADX.md):**
-1. Resolve A010 — remove daily loss limit or raise to 8–10% before trailing stop goes live
-2. Decision on A015 — choose conservative (ADX 20/10 + ATR 9/2.5x) or primary (ADX 19/9 + ATR 9/2.5x)
-3. Verify bot mechanics match stage1d backtest logic exactly
-4. Test full trade cycle on Binance testnet with new trailing stop logic
-5. Ensure Telegram alerts include trail stop trigger event
-6. Confirm cron remains 00:05 UTC, check bot is healthy post-update
-
-**Recommended path for A015:** Deploy ADX 19/9 + ATR 9/2.5x (primary recommendation). Rationale: the improvement is material (+0.629 Calmar), stage1c confirmed stability. Accept monitoring risk for first 20 live trades.
-
-**Also deploy RSI bot (PENDING since Week 6):**
-Build `rsi_production_bot.py` — separate script, own state file, own cron job (00:06 UTC), same Telegram bot. Params: period=14, oversold<43, exit>48, stop=15%, 120MA regime filter. Capital $500, position size 15%.
+Portfolio manager: portfolio_manager.py ✅
+Weekly rebalance: Monday 01:00 UTC cron ✅
+State file: data/portfolio_state.json ✅
 
 ---
 
-### PRIORITY 2 — BTC ADX 19/14 Full Validation (SI001)
+## Key Decisions Made in Week 6
 
-This is the BTC SMA fallback strategy. ADX 19/14 was identified in Week 5 extension as the best BTC ADX configuration but was computed with two known errors:
-1. **Wrong Sortino** — per-trade annualisation method (inflates 3–4×); must recalculate using daily equity curve
-2. **No costs** — 0.15% round-trip was not applied; must be corrected
+These are final decisions — do not relitigate
+without strong new evidence:
 
-Week 5 extension results (uncorrected): ADX threshold 19, period 14, fixed 3% stop. Calmar 1.121. 100% stability. The corrected Calmar will be lower.
-
-**Full validation plan (mirrors BTC SMA Stage 2 structure):**
-
-**Stage A — Joint optimisation with trailing stop**
-- Grid: ADX threshold 14–25, ADX period 8–18, trail_pct 3–20% (pct) AND ATR period 7–21, multiplier 1.5–4.0 (ATR)
-- Apply 0.15% round-trip costs throughout
-- Metrics: Calmar, Sortino (daily equity), Annual%, Daily MtM MaxDD, Per-trade MaxDD, Trades
-- Minimum: 30 trades across full period
-- Report best by composite score AND by annual return. Grid boundary check required.
-
-**Stage B — Stability analysis**
-- Vary each parameter independently ±3 steps from best
-- Composite score ≥ 0.7 threshold
-- Report STABLE / MARGINAL / FRAGILE
-
-**Stage C — Walk-forward validation**
-- Both expanding and rolling windows (3-year train, 1-year test: 2022, 2023, 2024)
-- Fixed parameters (same note as BTC SMA: identical results for expanding/rolling with fixed params)
-- Flag all cross-period trades explicitly
-- Pass criterion: profitable in all 3 windows (or justify exceptions with 2022 bear-market rationale if applicable)
-
-**Stage D — ETH cross-asset check**
-- Apply BTC-optimised ADX params + trailing stop to ETH-USD
-- Same metrics. Note ETH already has its own validated ETH ADX strategy — this is checking if the BTC-specific params transfer
-- Pass criterion: Sortino ≥ 0.8, Calmar ≥ 1.0
-
-**Final decision:** GO / NO-GO based on all four stages. If NO-GO, document reason and update SI001. If GO, create `RISK_REGISTER_BTC_ADX.md` and complete `LIVE_TRADING_CHECKLIST.md`.
+1. ETH ADX parameters: ADX 19/9 + 8% pct
+   trailing stop (not ATR, not 20/10)
+2. Stop order type: STOP_LOSS market execution
+   (not STOP_LOSS_LIMIT — guaranteed fill)
+3. ETH ADX leverage: 1.9× validated and
+   confirmed — Week 7 deployment target
+4. ETH RSI: $150 validation only — negative
+   Kelly at realistic 70% live win rate
+5. BTC SMA: SHELVED — 30 trades, 76%
+   return from 2021, marginal stability
+6. Kelly sizing: Position = (f* × capital) /
+   stop_pct (risk fraction, NOT deployment
+   fraction — critical fix made Week 6)
+7. Trailing stop: bot-managed 4× daily
+   (Binance Spot has no native trailing stop)
+8. Portfolio architecture: reserved_capital
+   per strategy, never reads live USDT balance
+   for sizing — compounding via weekly rebalance
 
 ---
 
-### PRIORITY 3 — ETH ADX Leverage Optimisation (A013)
+## Critical Bugs Fixed in Week 6
 
-**Deferred from Week 6.** Now unblocked since A011 (trailing stop) is resolved.
+These were live on the bot and have been fixed.
+Do not reintroduce:
 
-Base strategy for leverage analysis: ADX 19/9 + ATR 9/2.5x (Stage 1d primary recommendation).
-
-**Scope:**
-- Leverage grid 1.0x–5.0x in 0.1x steps (41 levels)
-- Interest: 0.015%/day on borrowed amount during position only
-- Safety buffer: minimum historical margin ratio ≥25% (checked against daily LOW prices)
-- Stop slippage: 2% below stop price; liquidation slippage: 3% below liquidation price
-- Metrics: Calmar, Sortino, Annual%, MaxDD (daily MtM), minimum margin ratio, total interest cost
-
-**Target outcome:** Recommended leverage level with Calmar maximised after interest, safety buffer confirmed, liquidation price documented.
-
-Deferred to later in Week 7 (after trailing stop deployment and BTC ADX validation).
-
----
-
-## Key Strategy Metrics (end of Week 6)
-
-| Strategy | Annual | Max DD (MtM) | Calmar | Sortino | Trades | Status |
-|----------|--------|--------------|--------|---------|--------|--------|
-| ETH ADX 20/10 (fixed 5%) | ~67%* | −40.9% | 1.645* | 1.070* | 108 | Live (to be replaced) |
-| ETH ADX 19/9 (pct 8%) | +80.2% | −31.3% | 2.559 | 1.870 | 158 | Validated, deploy |
-| ETH ADX 19/9 (ATR 9/2.5x) | +73.5% | −27.8% | 2.642 | 1.385 | 123 | **Recommended** |
-| BTC SMA 120/25% | +48.9% | −30.5% | 2.752 | 1.246 | 34 | NO-GO |
-| BTC ADX 19/14 (uncorrected) | ~TBD | ~TBD | 1.121* | inflated* | TBD | SI001 — to validate |
-| ETH RSI 14/43/48 | +16.9% | −16.0% | 1.054 | 0.265 | 31 | Pending EC2 deploy |
-
-*Pre-correction figures. BTC ADX corrected metrics will be lower.
+1. STOP_LOSS_LIMIT → STOP_LOSS (market
+   execution). Bot was failing silently for
+   23 days — API permission + order type wrong.
+2. Kelly sizing: was deploying f* × capital
+   ($124) not (f* × capital) / stop_pct ($1,000)
+3. LOT_SIZE rounding: stop quantity must be
+   floored to 3dp to avoid -2010 insufficient
+   balance errors
+4. Stop order verification: verify_stop_order()
+   now runs at start of every bot execution —
+   catches silent stop cancellation by Binance
+5. Entry date bug: entry_date stored at exit
+   not entry (caused equity curve distortion)
+6. Per-trade Sortino inflation: all Sortino
+   calculations now use daily equity curve method
 
 ---
 
-## Open Risk Register Items
+## Week 6 Carry-Over (complete before new work)
 
-### ETH ADX (`RISK_REGISTER_ETH_ADX.md`)
+These were planned for Week 6 but not completed:
 
-| ID | Description | Priority | Target |
-|----|-------------|----------|--------|
-| A003 | Slippage modelled as flat cost | Medium | After 10+ live trades |
-| A009 | Walk-forward used fixed params (not true re-opt) | Medium | Week 8–10 |
-| A010 | Daily loss limit not calibrated — must resolve before trailing stop deploy | Medium | **Week 7 (pre-deploy)** |
-| A013 | ETH ADX leverage not optimised | High | Week 7 Stage 3 |
-| A014 | RiskManager guardrails not calibrated | Medium | After trailing stop live |
-| A015 | ADX 19/9 parameter change — deploy or defer? | Medium | **Week 7 decision** |
+URGENT (affects live trading):
+1. ✅ Trailing stop deployed (4× daily cron)
+2. ⬜ ETH ADX leveraged bot (1.9×, $1,500
+   capital) — leverage validated but bot
+   not yet built. Requires margin account
+   setup on Binance + borrow/repay logic.
+   Expected return uplift: $670 → $1,909/yr.
 
-### BTC SMA (`RISK_REGISTER_BTC_SMA.md`)
+ANALYTICAL:
+3. ⬜ Stage 5 final comparison — master equity
+   curves and metrics table. Charts needed
+   for deployment documents.
+   Run: stage5_final_comparison.py
 
-All items (BS001–BS007) remain open. Strategy is NO-GO. No action required unless reconsidering BTC SMA in future.
-
----
-
-## Important Technical Context
-
-### File locations (Week 6 additions)
-
-```
-Week_6_Notebooks/
-  stage1a_percentage_trailing.py      # ETH ADX pct trail grid search
-  stage1b_atr_trailing.py             # ETH ADX ATR trail grid search
-  stage1c_stability.py                # Trailing stop stability analysis
-  stage1d_final_comparison.py         # Fixed vs pct vs ATR comparison
-  stage2_btc_sma_validation.py        # BTC SMA Stage 2a main backtest
-  stage2a_composite_analysis.py       # Stage 2a composite score analysis
-  stage2a_extended_analysis.py        # Extended grid (wider SMA/trail range)
-  stage2b_run.py                      # Stage 2b ATR trail on BTC SMA
-  stage2c_stability.py                # Stage 2c stability (MARGINAL result)
-  stage2d_walkforward_v2.py           # Stage 2d walk-forward (3 candidates)
-  stage2e_eth_crossasset.py           # Stage 2e ETH cross-asset check (FAIL)
-  stage2_analysis_suite.py            # Static charts from stage2a results
-  stage2_parallel_interactive.py      # Plotly interactive HTML
-
-Week_6_Notebooks/results/
-  stage1a_results.csv                 # Stage 1a full grid results
-  stage1a_heatmap.png
-  stage1b_heatmap.png
-  stage1d_equity_curves.png
-  stage2_parallel_coordinates_interactive.html  # 171-strategy interactive chart
-  stage2a_heatmap.png, stage2c_stability_heatmap.png, etc.
-
-data/
-  stage1b_results.csv                 # Stage 1b full ATR grid results
-  stage2a_results.csv                 # BTC SMA Stage 2a results (3 metrics)
-  stage2a_results_extended.csv        # Extended results (171 combos, 7 metrics)
-  stage2b_results.csv                 # BTC SMA Stage 2b ATR results
-
-RISK_REGISTER_BTC_SMA.md             # BTC SMA strategy risk register (7 open items)
-STRATEGY_IDEAS_LOG.md                 # SI001: BTC ADX 19/14 pending validation
-LIVE_TRADING_CHECKLIST.md             # Updated with 8 new items
-```
-
-### Key confirmed parameters
-
-**ETH ADX (recommended deployment):**
-- ADX threshold: 19, period: 9
-- Stop: ATR period 9, multiplier 2.5x (percentage 8% as backup)
-- Costs: 0.15% round-trip (0.075% each side)
-- Signal: ADX > 19 AND +DI > −DI AND fresh crossover (not consecutive)
-- Entry: next close after signal day
-- Exit: signal reversal OR ATR stop (whichever fires first)
-
-**BTC ADX (to be validated in Week 7, pre-correction):**
-- ADX threshold: 19, period: 14 — needs trailing stop re-optimisation
-- Previous uncorrected Calmar: 1.121. Corrected figure unknown until Stage A.
-
-**ETH RSI (pending deployment):**
-- period=14, oversold<43, exit>48, stop=15%, 120MA regime filter
-- Capital: $500, position size: 15%
-
-### Methodology reminders
-- Daily equity curve for Sortino/Sharpe: `mean(daily_rets) / std(daily_rets[daily_rets < 0]) * sqrt(365)`
-- Costs: `COST_PER_TRADE = 0.00075 * 2 = 0.0015` applied at each trade exit
-- Stop checked against daily LOW (bar-by-bar simulation)
-- Percentage trailing: `stop = peak_price × (1 − trail_pct)`, ratchets upward only
-- ATR trailing: `stop = peak_price − (mult × ATR)`, ratchets upward only
-- Grid boundary check: confirm best result does not sit at range edge
-- Cliff-edge check: confirm annual return % peaks and plateaus before accepting params
+DOCUMENTATION:
+4. ⬜ Deployment document: ETH ADX (HTML
+   with embedded charts, metrics, sign-off)
+5. ⬜ Deployment document: ETH RSI (HTML
+   with embedded charts, metrics, sign-off)
+6. ⬜ GitHub close-out commit for Week 6
 
 ---
 
-## Capital Plan (post Week 7)
+## Week 7 New Work (after carry-over complete)
 
-| Strategy | Capital | Leverage | Notes |
-|----------|---------|----------|-------|
-| ETH ADX 19/9 (ATR trail) | $1,000 | 1.0x → TBD | Replaces fixed-stop version |
-| ETH RSI | $500 | 1.0x | Unchanged |
-| BTC ADX (if validated) | $1,000 | 1.0x initially | Only if Stage A–D pass |
-| ETH ADX (leveraged) | $1,500 | TBD | Pending A013 |
-| Total | $3,500 | | |
+### Priority 1 — ETH ADX Leveraged Bot
+Build day5_leveraged_bot.py with:
+- Binance Isolated Margin (not cross margin)
+- Borrow logic: borrow 0.9× capital in ETH
+  at entry (for 1.9× total position)
+- Repay logic: full repay at exit
+- Interest tracking and daily interest charge
+- Same trailing stop logic as unleveraged bot
+- Same stop verification, Telegram alerts,
+  health checks
+- Capital: $1,500 from portfolio_state.json
+- Kelly position: ($186 risk) / 0.08 = $2,325,
+  deploy full $1,500 own + $750 borrowed = $2,250
+- Leverage: 1.9× (validated, safe buffer 34.4%)
+Independent review: required before deployment.
+Capital impact: move $1,000 from unleveraged
+ADX allocation to $1,500 leveraged ADX.
 
-Do not increase capital until A013 resolved. Leveraged version replaces unleveraged — not additive.
+### Priority 2 — BTC ADX 19/14 Full Validation
+This is the natural Week 7 BTC strategy.
+103 trades — strongest sample of all strategies.
+Post-2022 concern (+5.4%/yr) must be explained.
+Full pipeline required:
+- Stage A: trailing stop optimisation
+- Stage B: corrected Sortino, walk-forward
+- Stage C: Monte Carlo (103 trades — meaningful)
+- Stage D: leverage optimisation
+- Stage E: independent review
+- Stage F: deployment decision
+If validated: deploy to BTC capital allocation
+($500 initially, $1,000 if leveraged version)
+
+### Priority 3 — Momentum Strategies
+Original curriculum: MACD, ROC, CMO, breakout.
+Run research brief BEFORE starting — find best
+momentum indicators with empirical support for
+crypto specifically (not just most famous ones).
+Research brief: WEEK_7_RESEARCH_BRIEF.md
+Do this at END of week (not start) per
+agreement with Greg.
 
 ---
 
-*End of Week 7 Thread Starter*
-*Prepared: Week 6 final session (2026-05-02)*
-*Next session: Use Claude Code to execute Week 7 priorities above*
+## Open Risk Register Items (HIGH priority only)
+
+### ETH ADX (RISK_REGISTER_ETH_ADX.md)
+- A016: Margin vulnerability at worst
+  historical MR — trailing stop is primary
+  protection. Margin alert at 40%.
+  Target: margin alert in leveraged bot.
+
+### ETH RSI (RISK_REGISTER_ETH_RSI.md)
+- RR-RSI-004: Sample size 31 trades —
+  insufficient for reliable inference.
+  Target: monitor 20 live trades.
+- RR-RSI-005: 120MA regime filter data-mining.
+  Target: accept risk, monitor live.
+- RR-RSI-006: Stability analysis not run.
+  Target: complete during Week 7.
+
+---
+
+## Methodology Standards (key reminders)
+
+These are in METHODOLOGY_STANDARDS.md in full.
+Critical items:
+- Sortino: ALWAYS daily equity curve method
+- Kelly: ALWAYS risk fraction (f* × capital) / stop_pct
+- Stop orders: ALWAYS STOP_LOSS (market),
+  NEVER STOP_LOSS_LIMIT
+- Stop verification: ALWAYS verify_stop_order()
+  at start of every bot run while LONG
+- Trailing stop: bot-managed daily (Binance
+  Spot has no native trailing stop)
+- Monte Carlo: mandatory for n<100 trades
+- Independent review: mandatory before
+  any live deployment
+
+---
+
+## Capital Plan (Week 7 target state)
+
+| Strategy | Capital | Leverage | Status |
+|----------|---------|----------|--------|
+| ETH ADX (leveraged) | $1,500 | 1.9× | Week 7 build |
+| ETH RSI (validation) | $150 | 1.0× | Live |
+| BTC ADX (if validated) | $500 | 1.0× initially | Conditional |
+| Unallocated | $850 | — | Awaiting BTC |
+| Total | $3,000 | | |
+
+---
+
+## Performance-Weighted Allocation (deferred)
+Deferred to Week 9. Requires ≥20 live trades
+per strategy. See SI007 in Strategy Ideas Log.
+
+---
+
+## Week 7 Research Brief
+To be created at END of Week 7 before closing.
+Topic: Momentum strategies for crypto.
+Focus: MACD, ROC, CMO, breakout — but research
+first to find best indicators with empirical
+support rather than defaulting to MACD.
+File: WEEK_7_RESEARCH_BRIEF.md
+
+---
+
+## EC2 Infrastructure
+- IP: 3.104.101.30 (Elastic IP — PERMANENT)
+- SSH key: /Users/Greg/.ssh/trading-bot-key.pem
+- Bot files: /home/ubuntu/Python_Local_Folder/
+  Python_Quant_Researcher/Week_4_Notebooks/
+- Logs: /home/ubuntu/logs/
+  adx_strategy.log (ADX bot)
+  rsi_strategy.log (RSI bot)
+- Crons:
+  00:05 UTC — ADX signal run
+  06:05, 12:05, 18:05 UTC — ADX stop update
+  00:06 UTC — RSI signal run
+  01:00 UTC Monday — portfolio rebalance
+
+---
+
+*Week 7 Thread Starter v2.0*
+*Prepared: 2026-05-07 (end of Week 6)*
+*Replaces v1.0 prepared 2026-05-02 (outdated)*
+*Next update: end of Week 7*
