@@ -1071,6 +1071,29 @@ Live trade count: zero at deployment, increases as live data accumulates
 
 Week 7+: implement performance-weighted rebalancing when ≥20 live trades per strategy. Use Sortino + annual return% equally weighted (not Sharpe — penalises upside volatility).</div>
         </div>
+        <div class="step" style="border-color:rgba(255,209,102,0.5);background:rgba(255,209,102,0.05)">
+          <div class="step-num" style="color:var(--amber)">STEP 6.5</div>
+          <div class="step-title">Live Performance Gates — ETH RSI</div>
+          <div class="step-desc">Active decision rules firing automatically from record_trade_result() data. <strong style="color:var(--green)">Scale-up:</strong> 20 live trades + WR ≥80% → reserved_capital $150 → $341. <strong style="color:var(--red)">Stop:</strong> WR &lt;72% after 20 live trades → pause bot, reassess.</div>
+          <div class="tooltip"><strong>These are active rules — not future work.</strong> record_trade_result() appends every closed trade to data/eth_rsi_live_performance_log.csv and returns running stats (n_trades, win_rate, consecutive_losses). The bot checks these after every exit.
+
+<strong>Scale-up trigger (both conditions required):</strong>
+n_trades ≥ 20 AND win_rate ≥ 0.80
+→ update portfolio_state.json: reserved_capital $150 → $341
+→ Telegram alert: "ETH RSI scale-up threshold reached — increasing capital"
+→ Next trade sizes from $341 capital base
+
+<strong>Stop trigger (both conditions required):</strong>
+n_trades ≥ 20 AND win_rate &lt; 0.72
+→ set DRY_RUN = True (pause live orders)
+→ Telegram alert: "ETH RSI win rate below breakeven — bot paused, reassess"
+→ Review trade log, check regime filter, consider shelving
+
+<strong>Why 72% is the hard floor:</strong>
+Breakeven win rate = 1 / (1 + b) where b = avg_win / avg_loss = 5.79% / 15.00% = 0.386
+p_breakeven = 1 / 1.386 = 72.1%
+Below 72.1% the strategy has negative Kelly expectation — every trade destroys capital in expectation. This is not a soft warning; it is a mathematical stop condition.</div>
+        </div>
       </div>
       <div class="gate-row">
         <div class="gate" style="background:rgba(239,71,111,0.08);border-color:rgba(239,71,111,0.3);color:var(--red)">
