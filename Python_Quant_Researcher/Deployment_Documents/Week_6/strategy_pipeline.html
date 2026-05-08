@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategy Development Pipeline</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #070b14;
+  --surface: #0d1526;
+  --surface2: #121e35;
+  --border: #1a2d4a;
+  --border2: #233d5e;
+  --gold: #f0a500;
+  --gold2: #ffd166;
+  --green: #06d6a0;
+  --green2: #3dffc6;
+  --blue: #4cc9f0;
+  --blue2: #a8dadc;
+  --red: #ef476f;
+  --amber: #ffd166;
+  --purple: #b084cc;
+  --white: #f0f4f8;
+  --muted: #5a7a9a;
+  --phase0: #b084cc;
+  --phase1: #4cc9f0;
+  --phase2: #06d6a0;
+  --phase3: #f0a500;
+  --phase4: #ffd166;
+  --phase5: #ef476f;
+  --phase6: #06d6a0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(26,45,74,0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,45,74,0.3) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.page { position: relative; z-index: 1; padding: 40px 32px 80px; max-width: 1400px; margin: 0 auto; }
+
+/* HEADER */
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+  padding: 40px;
+  background: linear-gradient(135deg, rgba(13,21,38,0.9), rgba(18,30,53,0.9));
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(240,165,0,0.04) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header h1 {
+  font-family: 'Space Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.header p { color: var(--muted); font-size: 13px; letter-spacing: 0.5px; margin-bottom: 20px; }
+.header-badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.hbadge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+/* LEGEND */
+.legend {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 48px;
+  padding: 16px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.legend-note { margin-left: auto; font-size: 10px; color: var(--muted); font-style: italic; }
+
+/* PHASE CONTAINER */
+.pipeline { display: flex; flex-direction: column; gap: 0; }
+
+/* CONNECTOR ARROW */
+.connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  position: relative;
+}
+.connector::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--c1), var(--c2));
+  transform: translateX(-50%);
+}
+.connector-arrow {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid;
+  z-index: 1;
+}
+.connector-label {
+  position: absolute;
+  right: calc(50% + 16px);
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* PHASE BLOCK */
+.phase {
+  border-radius: 14px;
+  border: 1.5px solid;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.phase:hover { transform: translateY(-2px); }
+
+.phase-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  cursor: pointer;
+  user-select: none;
+}
+.phase-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.7;
+  min-width: 70px;
+}
+.phase-icon { font-size: 22px; min-width: 32px; text-align: center; }
+.phase-title-wrap { flex: 1; }
+.phase-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.phase-subtitle { font-size: 11px; color: var(--muted); }
+.phase-docs { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.doc-tag {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 4px;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid;
+  cursor: help;
+  position: relative;
+  transition: all 0.15s;
+}
+.doc-tag:hover { transform: translateY(-1px); }
+
+/* PHASE BODY */
+.phase-body { padding: 0 24px 20px; }
+.phase-divider { height: 1px; background: var(--border); margin: 0 -24px 16px; opacity: 0.5; }
+
+/* STEPS GRID */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.step {
+  background: rgba(7,11,20,0.6);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  cursor: help;
+  position: relative;
+  transition: border-color 0.15s, background 0.15s;
+}
+.step:hover { border-color: var(--border2); background: rgba(13,21,38,0.8); }
+.step-num {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  opacity: 0.5;
+  margin-bottom: 4px;
+  letter-spacing: 1px;
+}
+.step-title {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  color: var(--white);
+}
+.step-desc { font-size: 10px; color: var(--muted); line-height: 1.5; }
+
+/* GATE ROW */
+.gate-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.gate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: help;
+  position: relative;
+  border: 1px solid;
+  transition: all 0.15s;
+}
+.gate:hover { transform: translateY(-1px); }
+.gate-icon { font-size: 12px; }
+.gate-text { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 0.5px; }
+
+/* OUTCOME BOX */
+.outcome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-top: 12px;
+  border: 1px solid;
+  font-size: 11px;
+  cursor: help;
+  transition: all 0.15s;
+}
+.outcome:hover { transform: translateY(-1px); }
+
+/* TOOLTIP */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #0d1526;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: pre-line;
+  min-width: 260px;
+  max-width: 380px;
+  text-align: left;
+  pointer-events: none;
+  opacity: 0;
+  z-index: 9999;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+  color: #c8d8e8;
+}
+.tooltip strong { color: var(--gold); display: block; margin-bottom: 4px; font-size: 11px; }
+.tooltip em { color: var(--amber); font-style: normal; }
+[data-tip]:hover .tooltip,
+.doc-tag:hover .tooltip,
+.step:hover .tooltip,
+.gate:hover .tooltip,
+.outcome:hover .tooltip { opacity: 1; }
+.tooltip-left { left: 0; transform: none; }
+.tooltip-right { left: auto; right: 0; transform: none; }
+
+/* DOCUMENTS SIDEBAR SECTION */
+.docs-section {
+  margin-top: 60px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+}
+.docs-section h2 {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.docs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.doc-card {
+  background: rgba(7,11,20,0.6);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: help;
+  position: relative;
+  transition: all 0.15s;
+}
+.doc-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.doc-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.doc-card-icon { font-size: 16px; }
+.doc-card-name { font-family: 'Space Mono', monospace; font-size: 10px; font-weight: 700; }
+.doc-card-desc { font-size: 10px; color: var(--muted); line-height: 1.5; }
+.doc-card-meta { display: flex; gap: 8px; margin-top: 8px; }
+.doc-meta-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+
+/* DECISION DIAMOND */
+.decision-block {
+  display: flex;
+  justify-content: center;
+  margin: 8px 0;
+}
+.diamond-wrap { position: relative; display: flex; flex-direction: column; align-items: center; }
+.diamond {
+  width: 120px;
+  height: 60px;
+  background: var(--surface2);
+  border: 2px solid var(--amber);
+  transform: perspective(400px) rotateX(20deg);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 1px;
+  text-align: center;
+  padding: 8px;
+  cursor: help;
+  transition: all 0.2s;
+}
+.diamond:hover { transform: perspective(400px) rotateX(20deg) scale(1.05); }
+.diamond-paths {
+  display: flex;
+  gap: 40px;
+  margin-top: 8px;
+}
+.diamond-path {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 9px;
+  gap: 4px;
+}
+.diamond-path .path-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 1px;
+}
+
+/* PHASE COLOURS */
+.p0 { border-color: var(--phase0); background: linear-gradient(135deg, rgba(176,132,204,0.05), rgba(13,21,38,0.95)); }
+.p0 .phase-header { background: linear-gradient(90deg, rgba(176,132,204,0.12), transparent); }
+.p0 .phase-title { color: var(--phase0); }
+
+.p1 { border-color: var(--phase1); background: linear-gradient(135deg, rgba(76,201,240,0.05), rgba(13,21,38,0.95)); }
+.p1 .phase-header { background: linear-gradient(90deg, rgba(76,201,240,0.12), transparent); }
+.p1 .phase-title { color: var(--phase1); }
+
+.p2 { border-color: var(--phase2); background: linear-gradient(135deg, rgba(6,214,160,0.05), rgba(13,21,38,0.95)); }
+.p2 .phase-header { background: linear-gradient(90deg, rgba(6,214,160,0.12), transparent); }
+.p2 .phase-title { color: var(--phase2); }
+
+.p3 { border-color: var(--phase3); background: linear-gradient(135deg, rgba(240,165,0,0.05), rgba(13,21,38,0.95)); }
+.p3 .phase-header { background: linear-gradient(90deg, rgba(240,165,0,0.12), transparent); }
+.p3 .phase-title { color: var(--phase3); }
+
+.p4 { border-color: var(--phase4); background: linear-gradient(135deg, rgba(255,209,102,0.05), rgba(13,21,38,0.95)); }
+.p4 .phase-header { background: linear-gradient(90deg, rgba(255,209,102,0.12), transparent); }
+.p4 .phase-title { color: var(--phase4); }
+
+.p5 { border-color: var(--phase5); background: linear-gradient(135deg, rgba(239,71,111,0.05), rgba(13,21,38,0.95)); }
+.p5 .phase-header { background: linear-gradient(90deg, rgba(239,71,111,0.12), transparent); }
+.p5 .phase-title { color: var(--phase5); }
+
+.p6 { border-color: var(--phase2); background: linear-gradient(135deg, rgba(6,214,160,0.08), rgba(13,21,38,0.95)); }
+.p6 .phase-header { background: linear-gradient(90deg, rgba(6,214,160,0.15), transparent); }
+.p6 .phase-title { color: var(--phase2); }
+
+/* LIVE DEPLOYMENT FINAL BOX */
+.live-box {
+  margin-top: 40px;
+  background: linear-gradient(135deg, rgba(6,214,160,0.1), rgba(13,21,38,0.95));
+  border: 2px solid var(--green);
+  border-radius: 16px;
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.live-icon { font-size: 48px; }
+.live-content h3 {
+  font-family: 'Space Mono', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.live-metrics { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 12px; }
+.live-metric { text-align: center; }
+.live-metric .val { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; color: var(--green); }
+.live-metric .lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+/* SCROLL ANIMATIONS */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.phase { animation: fadeInUp 0.4s ease both; }
+.phase:nth-child(1) { animation-delay: 0.1s; }
+.phase:nth-child(3) { animation-delay: 0.15s; }
+.phase:nth-child(5) { animation-delay: 0.2s; }
+.phase:nth-child(7) { animation-delay: 0.25s; }
+.phase:nth-child(9) { animation-delay: 0.3s; }
+.phase:nth-child(11) { animation-delay: 0.35s; }
+.phase:nth-child(13) { animation-delay: 0.4s; }
+
+/* PULSE on live indicator */
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.7;transform:scale(1.05)} }
+.live-pulse { animation: pulse 2s infinite; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Strategy Development Pipeline</h1>
+  <p>From research brief to live deployment — every phase, gate, and document in order</p>
+  <div class="header-badges">
+    <span class="hbadge" style="color:var(--purple);border-color:rgba(176,132,204,0.4)">DeFi Quant Curriculum</span>
+    <span class="hbadge" style="color:var(--blue);border-color:rgba(76,201,240,0.4)">Greg (Gmac) · Week 6+</span>
+    <span class="hbadge" style="color:var(--green);border-color:rgba(6,214,160,0.4)">Hover any element for detail</span>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <span style="font-family:'Space Mono',monospace;font-size:10px;color:var(--gold);font-weight:700;margin-right:4px">PHASES:</span>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--phase0)"></div>Phase 0 — Research</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--phase1)"></div>Phase 1 — Discovery</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--phase2)"></div>Phase 2 — Backtest</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--phase3)"></div>Phase 3 — Optimise</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--phase4)"></div>Phase 4 — Validate</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--phase5)"></div>Phase 5 — Stress Test</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--phase2)"></div>Phase 6 — Deploy</div>
+  <span class="legend-note">💡 Hover any card, step, gate, or document tag for explanation</span>
+</div>
+
+<!-- PIPELINE -->
+<div class="pipeline">
+
+  <!-- PHASE 0 -->
+  <div class="phase p0">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 0</span>
+      <span class="phase-icon">🔬</span>
+      <div class="phase-title-wrap">
+        <div class="phase-title">Pre-Week Research Brief</div>
+        <div class="phase-subtitle">Conducted 2-3 days before week starts · Claude Chat with web search · Not Claude Code</div>
+      </div>
+      <div class="phase-docs">
+        <span class="doc-tag" style="color:var(--purple);border-color:rgba(176,132,204,0.4);background:rgba(176,132,204,0.08)">WEEK_N_RESEARCH_BRIEF.md
+          <div class="tooltip tooltip-right"><strong>WEEK_N_RESEARCH_BRIEF.md</strong>Created fresh each week. Contains: ranked shortlist of indicators with strongest empirical support for crypto, evidence-based parameter ranges, known failure modes, regime filters, and crypto-specific findings. Guides what gets built — prevents defaulting to famous indicators without evidence.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--gold);border-color:rgba(240,165,0,0.4);background:rgba(240,165,0,0.08)">STRATEGY_RESEARCH_PIPELINE.md
+          <div class="tooltip tooltip-right"><strong>STRATEGY_RESEARCH_PIPELINE.md</strong>The master pipeline document. Contains all 7 phases in detail. Updated whenever a new process improvement is discovered. Phase 0 was added in Week 6 after realising strategies were being built without research evidence.</div>
+        </span>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-divider"></div>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">STEP 0.1</div>
+          <div class="step-title">Academic Literature Search</div>
+          <div class="step-desc">SSRN, arXiv quant-fin, Journal of Portfolio Management. Peer-reviewed papers on indicator performance in crypto. Recent papers (2-3 years) often contain unexploited insights.</div>
+          <div class="tooltip"><strong>Why academic first?</strong>Peer-reviewed research has been through scrutiny and uses proper out-of-sample methodology. Citation count ≠ best strategy — highly cited papers are often cited for methodology contributions, not alpha generation. Search for recent papers citing foundational papers to find novel extensions.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 0.2</div>
+          <div class="step-title">Practitioner Research</div>
+          <div class="step-desc">QuantConnect research library, Quantpedia strategy database, Ernest Chan blog, Marcos Lopez de Prado papers. Real backtested implementations with code.</div>
+          <div class="tooltip"><strong>Key practitioner sources:</strong>QuantConnect: open strategy library with actual code. Quantpedia: curated strategy database with source papers. Lopez de Prado: current professional quant standard. Ernest Chan: retail-scale algorithmic trading focus.
+<em>Avoid:</em> Blog posts without methodology, YouTube tutorials, any source not showing out-of-sample results.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 0.3</div>
+          <div class="step-title">Crypto-Specific Sources</div>
+          <div class="step-desc">Glassnode research, The Block Research. Crypto has different microstructure to equities — traditional equity findings often don't transfer cleanly.</div>
+          <div class="tooltip"><strong>Why crypto-specific matters:</strong>Crypto is 24/7 (no overnight gaps in traditional sense), higher volatility, different liquidity profile, regime-switching between bull/bear cycles. Parameters that work for equities often fail on crypto. ETH-optimal ADX parameters ranked 389th when applied to BTC — assets require separate optimisation.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 0.4</div>
+          <div class="step-title">Produce Research Brief</div>
+          <div class="step-desc">Save WEEK_N_RESEARCH_BRIEF.md. Answers 5 questions per strategy: best parameter ranges, entry/exit conditions, regime filters, known failure modes, crypto-specific findings.</div>
+          <div class="tooltip"><strong>5 questions the brief must answer:</strong>1. What parameter ranges have strongest empirical support?
+2. What entry/exit conditions are supported?
+3. What regime filters improve performance?
+4. What are the known failure modes?
+5. Has this been tested on crypto specifically?
+
+Output guides the grid search bounds in Phase 3 — preventing arbitrary parameter ranges.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector" style="--c1:var(--phase0);--c2:var(--phase1)">
+    <div class="connector-arrow" style="border-top-color:var(--phase1)"></div>
+    <span class="connector-label">Research brief approved → begin discovery</span>
+  </div>
+
+  <!-- PHASE 1 -->
+  <div class="phase p1">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 1</span>
+      <span class="phase-icon">🧭</span>
+      <div class="phase-title-wrap">
+        <div class="phase-title">Discovery & Logic Check</div>
+        <div class="phase-subtitle">Understand the strategy before coding anything · Claude Chat only</div>
+      </div>
+      <div class="phase-docs">
+        <span class="doc-tag" style="color:var(--red);border-color:rgba(239,71,111,0.4);background:rgba(239,71,111,0.08)">RISK_REGISTER_[STRATEGY].md
+          <div class="tooltip"><strong>Risk Register — created at Phase 1</strong>A living document tracking every known risk for this strategy. Each item has: ID, description, severity (HIGH/MAJOR/MEDIUM/LOW), status (OPEN/RESOLVED), and an update log. HIGH items must be resolved before deployment. Created from STRATEGY_RISK_REGISTER_TEMPLATE.md.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.4);background:rgba(76,201,240,0.08)">LEARNING_LOG.md
+          <div class="tooltip"><strong>LEARNING_LOG.md</strong>Your personal quant glossary built across all 24 weeks. Every meaningful concept gets an entry: plain-English explanation, the week it appeared, what needs deeper study. 61KB and growing. The most valuable single document in the project — prevents rediscovering the same things each week.</div>
+        </span>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-divider"></div>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">STEP 1.1</div>
+          <div class="step-title">Explain Economic Logic</div>
+          <div class="step-desc">Why should this strategy work? What market inefficiency does it exploit? Trend-following exploits momentum persistence. Mean reversion exploits overshooting. No logic = no edge.</div>
+          <div class="tooltip"><strong>Economic logic test:</strong>If you can't explain in one sentence why this strategy should generate returns above buy-and-hold, don't build it. Example: "ETH ADX enters when trend strength is confirmed — capturing sustained directional moves while avoiding choppy markets." Clear, testable, falsifiable.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 1.2</div>
+          <div class="step-title">Payoff Profile Sanity Check</div>
+          <div class="step-desc">Calculate breakeven win rate: p_breakeven = 1 / (1 + b) where b = avg_win / avg_loss. If expected live win rate is below breakeven, Kelly says don't trade.</div>
+          <div class="tooltip"><strong>⚠️ Critical check — ETH RSI example:</strong>b = 5.79% avg win / 15.00% avg loss = 0.386
+p_breakeven = 1 / (1 + 0.386) = 72.1%
+
+Expected live win rate: 60-70% → BELOW breakeven.
+This single check would have caught the RSI asymmetric payoff problem at Phase 1 rather than at pre-deployment review.
+
+<em>Rule: if b &lt; 1 (losses larger than wins), flag immediately.</em></div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 1.3</div>
+          <div class="step-title">Identify Strategy Type & Regime</div>
+          <div class="step-desc">Trend-following (ADX, SMA, MACD) or mean reversion (RSI, BB)? Which market regime suits it? Trend strategies fail in ranging markets; mean reversion fails in trending markets.</div>
+          <div class="tooltip"><strong>Why regime matters for portfolio:</strong>ETH ADX (trend-following) and ETH RSI (mean reversion) are complementary — they signal in different market conditions. When ADX is FLAT (no trend), RSI may be active. This natural regime self-selection means strategies complement rather than compete. Design the portfolio for all-weather coverage.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 1.4</div>
+          <div class="step-title">Create Risk Register</div>
+          <div class="step-desc">Document every known risk before the first line of code. Capture assumptions about data quality, market conditions, execution. HIGH items flagged for mandatory resolution.</div>
+          <div class="tooltip"><strong>Risk Register structure:</strong>ID: unique reference (e.g. A016, RR-RSI-001)
+Severity: HIGH / MAJOR / MEDIUM / LOW
+Status: OPEN / RESOLVED
+Description: what could go wrong
+Mitigation: what we're doing about it
+Update log: timestamped changes
+
+HIGH = must resolve before deployment.
+MAJOR = resolve or formally accept with rationale.
+MEDIUM/LOW = document and monitor.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector" style="--c1:var(--phase1);--c2:var(--phase2)">
+    <div class="connector-arrow" style="border-top-color:var(--phase2)"></div>
+    <span class="connector-label">Logic verified → first backtest</span>
+  </div>
+
+  <!-- PHASE 2 -->
+  <div class="phase p2">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 2</span>
+      <span class="phase-icon">📊</span>
+      <div class="phase-title-wrap">
+        <div class="phase-title">Initial Backtest</div>
+        <div class="phase-subtitle">Realistic figures throughout · Claude Code builds scripts · One asset, default parameters</div>
+      </div>
+      <div class="phase-docs">
+        <span class="doc-tag" style="color:var(--green);border-color:rgba(6,214,160,0.4);background:rgba(6,214,160,0.08)">METHODOLOGY_STANDARDS.md
+          <div class="tooltip"><strong>METHODOLOGY_STANDARDS.md</strong>The binding technical rulebook. Defines: Sortino must use daily equity curve (not per-trade — inflates 3-4×), stop orders must use STOP_LOSS not STOP_LOSS_LIMIT, cost model assumptions, Kelly formula, every known bug and fix. Checked before every backtest is written.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.4);background:rgba(76,201,240,0.08)">LIVE_TRADING_CHECKLIST.md
+          <div class="tooltip"><strong>LIVE_TRADING_CHECKLIST.md — Sections 1-2</strong>20KB document. Seven sections, each with checkboxes. Section 1 (Backtest Quality) confirms: daily equity curve Sortino ✓, costs applied ✓, bar-by-bar low stop check ✓, no look-ahead bias ✓, equity curve construction verified ✓.
+Cannot deploy with unchecked items unless formally documented.</div>
+        </span>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-divider"></div>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">STEP 2.1</div>
+          <div class="step-title">Cost Model Applied</div>
+          <div class="step-desc">0.15% round-trip transaction costs. 0.10% stop slippage (realistic for small positions on liquid pairs). Bar-by-bar stop checking against daily LOW prices — not just closes.</div>
+          <div class="tooltip"><strong>Realistic cost model (Phases 2-4):</strong>Transaction costs: 0.15% round-trip
+Stop slippage: 0.10% below intended stop
+Liquidation slippage: 0.25%
+Interest: 0.015%/day on borrowed amount during open positions only
+
+<em>Conservative stress model (Phase 5 only):</em>
+Transaction costs: 0.30% round-trip
+Stop slippage: 0.25%
+Liquidation slippage: 0.50%
+
+Using stress costs in Phase 2 understates strategy quality. Using realistic costs in Phase 5 defeats the purpose of stress testing.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 2.2</div>
+          <div class="step-title">Correct Metric Calculations</div>
+          <div class="step-desc">Sortino and Sharpe from daily equity curve. Report BOTH per-trade MaxDD AND daily MtM MaxDD. Entry date at entry, not exit. These are mandatory — per-trade Sortino inflates 3-4×.</div>
+          <div class="tooltip"><strong>Daily equity curve method:</strong>Build a daily portfolio value series: during open position, equity = capital × (current_price / entry_price). Between trades, equity stays flat at last exit value.
+
+Sortino = mean(daily_returns) / std(daily_returns where ret &lt; 0) × sqrt(365)
+
+Per-trade MaxDD: worst sequence of completed trade returns.
+Daily MtM MaxDD: worst portfolio value vs previous peak, every day — this is what you see watching a live account.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 2.3</div>
+          <div class="step-title">Maximum Loss Per Trade Check</div>
+          <div class="step-desc">Calculate: max_loss = position_size × stop_pct. Express as % of total allocation. If max_loss % is high AND win rate is below 80%, flag for review before proceeding.</div>
+          <div class="tooltip"><strong>Why this matters — RSI example:</strong>$500 position × 15% stop = $75 max loss = 15% of $500 allocation.
+If win rate degrades to 70% (expected live), 3 consecutive losses = −45% of allocation.
+
+Flag rule: if max_loss &gt; 20% of allocation AND expected live win rate &lt; 80%, mandatory review before Phase 3.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 2.4</div>
+          <div class="step-title">Sample Size Check</div>
+          <div class="step-desc">Minimum 30 trades required. Below 30: flag on every metric output. Below 100: Monte Carlo simulation mandatory in Phase 3. Statistical inference is unreliable at small sample sizes.</div>
+          <div class="tooltip"><strong>Sample size implications:</strong>ETH ADX: 158 trades → reliable statistics, Kelly sizing trustworthy.
+ETH RSI: 31 trades → 95% CI on win rate spans 79-99% (very wide). Cannot make confident deployment decisions.
+BTC SMA: 30 trades → borderline minimum. Walk-forward windows have 3-7 trades each — statistically unreliable.
+
+Monte Carlo mandatory below 100 trades because the backtest path is one of many possible outcomes.</div>
+        </div>
+      </div>
+      <div class="gate-row">
+        <div class="gate" style="background:rgba(6,214,160,0.08);border-color:rgba(6,214,160,0.3);color:var(--green)">
+          <span class="gate-icon">✓</span>
+          <span class="gate-text">COSTS APPLIED</span>
+          <div class="tooltip tooltip-left"><strong>Gate: Costs Applied</strong>All backtest scripts must include 0.15% round-trip costs deducted from every trade. Previously missing from early backtests — caught in Week 5. Without costs, high-frequency strategies appear artificially profitable.</div>
+        </div>
+        <div class="gate" style="background:rgba(6,214,160,0.08);border-color:rgba(6,214,160,0.3);color:var(--green)">
+          <span class="gate-icon">✓</span>
+          <span class="gate-text">DAILY LOW STOP CHECK</span>
+          <div class="tooltip"><strong>Gate: Bar-by-bar Low Stop Check</strong>Stop loss must be checked against the daily LOW price on every bar, not just the closing price. An intraday drop can trigger your stop even if the closing price is above the stop level. Confirmed correct in all Week 6 backtests — critical for accurate stop simulation.</div>
+        </div>
+        <div class="gate" style="background:rgba(6,214,160,0.08);border-color:rgba(6,214,160,0.3);color:var(--green)">
+          <span class="gate-icon">✓</span>
+          <span class="gate-text">DAILY EQUITY SORTINO</span>
+          <div class="tooltip"><strong>Gate: Daily Equity Curve Sortino</strong>Per-trade method inflates Sortino by 3-4×. ETH ADX Sortino corrected from ~3.5 to 1.780 when this was fixed. Must explicitly verify in every new backtest script that the daily equity curve method is used, not per-trade returns.</div>
+        </div>
+        <div class="gate" style="background:rgba(6,214,160,0.08);border-color:rgba(6,214,160,0.3);color:var(--green)">
+          <span class="gate-icon">✓</span>
+          <span class="gate-text">PAYOFF PROFILE CHECK</span>
+          <div class="tooltip"><strong>Gate: Payoff Profile Sanity Check</strong>p_breakeven = 1/(1+b) where b = avg_win/avg_loss. If expected live win rate is below breakeven, strategy has negative Kelly expectation. This is the single check that would have prevented the ETH RSI $500 deployment — caught at Phase 2 it saves weeks of work.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector" style="--c1:var(--phase2);--c2:var(--phase3)">
+    <div class="connector-arrow" style="border-top-color:var(--phase3)"></div>
+    <span class="connector-label">Initial backtest passes gates → optimisation</span>
+  </div>
+
+  <!-- PHASE 3 -->
+  <div class="phase p3">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 3</span>
+      <span class="phase-icon">⚙️</span>
+      <div class="phase-title-wrap">
+        <div class="phase-title">Optimisation & Parameter Search</div>
+        <div class="phase-subtitle">Grid search across parameter space · MacBook runs the computation · Claude Code writes the scripts</div>
+      </div>
+      <div class="phase-docs">
+        <span class="doc-tag" style="color:var(--gold);border-color:rgba(240,165,0,0.4);background:rgba(240,165,0,0.08)">STRATEGY_RESEARCH_PIPELINE.md
+          <div class="tooltip"><strong>STRATEGY_RESEARCH_PIPELINE.md — Phase 3</strong>Defines: grid search methodology, grid boundary check requirement, cliff-edge check requirement, preliminary leverage screen (top 20 by 1× return, then coarse leverage screen 1.0×-3.0× in 0.5× steps). The research pipeline is updated whenever a new methodology improvement is discovered.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.4);background:rgba(76,201,240,0.08)">LEARNING_LOG.md
+          <div class="tooltip"><strong>LEARNING_LOG.md — updated after Phase 3</strong>Any new insights from optimisation go here. Examples added in Week 6: leverage as strategy multiplier, joint optimisation vs sequential, why grid boundary check matters. The log prevents rediscovering these things in future weeks.</div>
+        </span>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-divider"></div>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">STEP 3.1</div>
+          <div class="step-title">Parameter Grid Search</div>
+          <div class="step-desc">MacBook runs all combinations (not Claude). Claude Code writes the script. Grid bounds come from research brief — not arbitrary. Report full leaderboard ranked by annual return%.</div>
+          <div class="tooltip"><strong>Who does the computation?</strong>Claude Code writes the Python script. Your MacBook executes it — all 728+ combinations. Claude only sees the output when done. Token cost is writing the script and reading results, not running the calculations. MacBook M3 8GB handles daily candle backtests easily through at least Week 12.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 3.2</div>
+          <div class="step-title">Grid Boundary Check</div>
+          <div class="step-desc">Best result must NOT sit at the edge of the tested parameter range. If the optimum is at the maximum or minimum of the grid, the true optimum is outside — extend the range and rerun.</div>
+          <div class="tooltip"><strong>Grid boundary example:</strong>If you test ADX threshold 15-25 and the best result is at threshold=25, the true optimum might be 28 or 30. You haven't found the peak — you've found the edge of your search space. Always extend and rerun when the winner sits at a boundary.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 3.3</div>
+          <div class="step-title">Cliff-Edge Check</div>
+          <div class="step-desc">Plot annual return% across the sensitivity curve for each parameter. The chosen parameters must sit at or near the PEAK — not on a declining slope toward a cliff. Fragile peaks are overfit.</div>
+          <div class="tooltip"><strong>Cliff-edge vs plateau:</strong>Good: broad plateau where ±20% parameter change has minimal impact. Strategy is robust.
+
+Bad: narrow peak where changing a parameter by 1 unit causes a sharp drop in performance. Strategy is overfit to the training data and will likely fail out-of-sample.
+
+A parameter sitting on a declining slope means you've optimised past the peak — performance will degrade in live trading.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 3.4</div>
+          <div class="step-title">Preliminary Leverage Screen</div>
+          <div class="step-desc">After identifying top 20 by 1× return, run coarse leverage screen (1.0×-3.0×, 0.5× steps) for each. Re-rank by leveraged return. The 1× winner is not always the leveraged winner.</div>
+          <div class="tooltip"><strong>Why leverage changes the ranking:</strong>A strategy with lower raw return but lower drawdown may support higher safe leverage, producing better final levered returns than a higher-raw-return strategy constrained by its drawdown.
+
+Example: Strategy A: 60% annual, -40% MDD → optimal leverage 1.5× → 90% effective return.
+Strategy B: 40% annual, -15% MDD → optimal leverage 3.0× → 120% effective return.
+Strategy B wins despite lower 1× performance.
+
+Low MaxDD and high Sortino are leverage multipliers — not just quality filters.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 3.5</div>
+          <div class="step-title">Monte Carlo (if n &lt; 100)</div>
+          <div class="step-desc">1,000 simulations at 5 win rate scenarios: backtest WR, 80%, 75%, 70%, 65%. Shows full distribution of outcomes. Mandatory below 100 trades. Reveals win-rate sensitivity before deployment.</div>
+          <div class="tooltip"><strong>Monte Carlo output:</strong>For each win rate scenario:
+• Median annual return%
+• 10th percentile (bad luck scenario)
+• 90th percentile (good luck scenario)
+• Probability of negative year
+• Kelly fraction at this win rate
+
+ETH RSI Monte Carlo result at 70% WR:
+Median: −3.4%, Prob negative year: 74%, Kelly: −7.7% (negative!)
+This single analysis changed the deployment from $500 to $150 validation only.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 3.6</div>
+          <div class="step-title">Kelly Position Sizing</div>
+          <div class="step-desc">f* = (p×b − q) / b. Apply half-Kelly. Position = (f* × capital) / stop_pct. This ensures maximum loss = Kelly fraction of capital. NOT position = f* × capital (20× too small).</div>
+          <div class="tooltip"><strong>Kelly correct formula:</strong>Kelly f* is the RISK fraction, not the deployment fraction.
+
+WRONG: position = 12.41% × $1,000 = $124 (deployed $124, risk = $6.20)
+CORRECT: position = ($124.10) / 0.08 = $1,551 capped at capital (risk = $124.10 ✓)
+
+The wrong version was deployed from Week 4 to Week 6 — 20× undersizing. Maximum loss should equal Kelly fraction of capital, not Kelly fraction × stop%.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector" style="--c1:var(--phase3);--c2:var(--phase4)">
+    <div class="connector-arrow" style="border-top-color:var(--phase4)"></div>
+    <span class="connector-label">Parameters selected → validation</span>
+  </div>
+
+  <!-- PHASE 4 -->
+  <div class="phase p4">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 4</span>
+      <span class="phase-icon">🧪</span>
+      <div class="phase-title-wrap">
+        <div class="phase-title">Validation</div>
+        <div class="phase-subtitle">Walk-forward · Stability · Cross-asset · Buy-and-hold comparison — all four required</div>
+      </div>
+      <div class="phase-docs">
+        <span class="doc-tag" style="color:var(--red);border-color:rgba(239,71,111,0.4);background:rgba(239,71,111,0.08)">RISK_REGISTER_[STRATEGY].md
+          <div class="tooltip"><strong>Risk Register — updated at Phase 4</strong>New risks discovered during validation are added here immediately. Walk-forward failure = new risk item. Cross-asset failure = asset-specific edge documented. Stability MARGINAL = confidence score reduced. HIGH items must be resolved before Phase 6.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.4);background:rgba(76,201,240,0.08)">LIVE_TRADING_CHECKLIST.md
+          <div class="tooltip"><strong>LIVE_TRADING_CHECKLIST.md — Section 1 continued</strong>Validation items: walk-forward both methods ✓, B&H relative thresholds ✓, stability analysis ✓, minimum 30 trades ✓, MaxDD labelled correctly ✓, equity curve construction verified ✓. Each checkbox requires evidence — not just assumption.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--gold);border-color:rgba(240,165,0,0.4);background:rgba(240,165,0,0.08)">STRATEGIC_FRAMEWORK.md
+          <div class="tooltip"><strong>STRATEGIC_FRAMEWORK.md</strong>The decision-making philosophy. Critical guidance for Phase 4: cross-asset failure = asset-specific edge, not disqualification. Walk-forward 2022 failure accepted if strategy limited losses during bear market. B&H thresholds are minimum bars, not targets. Return is primary objective; drawdown is disclosed risk, not veto.</div>
+        </span>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-divider"></div>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">STEP 4.1</div>
+          <div class="step-title">Walk-Forward Validation</div>
+          <div class="step-desc">BOTH expanding window (anchored) AND rolling window (sliding). Strategy must be profitable in all windows. Document explicitly if both methods produce identical results (fixed parameters).</div>
+          <div class="tooltip"><strong>Two walk-forward methods:</strong>Expanding (anchored): training always starts at inception, grows each window. Tests whether strategy works as history accumulates.
+
+Rolling (sliding): fixed-length training window slides forward. Tests whether strategy works across different regimes.
+
+With fixed parameters (no per-window re-optimisation), both methods produce identical results — document this explicitly. True walk-forward with re-optimisation per window is the stronger test.
+
+ETH ADX: both methods confirmed ADX 20/10 (later revised to 19/9) as dominant.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 4.2</div>
+          <div class="step-title">Stability Analysis</div>
+          <div class="step-desc">Vary each parameter ±30% independently. Count % of variations that remain profitable. STABLE &gt;60%, MARGINAL 40-60%, FRAGILE &lt;40%. ETH ADX: MARGINAL at 58%. Acceptable.</div>
+          <div class="tooltip"><strong>Stability classification:</strong>STABLE (&gt;60%): broad parameter plateau — strategy is robust. High confidence for deployment.
+MARGINAL (40-60%): acceptable with monitoring. Most deployed strategies fall here.
+FRAGILE (&lt;40%): narrow peak — likely overfit. Do not deploy.
+
+ETH ADX: MARGINAL 58% — acceptable, deployed with awareness.
+BTC SMA: MARGINAL 50.5% — borderline.
+BTC ADX: MARGINAL 54.5% — acceptable.
+
+Stability reduces confidence in Kelly sizing estimates — consider more conservative sizing for MARGINAL strategies.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 4.3</div>
+          <div class="step-title">Cross-Asset Check</div>
+          <div class="step-desc">Run strategy on a different asset. Failure means asset-specific edge — not automatic disqualification. ETH ADX generalises to BTC. BTC SMA fails on ETH. Deploy on validated asset only.</div>
+          <div class="tooltip"><strong>Cross-asset failure interpretation:</strong>Failure means the edge is asset-specific — which is fine if the strategy is only deployed on its validated asset.
+
+ETH-optimal ADX parameters (period 9, threshold 19) ranked 389th when applied to BTC. BTC required its own optimisation (period 14, threshold 19).
+
+This teaches that ETH and BTC have structurally different trend characteristics. Never assume parameters transfer between assets.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 4.4</div>
+          <div class="step-title">B&H Relative Thresholds</div>
+          <div class="step-desc">All three must pass: Annual return ≥2.0× B&H, MaxDD ≤0.50× B&H MaxDD, Sortino ≥1.50× B&H Sortino. A strategy beating B&H on only one metric doesn't have a clear edge over passive holding.</div>
+          <div class="tooltip"><strong>B&H threshold results — ETH ADX:</strong>Annual: 80.1% vs 12.9% B&H = 6.2× ✅ (target ≥2.0×)
+MaxDD: 37.7% vs B&H MaxDD = 0.46× ✅ (target ≤0.50×)
+Sortino: 1.780 vs 0.786 B&H = 2.26× ✅ (target ≥1.5×)
+All three pass.
+
+BTC SMA Sortino: 1.43× — narrowly below 1.5× threshold. Accepted as marginal deviation given strong performance on other two metrics. Formal written rationale required for any threshold not met.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector" style="--c1:var(--phase4);--c2:var(--phase5)">
+    <div class="connector-arrow" style="border-top-color:var(--phase5)"></div>
+    <span class="connector-label">Validation passed → stress testing</span>
+  </div>
+
+  <!-- PHASE 5 -->
+  <div class="phase p5">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 5</span>
+      <span class="phase-icon">🔥</span>
+      <div class="phase-title-wrap">
+        <div class="phase-title">Stress Testing</div>
+        <div class="phase-subtitle">Three layers — switch to conservative cost assumptions — strategy must survive all three</div>
+      </div>
+      <div class="phase-docs">
+        <span class="doc-tag" style="color:var(--red);border-color:rgba(239,71,111,0.4);background:rgba(239,71,111,0.08)">RISK_REGISTER_[STRATEGY].md
+          <div class="tooltip"><strong>Risk Register — stress test findings</strong>Any failure in stress testing creates a new HIGH risk register item. Layer 2 conservative cost failure = deployment blocked until resolved. Layer 3 parameter degradation failure = reduce initial capital to 50% pending live validation. All findings documented.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--amber);border-color:rgba(255,209,102,0.4);background:rgba(255,209,102,0.08)">STRATEGY_DEPLOYMENT_TEMPLATE.md
+          <div class="tooltip"><strong>STRATEGY_DEPLOYMENT_TEMPLATE.md</strong>8-section template filled in for every strategy. Section 3 (Backtest Evidence) requires: all 20 standardised metrics, Monte Carlo table, payoff profile sanity check, stress test results for all three layers. Becomes the permanent audit trail for why the deployment was made.</div>
+        </span>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-divider"></div>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">LAYER 1</div>
+          <div class="step-title">Realistic Figures (Baseline)</div>
+          <div class="step-desc">Expected performance under normal conditions. Realistic costs: 0.15% round-trip, 0.10% stop slippage. This is the headline figure — what you expect in live trading.</div>
+          <div class="tooltip"><strong>Layer 1 — expected performance:</strong>ETH ADX: 80.1% annual, Sortino 1.780, MaxDD -37.7%
+These are the figures used for decision-making.
+Conservative figures (Layer 2) are stress tests — they should NOT be presented as the primary metric because they don't represent expected reality.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">LAYER 2</div>
+          <div class="step-title">Conservative Costs</div>
+          <div class="step-desc">Double transaction costs (0.30% round-trip), higher slippage (0.25% stop, 0.50% liquidation). Strategy must remain profitable. Tests survivability under adverse execution.</div>
+          <div class="tooltip"><strong>Layer 2 — conservative stress:</strong>Tests: what if fills are consistently worse than expected? What if there's a period of high spread or reduced liquidity?
+
+The strategy must remain profitable and Sortino must stay above 1.0. If it fails Layer 2, the edge is too thin for the cost environment. Do not deploy.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">LAYER 3</div>
+          <div class="step-title">Parameter Degradation</div>
+          <div class="step-desc">Win rate -20%, avg win -20%, avg loss worsened -20%, all simultaneously (scenario d). If profitable: deploy. If scenario d fails but a/b/c pass: reduce initial capital to 50% pending live validation.</div>
+          <div class="tooltip"><strong>Layer 3 — parameter degradation scenarios:</strong>a) Win rate degrades 20%
+b) Average win degrades 20%
+c) Average loss worsens 20%
+d) All three simultaneously — the harshest case
+
+Scenario (d) simulates a future where market conditions have changed and the strategy's edge has partially eroded. If it still makes money under (d), deploy with confidence. If not, deploy at 50% capital pending 20 live trades confirming the edge persists.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">LEVERAGE</div>
+          <div class="step-title">Leverage Optimisation & Buffer</div>
+          <div class="step-desc">Grid 1.0×-5.0× in 0.1× steps. Interest cost modelling. Bar-by-bar liquidation check vs daily lows. Safety buffer ≥33%. Categorical liquidation test: worst historical drop must not liquidate from fresh entry.</div>
+          <div class="tooltip"><strong>Categorical liquidation test:</strong>Worst ETH single-day drop: −42.9% (March 12, 2020)
+Worst BTC single-day drop: −38.6% (same day)
+
+At recommended leverage, if this drop would liquidate the position even from a fresh entry — the leverage is categorically unsafe. Reduce leverage until the test passes.
+
+BTC SMA 2.5×: FAILS test (liquidated from fresh entry by −38.6% drop).
+BTC SMA 2.0×: PASSES (MR drops to 11%, above 5% liquidation threshold).
+ETH ADX 1.9×: PASSES from fresh entry (MR drops to 17%).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="connector" style="--c1:var(--phase5);--c2:var(--phase2)">
+    <div class="connector-arrow" style="border-top-color:var(--phase2)"></div>
+    <span class="connector-label">Stress tests passed → deployment decision</span>
+  </div>
+
+  <!-- PHASE 6 -->
+  <div class="phase p6">
+    <div class="phase-header">
+      <span class="phase-num">PHASE 6</span>
+      <span class="phase-icon">🚀</span>
+      <div class="phase-title-wrap">
+        <div class="phase-title">Deployment Decision</div>
+        <div class="phase-subtitle">Independent review · Checklist completion · Bot build · Monitoring setup · Go / No-Go decision</div>
+      </div>
+      <div class="phase-docs">
+        <span class="doc-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.4);background:rgba(76,201,240,0.08)">LIVE_TRADING_CHECKLIST.md
+          <div class="tooltip"><strong>LIVE_TRADING_CHECKLIST.md — All 7 Sections</strong>The final gate. Every item must be checked PASS before deployment:
+§0 Independent review complete
+§1 Backtest quality verified
+§2 Risk register — all HIGH items resolved
+§3 Bot mechanics confirmed
+§4 Capital and margin checks
+§5 Pre-deployment critical review
+§6 Sign-off with expected drawdown acknowledged
+
+Version 2.0 — updated 7 times in Week 6 alone.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--amber);border-color:rgba(255,209,102,0.4);background:rgba(255,209,102,0.08)">STRATEGY_DEPLOYMENT_TEMPLATE.md
+          <div class="tooltip"><strong>STRATEGY_DEPLOYMENT_TEMPLATE.md</strong>Filled in completely before going live. 8 sections including: all 20 standardised metrics, Monte Carlo table, leverage analysis, bot architecture, Kelly sizing calculation, confidence-based capital allocation score, sign-off. The permanent audit trail — if a question ever arises about why a decision was made, this is the answer.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--red);border-color:rgba(239,71,111,0.4);background:rgba(239,71,111,0.08)">RISK_REGISTER_[STRATEGY].md
+          <div class="tooltip"><strong>Risk Register — final review at Phase 6</strong>All HIGH items must show status RESOLVED before deployment is permitted. MAJOR items must be RESOLVED or formally accepted with written rationale. The risk register is then continuously updated after deployment as new risks are discovered in live trading.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--purple);border-color:rgba(176,132,204,0.4);background:rgba(176,132,204,0.08)">REVIEW_[STRATEGY]_[DATE].md
+          <div class="tooltip"><strong>Independent Review Document</strong>Output from a fresh Claude Sonnet session with NO prior context. The reviewer actively looks for problems — not validates decisions. ETH RSI review found 27 issues (3 CRITICAL, 6 MAJOR, 18 MINOR). Saved as permanent record. All CRITICAL items must be resolved before any capital is deployed.</div>
+        </span>
+        <span class="doc-tag" style="color:var(--gold);border-color:rgba(240,165,0,0.4);background:rgba(240,165,0,0.08)">STRATEGY_IDEAS_LOG.md
+          <div class="tooltip"><strong>STRATEGY_IDEAS_LOG.md</strong>Updated at Phase 6 when a NO-GO decision is made. The strategy, its metrics, and the reason for rejection are logged with a target week for revisiting. BTC SMA: logged as shelved, revisit when n≥50 trades (~2028). Ensures good ideas aren't permanently lost.</div>
+        </span>
+      </div>
+    </div>
+    <div class="phase-body">
+      <div class="phase-divider"></div>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">STEP 6.1</div>
+          <div class="step-title">Independent Red Team Review</div>
+          <div class="step-desc">Fresh Claude Sonnet session — no prior context, no attachment to past decisions. Brief: all parameters, 20 metrics, bot architecture, risk register. Instruction: "Be adversarial. Do not soften findings."</div>
+          <div class="tooltip"><strong>Why independent review catches things we miss:</strong>This chat has been building the strategy for weeks. A fresh session has no attachment to past decisions and no inclination to defend past choices. ETH RSI review caught: negative Kelly at realistic win rates (we knew this but hadn't made it explicit), silent stop cancellation risk (completely missed), Kelly fraction being discarded by the $150 cap.
+
+Three CRITICAL findings that would have caused real harm with live capital.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 6.2</div>
+          <div class="step-title">Go / No-Go Decision</div>
+          <div class="step-desc">Return ≥2× B&H annual + all three B&H thresholds + positive Kelly at expected live WR + all HIGH risk items resolved + CRITICAL review findings resolved = GO. Otherwise NO-GO.</div>
+          <div class="tooltip"><strong>Go/No-Go decision tree:</strong>GO: Deploy at full Kelly-sized position.
+CONDITIONAL GO: Deploy at reduced capital (50%) pending 20 live trades. Requires formal written rationale.
+VALIDATION ONLY: Deploy at minimal capital ($100-$150) purely to accumulate live data. Not profit-seeking.
+NO-GO: Do not deploy. Log reasons in Strategy Ideas Log with conditions for revisiting.
+
+ETH RSI result: VALIDATION ONLY ($150) — negative Kelly at expected live win rates.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 6.3</div>
+          <div class="step-title">Build Live Bot</div>
+          <div class="step-desc">Every bot must have: STOP_LOSS market orders, verify_stop_order() on every run, Telegram alerts on ALL failures, daily health check message, get_my_capital() from portfolio_manager, LOT_SIZE floor.</div>
+          <div class="tooltip"><strong>Mandatory bot requirements checklist:</strong>✓ STOP_LOSS (market) — never STOP_LOSS_LIMIT
+✓ verify_stop_order() at start of every run while LONG
+✓ Telegram alert on ANY failed order
+✓ Daily health check: signal, position, P&L, stop, portfolio
+✓ get_my_capital() from portfolio_manager
+✓ update_position() after every trade
+✓ record_trade_result() after every exit
+✓ LOT_SIZE: math.floor(qty * 1000) / 1000
+✓ Entry date at entry, not exit
+✓ Pre-flight API permission check</div>
+        </div>
+        <div class="step">
+          <div class="step-num">STEP 6.4</div>
+          <div class="step-title">Confidence-Based Capital Allocation</div>
+          <div class="step-desc">Score strategy on: sample size (primary), stability result, walk-forward consistency, B&H multiple. Higher confidence = larger allocation. Do not give equal capital to a 30-trade and a 158-trade strategy.</div>
+          <div class="tooltip"><strong>Confidence scoring factors:</strong>Backtest sample size (primary weight): n&gt;100 = high confidence, n&lt;35 = low confidence
+Stability result: STABLE = high, MARGINAL = medium, FRAGILE = low
+Walk-forward: all windows profitable = high, scraping through = medium
+B&H relative multiple: further above thresholds = higher confidence
+Live trade count: zero at deployment, increases as live data accumulates
+
+Week 7+: implement performance-weighted rebalancing when ≥20 live trades per strategy. Use Sortino + annual return% equally weighted (not Sharpe — penalises upside volatility).</div>
+        </div>
+      </div>
+      <div class="gate-row">
+        <div class="gate" style="background:rgba(239,71,111,0.08);border-color:rgba(239,71,111,0.3);color:var(--red)">
+          <span class="gate-icon">🔒</span>
+          <span class="gate-text">ALL HIGH RISKS RESOLVED</span>
+          <div class="tooltip tooltip-left"><strong>Hard gate: Risk Register</strong>Every HIGH severity item in the risk register must show status RESOLVED before deployment. No exceptions. MAJOR items must be resolved or formally accepted with written rationale. The risk register is checked at this gate — not just at creation.</div>
+        </div>
+        <div class="gate" style="background:rgba(239,71,111,0.08);border-color:rgba(239,71,111,0.3);color:var(--red)">
+          <span class="gate-icon">🔒</span>
+          <span class="gate-text">CHECKLIST 100% COMPLETE</span>
+          <div class="tooltip"><strong>Hard gate: Live Trading Checklist</strong>Every checkbox in all 7 sections must be marked PASS. Partially completed checklists are not acceptable. If any item cannot be checked, document the reason and obtain explicit written sign-off. Archive a completed copy alongside each deployment.</div>
+        </div>
+        <div class="gate" style="background:rgba(239,71,111,0.08);border-color:rgba(239,71,111,0.3);color:var(--red)">
+          <span class="gate-icon">🔒</span>
+          <span class="gate-text">CRITICAL REVIEW FINDINGS RESOLVED</span>
+          <div class="tooltip"><strong>Hard gate: Independent Review</strong>All CRITICAL findings from the independent review must be resolved before any capital is deployed. MAJOR findings must be resolved or formally accepted with written rationale. This gate prevented $500 being deployed to a negative-expectancy RSI strategy.</div>
+        </div>
+        <div class="gate" style="background:rgba(6,214,160,0.08);border-color:rgba(6,214,160,0.3);color:var(--green)">
+          <span class="gate-icon">✅</span>
+          <span class="gate-text">DEPLOYMENT DOCUMENT COMPLETE</span>
+          <div class="tooltip"><strong>Gate: Deployment Template</strong>STRATEGY_DEPLOYMENT_TEMPLATE.md fully completed with all 20 metrics, Monte Carlo table, leverage analysis, bot architecture, Kelly sizing, confidence score, and sign-off. This is the permanent record that answers any future question about why this deployment was made.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LIVE DEPLOYMENT BOX -->
+<div class="live-box">
+  <div class="live-icon live-pulse">🟢</div>
+  <div class="live-content">
+    <h3>Live on EC2 — 3.104.101.30 (Sydney)</h3>
+    <p style="color:var(--muted);font-size:11px;margin-bottom:4px">Strategy has passed all 6 phases, all gates, all checks. Capital is deployed. Monitoring begins.</p>
+    <div class="live-metrics">
+      <div class="live-metric">
+        <div class="val">4×</div>
+        <div class="lbl">Daily Cron Runs</div>
+      </div>
+      <div class="live-metric">
+        <div class="val">✅</div>
+        <div class="lbl">Daily Telegram</div>
+      </div>
+      <div class="live-metric">
+        <div class="val">100%</div>
+        <div class="lbl">Stop Verified</div>
+      </div>
+      <div class="live-metric">
+        <div class="val">Weekly</div>
+        <div class="lbl">Portfolio Rebalance</div>
+      </div>
+      <div class="live-metric">
+        <div class="val">20 trades</div>
+        <div class="lbl">Scale-Up Trigger</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DOCUMENT LIBRARY -->
+<div class="docs-section">
+  <h2>Document Library — What Each File Does & When It's Used</h2>
+  <div class="docs-grid">
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">📋</span>
+        <span class="doc-card-name" style="color:var(--blue)">CURRICULUM_OPERATING_MANUAL.md</span>
+      </div>
+      <div class="doc-card-desc">The master instruction manual. Which tool to use when, how to start each week, the 7 pipeline phases, chart requirements, end-of-week checklist. Read at the start of every new chat session.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">10KB</span>
+        <span class="doc-meta-tag" style="color:var(--muted);border-color:var(--border)">Rarely changes</span>
+        <span class="doc-meta-tag" style="color:var(--green);border-color:rgba(6,214,160,0.3)">Read every week</span>
+      </div>
+      <div class="tooltip tooltip-right"><strong>When to read it:</strong>Start of every new chat session — before anything else. Contains working preferences (explain before code, one stage at a time), key file locations, and the end-of-week checklist. If you're unsure how to proceed, this is the first place to look.</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">📐</span>
+        <span class="doc-card-name" style="color:var(--green)">METHODOLOGY_STANDARDS.md</span>
+      </div>
+      <div class="doc-card-desc">The technical rulebook. How every calculation must be done: Sortino method, stop order types, cost model, Kelly formula, trailing stop implementation. Every known bug with its fix.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">5KB</span>
+        <span class="doc-meta-tag" style="color:var(--amber);border-color:rgba(255,209,102,0.3)">Updated on discoveries</span>
+        <span class="doc-meta-tag" style="color:var(--green);border-color:rgba(6,214,160,0.3)">Before any backtest</span>
+      </div>
+      <div class="tooltip tooltip-right"><strong>Critical contents:</strong>Sortino: daily equity curve ONLY (never per-trade). Kelly: position = (f* × capital) / stop_pct. Stop orders: STOP_LOSS not STOP_LOSS_LIMIT. Trailing stop: bot-managed 4× daily (no native trailing stop on Binance Spot). All 6 known bugs from Week 6 with fixes.</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">🧭</span>
+        <span class="doc-card-name" style="color:var(--amber)">STRATEGIC_FRAMEWORK.md</span>
+      </div>
+      <div class="doc-card-desc">The decision-making philosophy. Primary objective (annual return, not Calmar), how to treat drawdown (disclosed risk, not veto), cross-asset failure interpretation, leverage as multiplier.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">3KB</span>
+        <span class="doc-meta-tag" style="color:var(--muted);border-color:var(--border)">Rarely changes</span>
+        <span class="doc-meta-tag" style="color:var(--amber);border-color:rgba(255,209,102,0.3)">Judgment calls</span>
+      </div>
+      <div class="tooltip"><strong>Key principles:</strong>Annual return% is the primary metric. Calmar is context only. Drawdown is disclosed and accepted, not a veto. Cross-asset failure = asset-specific edge, not disqualification. Low MaxDD = leverage multiplier. Sortino beats Sharpe for allocation (no upside penalty). Conservative on leverage: 33% buffer minimum.</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">🔬</span>
+        <span class="doc-card-name" style="color:var(--blue)">STRATEGY_RESEARCH_PIPELINE.md</span>
+      </div>
+      <div class="doc-card-desc">The 7-phase pipeline every strategy must complete. Contains detailed requirements for each phase including Monte Carlo, payoff sanity check, preliminary leverage screen, and confidence-based allocation.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">11KB</span>
+        <span class="doc-meta-tag" style="color:var(--amber);border-color:rgba(255,209,102,0.3)">Updated each week</span>
+        <span class="doc-meta-tag" style="color:var(--green);border-color:rgba(6,214,160,0.3)">Every new strategy</span>
+      </div>
+      <div class="tooltip"><strong>Updated in Week 6:</strong>Added Phase 0 (pre-week research brief). Added payoff profile sanity check to Phase 2. Added Monte Carlo (mandatory n&lt;100) to Phase 3. Added preliminary leverage screen to Phase 3. Added confidence-based capital allocation to Phase 6.</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">✅</span>
+        <span class="doc-card-name" style="color:var(--green)">LIVE_TRADING_CHECKLIST.md</span>
+      </div>
+      <div class="doc-card-desc">The pre-deployment gate. 7 sections, ~60 items, all with checkboxes. Cannot deploy with unchecked items without formal documentation. Version 2.0 — updated 7 times in Week 6. 20KB.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">20KB</span>
+        <span class="doc-meta-tag" style="color:var(--red);border-color:rgba(239,71,111,0.3)">Updated frequently</span>
+        <span class="doc-meta-tag" style="color:var(--red);border-color:rgba(239,71,111,0.3)">Every deployment</span>
+      </div>
+      <div class="tooltip"><strong>7 sections:</strong>§0 Independent pre-deployment review
+§1 Backtest quality (Sortino, costs, stop method, walk-forward, B&H)
+§2 Risk register (all HIGH items resolved)
+§3 Bot mechanics (stop type, verification, Telegram, testing)
+§4 Capital and margin (Kelly, buffer, liquidation test, alerts)
+§5 Pre-deployment critical review
+§6 Sign-off (expected drawdown acknowledged)</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">📄</span>
+        <span class="doc-card-name" style="color:var(--amber)">STRATEGY_DEPLOYMENT_TEMPLATE.md</span>
+      </div>
+      <div class="doc-card-desc">Blank template filled in for every strategy deployed. 8 sections including all 20 standardised metrics, Monte Carlo table, leverage analysis, bot architecture, Kelly sizing, sign-off.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">4KB</span>
+        <span class="doc-meta-tag" style="color:var(--muted);border-color:var(--border)">Blank template</span>
+        <span class="doc-meta-tag" style="color:var(--amber);border-color:rgba(255,209,102,0.3)">Every deployment</span>
+      </div>
+      <div class="tooltip"><strong>20 standardised metrics required:</strong>Annual return% | Annual return$ | B&H multiple | Daily MtM MaxDD | Per-trade MaxDD | B&H MaxDD fraction | Max consecutive losses | Recovery time | Sortino | Sharpe | B&H Sortino multiple | Profit factor | Calmar | Win rate% | Avg win/loss ratio | Trades/year | Total trades | Avg hold days | Safety buffer% | Interest cost/year$</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">⚠️</span>
+        <span class="doc-card-name" style="color:var(--red)">RISK_REGISTER_[STRATEGY].md</span>
+      </div>
+      <div class="doc-card-desc">Living document tracking every known risk per strategy. ID, severity, status, mitigation, update log. ETH ADX: 18KB, multiple resolved items. RSI: 12KB with open MAJOR items. BTC SMA: 15KB, shelved.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--red);border-color:rgba(239,71,111,0.3)">Per-strategy</span>
+        <span class="doc-meta-tag" style="color:var(--red);border-color:rgba(239,71,111,0.3)">Continuously updated</span>
+        <span class="doc-meta-tag" style="color:var(--amber);border-color:rgba(255,209,102,0.3)">Review before deploy</span>
+      </div>
+      <div class="tooltip"><strong>Week 6 resolved items — ETH ADX:</strong>A017: STOP_LOSS_LIMIT → STOP_LOSS (23 days undetected)
+A018: Silent failure — no Telegram alerts (bot failed silently)
+A019: Kelly 20× undersizing — position was $124 not $994
+
+Still open:
+A016: Margin vulnerability at worst historical margin ratio (HIGH) — requires margin alert in leveraged bot</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">📚</span>
+        <span class="doc-card-name" style="color:var(--blue)">LEARNING_LOG.md</span>
+      </div>
+      <div class="doc-card-desc">Personal quant glossary for all 24 weeks. Every concept: plain-English explanation, week introduced, study priority. 61KB and growing. Prevents rediscovering the same things each week.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">61KB</span>
+        <span class="doc-meta-tag" style="color:var(--green);border-color:rgba(6,214,160,0.3)">After every concept</span>
+        <span class="doc-meta-tag" style="color:var(--green);border-color:rgba(6,214,160,0.3)">End of every week</span>
+      </div>
+      <div class="tooltip"><strong>Three sections:</strong>Concepts Encountered: every meaningful concept with plain-English explanation and week introduced — your personal quant dictionary.
+Study Backlog: concepts needing deeper independent study, prioritised HIGH/MEDIUM/LOW.
+Concepts Mastered: concepts you can explain, apply, and reason about independently.
+
+Week 6 added 15+ entries including Kelly correct implementation, Monte Carlo, trailing stop architecture, safety buffer vs MaxDD, reserved capital architecture.</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">💡</span>
+        <span class="doc-card-name" style="color:var(--purple)">STRATEGY_IDEAS_LOG.md</span>
+      </div>
+      <div class="doc-card-desc">Backlog of strategy ideas and infrastructure improvements with target weeks. 8 items (SI001-SI008). When a week ends with "we should do X later" — it goes here so nothing gets forgotten.</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">13KB</span>
+        <span class="doc-meta-tag" style="color:var(--amber);border-color:rgba(255,209,102,0.3)">End of each week</span>
+        <span class="doc-meta-tag" style="color:var(--purple);border-color:rgba(176,132,204,0.3)">Week planning</span>
+      </div>
+      <div class="tooltip"><strong>Current items (SI001-SI008):</strong>SI001: BTC ADX full validation (Week 7)
+SI003: Regime-switching SMA/ADX rotation (Week 9)
+SI005: Cloud compute review (Weeks 10, 13, 20)
+SI007: Performance-weighted allocation (Week 9)
+SI008: Monte Carlo for all strategies (ongoing)
+
+BTC SMA is also logged here as shelved — with conditions for revisiting (n≥50 trades, ~2028).</div>
+    </div>
+
+    <div class="doc-card">
+      <div class="doc-card-header">
+        <span class="doc-card-icon">🐍</span>
+        <span class="doc-card-name" style="color:var(--green)">portfolio_manager.py</span>
+      </div>
+      <div class="doc-card-desc">Shared capital management module imported by all bots. Five functions: get_my_capital(), update_position(), get_total_portfolio_value(), rebalance_portfolio(), get_portfolio_summary().</div>
+      <div class="doc-card-meta">
+        <span class="doc-meta-tag" style="color:var(--blue);border-color:rgba(76,201,240,0.3)">7KB</span>
+        <span class="doc-meta-tag" style="color:var(--green);border-color:rgba(6,214,160,0.3)">Live on EC2</span>
+        <span class="doc-meta-tag" style="color:var(--green);border-color:rgba(6,214,160,0.3)">All bots import this</span>
+      </div>
+      <div class="tooltip"><strong>Why portfolio_manager exists:</strong>Without it: Bot 1 deploys $1,000, USDT balance drops. Bot 2 reads live balance and thinks its 25% share is now $250 instead of $500 — wrong.
+
+With it: each bot calls get_my_capital('eth_adx') which returns reserved_capital = $1,000 from portfolio_state.json. Never reads live USDT balance for sizing. Weekly rebalance recalculates reserved_capital based on actual portfolio value — this is how gains compound.</div>
+    </div>
+
+  </div>
+</div>
+
+</div>
+
+<script>
+// Smooth tooltip positioning — prevent overflow off screen edges
+document.querySelectorAll('[class*="tooltip"]').forEach(tip => {
+  const parent = tip.parentElement;
+  parent.addEventListener('mouseenter', () => {
+    const rect = tip.getBoundingClientRect();
+    if (rect.left < 0) {
+      tip.style.left = '0';
+      tip.style.right = 'auto';
+      tip.style.transform = 'none';
+    } else if (rect.right > window.innerWidth) {
+      tip.style.left = 'auto';
+      tip.style.right = '0';
+      tip.style.transform = 'none';
+    }
+    if (rect.top < 0) {
+      tip.style.bottom = 'auto';
+      tip.style.top = 'calc(100% + 10px)';
+    }
+  });
+});
+</script>
+</body>
+</html>
