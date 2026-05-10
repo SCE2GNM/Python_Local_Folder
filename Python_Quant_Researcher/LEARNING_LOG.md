@@ -817,6 +817,14 @@ A complete glossary of every meaningful concept introduced during the curriculum
 
 ---
 
+### Week 7
+
+**Time-Series Momentum (TSMOM)** — A strategy framework, not a traditional indicator. Signal: buy if the asset's return over the past n months is positive, hold/flat if negative. Lookback typically 1–12 months. Academic evidence is strong: SSRN December 2024 paper found volume-weighted TSMOM on crypto generates 0.94%/day with annualised Sharpe 2.17. Springer 2023 conference confirmed positive results across multiple lookback windows. Erasmus University thesis found significant positive excess returns for 85% of long-only portfolios — but long-short portfolios showed no significant positive returns. Long-only is the relevant case (UK FCA, no shorting). Why not built yet: TSMOM is a portfolio-level, cross-sectional concept — it ranks multiple assets by past return and buys top performers. For a single-asset strategy on BTC or ETH, TSMOM reduces to a simple ROC zero-line or SMA crossover, already implicitly captured by our existing SMA and ADX strategies. Not worth building as a separate strategy at this stage. Revisit: Week 15+, when the portfolio spans enough assets for cross-sectional ranking to be meaningful. Introduced: Week 7 (WEEK_7_RESEARCH_BRIEF.md Phase 0 momentum research).
+
+**Trailing Stop — Hourly Check with Minimum Improvement Threshold** — When managing a trailing stop via cron, checking every hour (rather than every 4–6 hours) better captures intraday highs during uptrends. Key guard: only cancel and replace the Binance stop order if the new calculated stop price is at least 0.25–0.5% higher than the current stop. This prevents unnecessary order churn and minimises the window where no stop exists on the exchange (the gap between cancel and replacement). Apply to all future bots from the start. Introduced: Week 7.
+
+---
+
 ## Concepts Mastered
 
 Concepts you can explain clearly, apply correctly, and reason about independently.
