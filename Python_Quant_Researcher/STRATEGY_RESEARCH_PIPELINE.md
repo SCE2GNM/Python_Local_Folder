@@ -7,7 +7,9 @@ Each phase must be completed in order. Do not skip phases or merge them.
 
 ## Phase 0 — Pre-Week Research Brief
 
-**Timing:** Conducted 2–3 days before the week starts (in Claude chat, not Claude Code).
+**Timing (Week 8 onwards):** Conducted at the start of the new week's chat thread, before any backtesting begins. Running research in the same chat as the work it informs means full context is available for follow-up questions. Always done in Claude Chat (web search enabled), never in Claude Code.
+
+**Timing (Week 7):** Research brief was prepared at end of Week 6 and saved as WEEK_7_RESEARCH_BRIEF.md. This was the original approach — superseded from Week 8 onwards.
 
 **Purpose:** Ensure all backtesting starts from evidence-based parameter ranges rather than arbitrary grids. Saves computational time and focuses optimisation on productive regions.
 
