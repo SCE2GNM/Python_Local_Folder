@@ -575,9 +575,18 @@ def run_signal():
 
     # ── Step 6: Daily health check Telegram ──────────────────────────────────
     # Sent every run. Absence by 00:10 UTC = bot did not run — investigate.
+    rsi_val    = signal_data['rsi']
+    sig        = signal_data['signal']
+    if sig == 'FLAT':
+        signal_display = f"NO SIGNAL (RSI={rsi_val:.1f}, entry triggers at <{ENTRY_RSI})"
+    elif sig == 'EXIT':
+        signal_display = f"EXIT (RSI={rsi_val:.1f} above {EXIT_RSI})"
+    else:
+        signal_display = f"ENTRY (RSI={rsi_val:.1f} < {ENTRY_RSI})"
+
     hc_lines = [
         f"✅ RSI Bot ran {datetime.now().strftime('%Y-%m-%d')} 00:06 UTC",
-        f"Signal: RSI={signal_data['rsi']:.1f}, {signal_data['signal']}",
+        f"Signal: {signal_display}",
     ]
     if state['position'] == 'LONG' and state['entry_price']:
         eth_qty = state.get('position_size_eth') or eth_balance

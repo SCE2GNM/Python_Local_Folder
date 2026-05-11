@@ -8,6 +8,7 @@ Sends Telegram summary with updated allocations.
 import sys
 import os
 import requests
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -45,9 +46,28 @@ if __name__ == '__main__':
     client = Client(api_key, api_secret)
 
     try:
-        total   = rebalance_portfolio(client)
-        summary = get_portfolio_summary(client)
-        msg     = f"📊 Weekly portfolio rebalance\nTotal: ${total:,.2f}\n{summary}"
+        result        = rebalance_portfolio(client)
+        total         = result['total_val']
+        next_rebal    = (datetime.now() + timedelta(days=7)).strftime('%Y-%m-%d')
+
+        lines = [
+            f"📊 Weekly Portfolio Rebalance — {datetime.now().strftime('%Y-%m-%d')}",
+            f"Portfolio value: ${total:,.2f}",
+            "",
+        ]
+        for name, info in result['strategies'].items():
+            b, a, p, act = info['before'], info['after'], info['proposed'], info['action']
+            if act == 'increased':
+                lines.append(f"{name}: ${b:,.0f} → ${a:,.0f} ✅ (portfolio grew)")
+            elif act == 'fixed':
+                lines.append(f"{name}: ${a:,.0f} 🔒 (fixed allocation — not rebalanced)")
+            elif act == 'protected':
+                lines.append(f"{name}: ${a:,.0f} — unchanged (pct formula: ${p:,.0f} — protected from reduction)")
+            else:
+                lines.append(f"{name}: ${b:,.0f} → ${a:,.0f} ({act})")
+
+        lines += ["", f"Next rebalance: Monday {next_rebal} 01:00 UTC"]
+        msg = "\n".join(lines)
         send_telegram(msg)
         print(msg)
     except Exception as e:

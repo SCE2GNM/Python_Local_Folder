@@ -5,8 +5,8 @@
     "eth_rsi": 0.075,
     "btc_sma": 0.0
   },
-  "last_rebalance_date": "2026-05-07",
-  "last_updated": "2026-05-07 00:00:00",
+  "last_rebalance_date": "2026-05-11",
+  "last_updated": "2026-05-11 00:00:00",
   "strategies": {
     "eth_adx": {
       "reserved_capital": 1000,
@@ -14,7 +14,8 @@
       "cash_held": 5.22,
       "position": "LONG",
       "entry_price": 2368.52,
-      "quantity": 0.419
+      "quantity": 0.419,
+      "fixed_allocation": false
     },
     "eth_rsi": {
       "reserved_capital": 150,
@@ -22,7 +23,8 @@
       "cash_held": 150.0,
       "position": "FLAT",
       "entry_price": null,
-      "quantity": 0
+      "quantity": 0,
+      "fixed_allocation": true
     },
     "btc_sma": {
       "reserved_capital": 0,
@@ -30,7 +32,8 @@
       "cash_held": 0.0,
       "position": "FLAT",
       "entry_price": null,
-      "quantity": 0
+      "quantity": 0,
+      "fixed_allocation": false
     }
   }
 }

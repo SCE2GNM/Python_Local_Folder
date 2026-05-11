@@ -97,25 +97,54 @@ def rebalance_portfolio(binance_client):
     Recalculate reserved_capital for each strategy based on current total
     portfolio value and allocation_pcts. Called weekly (Monday 01:00 UTC).
 
-    FLAT strategies: reserved_capital and cash_held updated immediately.
-    LONG strategies: reserved_capital updated for future reference only —
-    deployed_value and cash_held are NOT changed mid-trade.
+    Rules:
+    - fixed_allocation=true: reserved_capital is never changed by rebalance.
+      Use for validation strategies with manually set capital (e.g. ETH RSI $150).
+    - Otherwise: reserved_capital is only updated UPWARD. If the percentage-based
+      allocation is lower than the current reserved_capital, keep the current value.
+      This prevents a portfolio drawdown from silently reducing strategy capital.
 
-    Returns total portfolio value used for rebalancing.
+    FLAT strategies: cash_held updated to match new reserved_capital.
+    LONG strategies: reserved_capital updated; deployed_value and cash_held
+    are NOT changed mid-trade.
+
+    Returns dict with total_val and per-strategy before/after details.
     """
     state     = _load()
     total_val = get_total_portfolio_value(binance_client)
     allocs    = state['allocation_pcts']
+    results   = {'total_val': total_val, 'strategies': {}}
 
     for name, strat in state['strategies'].items():
-        new_capital = round(total_val * allocs.get(name, 0), 2)
+        old_capital = strat['reserved_capital']
+        is_fixed    = strat.get('fixed_allocation', False)
+
+        proposed = round(total_val * allocs.get(name, 0), 2)
+
+        if is_fixed:
+            new_capital = old_capital
+            action      = 'fixed'
+        elif proposed > old_capital:
+            new_capital = proposed
+            action      = 'increased'
+        else:
+            new_capital = old_capital
+            action      = 'protected'
+
         strat['reserved_capital'] = new_capital
         if strat['position'] == 'FLAT':
             strat['cash_held'] = new_capital
 
+        results['strategies'][name] = {
+            'before':   old_capital,
+            'after':    new_capital,
+            'proposed': proposed,
+            'action':   action,
+        }
+
     state['last_rebalance_date'] = datetime.now().strftime('%Y-%m-%d')
     _save(state)
-    return total_val
+    return results
 
 
 def record_trade_result(strategy_name, entry_date, exit_date, return_pct, exit_reason):
