@@ -577,8 +577,8 @@ def run_signal():
     # Sent every run. Absence by 00:10 UTC = bot did not run — investigate.
     rsi_val    = signal_data['rsi']
     sig        = signal_data['signal']
-    if sig == 'FLAT':
-        signal_display = f"NO SIGNAL (RSI={rsi_val:.1f}, entry triggers at <{ENTRY_RSI})"
+    if state['position'] == 'FLAT':
+        signal_display = f"WAITING (RSI={rsi_val:.1f}, entry triggers at <{ENTRY_RSI})"
     elif sig == 'EXIT':
         signal_display = f"EXIT (RSI={rsi_val:.1f} above {EXIT_RSI})"
     else:
