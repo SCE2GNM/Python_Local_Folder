@@ -399,8 +399,13 @@ def update_trailing_stop(executor, state):
                     f"Old stop may be cancelled. Intervene immediately."
                 )
         else:
-            logger.info(f"Price ${current_price:,.2f} at new peak but new_stop "
-                        f"${new_stop:,.2f} ≤ current_stop ${current_stop:,.2f} — no change")
+            # Stop not raised (new_stop would be lower than current) — but peak IS
+            # a new high, so update it. This handles the case where the manually
+            # placed stop is above where the trail formula would put it.
+            state['peak_price_since_entry'] = current_price
+            save_state(state)
+            logger.info(f"Price ${current_price:,.2f} at new peak — peak updated, "
+                        f"stop unchanged (new_stop ${new_stop:,.2f} ≤ current ${current_stop:,.2f})")
     else:
         logger.info(f"Price ${current_price:,.2f} ≤ peak ${peak:,.2f} — "
                     f"stop unchanged at ${current_stop:,.2f}")
