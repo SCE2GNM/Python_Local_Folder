@@ -236,3 +236,30 @@ Monte Carlo stress testing should be run on every strategy before deployment, es
 RSI case study: backtest win rate 93.5% produced median +22.3% annual return. At 70% realistic live win rate, Kelly turns negative — strategy has no positive expectancy at that win rate. This would not have been visible from backtest metrics alone. Monte Carlo revealed the deployment position size should be based on the moderate live scenario ($341), not the backtest scenario ($495).
 
 Now incorporated into STRATEGY_RESEARCH_PIPELINE.md Phase 3 as a required step for n < 100 backtest trades.
+
+---
+
+### SI009 — Bear Market / Short Strategies
+
+| Field | Value |
+|---|---|
+| **ID** | SI009 |
+| **Name** | Bear Market / Short Strategies |
+| **Type** | Trend Following / Momentum |
+| **Source** | Week 7 |
+| **Priority** | MEDIUM |
+| **Target Week** | Weeks 13–18 |
+| **Date Added** | 2026-05-13 |
+
+**Notes:**
+Strategies that profit during sustained crypto downtrends. Requires either shorting (borrowing asset to sell, repurchase cheaper) or derivatives (futures, perpetual swaps).
+
+**Why deferred:** UK FCA retail classification blocks access to Binance futures and perpetuals. Long-only constraint is a fundamental restriction until Professional Client status is obtained or DeFi alternatives are used.
+
+**Two paths to unlock:**
+
+1. **Elective Professional Client application** to FCA/Binance (requires 2 of 3: 10+ trades/quarter for 4 quarters, €500k+ portfolio, or 1+ year professional finance experience). Realistic target: Weeks 18–24 as live trading track record builds.
+
+2. **DeFi perpetuals** (dYdX, GMX, Synthetix) — decentralised, no FCA jurisdiction, no KYC restriction. Proper study required before use (smart contract risk, liquidation mechanics, funding rates).
+
+Curriculum target: Weeks 13–18 (DeFi deep-dive already scheduled).
