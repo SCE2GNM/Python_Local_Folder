@@ -295,3 +295,62 @@ A structured Phase 0 research exercise to validate that ADX is the optimal trend
 **Hypothesis to test:** Donchian Channel Breakout may be a natural complement or partial substitute for ADX — both have similar payoff profiles (30–40% WR, 3–5× R:R) but detect trends differently. ADX measures trend strength; Donchian detects trend start via price breakout. Running both may improve signal frequency without adding correlation.
 
 **Action:** Run full Phase 0 research brief before building any new trend-following strategy. Compare findings directly against ADX 19/9 backtest metrics (Annual +79.7%, Sharpe 1.425, Sortino 1.761, Calmar 2.160).
+
+---
+
+### SI011 — Altcoin Pairs: Higher Volatility, Less Efficient Markets
+
+| Field | Value |
+|---|---|
+| **ID** | SI011 |
+| **Name** | Altcoin Pairs: Higher Volatility, Less Efficient Markets |
+| **Type** | Trend Following / Mean Reversion |
+| **Source** | Week 7 |
+| **Priority** | MEDIUM |
+| **Target Week** | Week 13+ |
+| **Date Added** | 2026-05-14 |
+
+**Notes:**
+Trade less common currency pairs on Binance — assets with greater price swings than BTC/ETH. Examples: SOL, AVAX, MATIC, LINK daily candles. Less institutional coverage = less efficient pricing = potentially larger exploitable edges.
+
+**Hypothesis:** The ADX trend-following and mean reversion strategies may produce stronger signals on higher-volatility altcoins where trends are more pronounced and oversold bounces are more reliable. The same parameter sets optimised for ETH may transfer or may need asset-specific optimisation.
+
+**Pump and dump identification:** Research whether systematic indicators can identify early-stage pump patterns before they become obvious — unusual volume spikes on low-cap pairs, RSI divergence from price, order book imbalance signals.
+
+**Legal caveat:** Pump and dump schemes are potentially illegal to participate in knowingly in many jurisdictions. Requires legal research before any implementation. Do not pursue this sub-direction until legal position is confirmed.
+
+**Risks:**
+- Much lower liquidity on altcoin pairs — position sizing must be adjusted
+- Spreads are wider; stop slippage is more severe
+- Exchange listing/delisting risk (asset may disappear)
+- Manipulation risk is higher on small caps
+
+**Dependency:** Core BTC/ETH strategies must be validated and deployed before expanding to altcoin pairs. Do not begin until Week 13+.
+
+---
+
+### SI012 — Regime-Switching Portfolio: ADX Trend + Bollinger Mean Reversion on Same Asset
+
+| Field | Value |
+|---|---|
+| **ID** | SI012 |
+| **Name** | Regime-Switching Portfolio: ADX Trend + Bollinger Mean Reversion |
+| **Type** | Trend Following / Mean Reversion / Portfolio |
+| **Source** | Week 7 |
+| **Priority** | HIGH |
+| **Target Week** | Week 9–10 |
+| **Date Added** | 2026-05-14 |
+
+**Notes:**
+Run two complementary bots on the same asset (ETH or BTC): momentum bot active when ADX > 20 (trending), mean reversion bot active when ADX < 20 (ranging). Bots are self-selecting — never both active simultaneously. Fills the current portfolio regime gap where both deployed strategies are flat during sideways markets.
+
+**Evidence:** WEEK_7_RESEARCH_BRIEF_FULL.md identifies this as the most actionable gap in the current portfolio. Bollinger Bands mean reversion on BTC daily: ~50% CAGR at 34% market exposure (QuantifiedStrategies 2026). ADX as regime filter has strong multi-source support. Combined approach addresses the finding that BTC Hurst exponent 2021–2024 = 0.52 (borderline trending/random) — neither pure momentum nor pure mean reversion dominates.
+
+**Implementation:**
+- ETH ADX bot (existing) handles trending regime (ADX > 20)
+- New Bollinger bot handles ranging regime (ADX < 20)
+- Shared capital pool with allocation rules: if ADX > 20, allocate to ADX bot; if ADX < 20, allocate to Bollinger bot; if transitioning, no allocation
+
+**References:** SI003 (BTC regime-switching: SMA vs ADX rotation). SI012 is broader — applies to any asset and pairs two different strategy types rather than two variants of the same strategy type.
+
+**Dependency:** Bollinger and MAX strategies must be backtested and validated before implementation.
