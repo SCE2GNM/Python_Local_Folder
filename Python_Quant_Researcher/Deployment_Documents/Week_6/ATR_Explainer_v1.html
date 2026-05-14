@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATR — Average True Range Explainer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+           background: #ECEFF1; color: #212121; margin: 0; padding: 0; font-size: 14px; }
+
+    /* ── Header ── */
+    .header { background: linear-gradient(135deg, #263238 0%, #37474F 60%, #455A64 100%);
+               color: #fff; padding: 28px 32px 24px; }
+    .header h1 { margin: 0 0 6px; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.3px; }
+    .header .sub { font-size: 0.88rem; opacity: 0.82; margin: 0; }
+    .header .sub2 { font-size: 0.80rem; opacity: 0.65; margin: 4px 0 0; }
+    .ref-badge { display: inline-block; background: #546E7A; color: #fff;
+                 font-size: 0.75rem; font-weight: 700; padding: 4px 10px;
+                 border-radius: 12px; letter-spacing: 0.5px; margin-top: 10px; }
+
+    /* ── Layout ── */
+    .wrapper { max-width: 1000px; margin: 0 auto; padding: 24px 20px 48px; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+            padding: 22px 24px; margin-bottom: 20px; }
+    .card h2 { font-size: 1rem; font-weight: 700; color: #263238; margin: 0 0 14px;
+               border-bottom: 2px solid #ECEFF1; padding-bottom: 8px;
+               text-transform: uppercase; letter-spacing: 0.4px; }
+    .card h3 { font-size: 0.86rem; font-weight: 700; color: #37474F; margin: 16px 0 6px;
+               text-transform: uppercase; letter-spacing: 0.3px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    @media(max-width: 700px) { .two-col, .three-col { grid-template-columns: 1fr; } }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    thead th { background: #37474F; color: #fff; padding: 8px 11px; text-align: center;
+               font-weight: 600; white-space: nowrap; }
+    thead th:first-child { text-align: left; }
+    tbody tr:nth-child(even) { background: #F5F5F5; }
+    tbody td { padding: 7px 11px; border-bottom: 1px solid #EEEEEE; text-align: center; }
+    tbody td:first-child { text-align: left; font-weight: 500; }
+    .highlight-row td { background: #E8EAF6 !important; font-weight: 600; color: #283593; }
+    .winner-row td { background: #E8F5E9 !important; font-weight: 600; color: #1B5E20; }
+    .loser-row td { color: #757575; }
+    td.hi { color: #1B5E20; font-weight: 600; }
+    td.max-val { background: #FFF9C4; font-weight: 700; color: #F57F17; }
+
+    /* ── Formula block ── */
+    .formula { background: #F8F9FA; border: 1px solid #DEE2E6; border-radius: 6px;
+               padding: 14px 18px; font-family: 'SF Mono', 'Consolas', monospace;
+               font-size: 0.84rem; line-height: 1.9; color: #212121; margin: 10px 0; }
+    .formula .label { color: #546E7A; font-size: 0.75rem; display: block;
+                      margin-bottom: 4px; font-family: sans-serif; text-transform: uppercase;
+                      letter-spacing: 0.4px; }
+    .formula .eq { color: #1A237E; }
+    .formula .comment { color: #78909C; font-style: italic; }
+
+    /* ── Insight box ── */
+    .insight { background: #F1F8E9; border-left: 4px solid #4CAF50; border-radius: 0 6px 6px 0;
+               padding: 11px 15px; margin: 14px 0 4px; font-size: 0.82rem;
+               color: #333; line-height: 1.6; }
+    .insight strong { color: #2E7D32; }
+
+    /* ── Sub-card (used in section 5) ── */
+    .sub-card { background: #F8F9FA; border: 1px solid #E0E0E0; border-radius: 6px;
+                padding: 14px 16px; }
+    .sub-card h4 { font-size: 0.82rem; font-weight: 700; color: #37474F; margin: 0 0 8px;
+                   text-transform: uppercase; letter-spacing: 0.3px; }
+    .sub-card p { font-size: 0.82rem; color: #444; line-height: 1.6; margin: 4px 0; }
+    .sub-card .example { font-family: monospace; font-size: 0.81rem; background: #fff;
+                         border: 1px solid #E0E0E0; border-radius: 4px; padding: 8px 10px;
+                         margin-top: 8px; color: #1A237E; line-height: 1.7; }
+
+    /* ── Comparison table (section 6) ── */
+    .compare-table thead th { background: #455A64; }
+    .compare-table td:first-child { font-weight: 600; color: #263238; width: 30%; }
+
+    /* ── Body text ── */
+    .body-text { font-size: 0.84rem; line-height: 1.7; color: #333; }
+    .body-text p { margin: 0 0 8px; }
+    .note { font-size: 0.77rem; color: #888; margin-top: 8px; }
+
+    /* ── Wilder creator callout ── */
+    .creator-tag { display: inline-block; background: #ECEFF1; border: 1px solid #CFD8DC;
+                   border-radius: 4px; padding: 3px 9px; font-size: 0.76rem; color: #546E7A;
+                   font-weight: 600; margin-left: 6px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <h1>ATR — Average True Range <span class="creator-tag">Wilder 1978</span></h1>
+  <p class="sub">Indicator Reference · Strategy Type: Volatility Measurement · Not a signal — a ruler</p>
+  <p class="sub2">Strategy Type: Reference / Educational &nbsp;·&nbsp; Timeframe: Any &nbsp;·&nbsp; Used in: ETH ADX trailing stop research</p>
+  <div><span class="ref-badge">📐 Indicator Explainer</span></div>
+</div>
+
+<div class="wrapper">
+
+<!-- ── SECTION 1: WHAT ATR MEASURES ── -->
+<div class="card">
+  <h2>1 — What ATR Measures</h2>
+  <div class="body-text">
+    <p>Average True Range (ATR) is a <strong>volatility indicator</strong>. It measures how much
+       an asset's price moves on a typical day — in dollar terms. A higher ATR means larger
+       daily price swings; a lower ATR means quieter, smaller moves.</p>
+    <p>ATR does <strong>not</strong> tell you which direction the market is moving. It has no
+       bullish or bearish signal. It is purely a measure of <em>how much</em> price is moving,
+       not <em>where</em> it is going.</p>
+    <p>ATR was created by J. Welles Wilder Jr. and published in his 1978 book
+       <em>New Concepts in Technical Trading Systems</em> — the same book that introduced
+       the ADX, RSI, and Parabolic SAR. All four indicators share the same underlying
+       building block: the <strong>True Range</strong>.</p>
+    <p>Wilder created ATR to solve a specific problem: simple High–Low range ignores
+       overnight gaps. If a stock closes at $100, gaps up overnight to $115, then trades
+       between $115–$120, the simple range is only $5 — but the actual price movement
+       experienced by a trader was $20. True Range captures this.</p>
+  </div>
+  <div class="insight">
+    <strong>Key intuition:</strong> ATR is a volatility ruler. It tells you
+    <em>how much</em> ETH is moving per day in dollar terms, not where it's going.
+    A high ATR means wide swings — stops need to be wider. A low ATR means tight
+    consolidation — tighter stops are appropriate.
+  </div>
+</div>
+
+<!-- ── SECTION 2: STEP-BY-STEP CALCULATION ── -->
+<div class="card">
+  <h2>2 — Step-by-Step Calculation</h2>
+
+  <h3>Step 1 — True Range (TR)</h3>
+  <div class="body-text">
+    <p>True Range is the largest of three possible ranges for each bar. The three candidates
+       account for intraday movement, gaps up from prior close, and gaps down from prior close:</p>
+  </div>
+
+  <div class="formula">
+    <span class="label">True Range = max of three values:</span>
+    <span class="eq">TR = max(</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="eq">High − Low,</span> <span class="comment">← standard intraday range</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="eq">|High − Previous Close|,</span> <span class="comment">← gap up overnight</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="eq">|Low  − Previous Close|</span> <span class="comment">← gap down overnight</span><br>
+    <span class="eq">)</span>
+  </div>
+
+  <div class="insight">
+    <strong>Why three candidates?</strong> On a normal day with no gap, H−L is largest.
+    But on a day that gaps up above yesterday's close, the full true range must include
+    that gap — the trader who held overnight experienced that movement.
+    The absolute values ensure both gap-up and gap-down scenarios produce positive ranges.
+  </div>
+
+  <!-- ── TRUE RANGE VISUAL SCENARIOS ── -->
+  <div style="margin: 18px 0 6px;">
+    <div style="font-size:0.78rem; font-weight:700; color:#546E7A; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:10px;">
+      The Three TR Scenarios — Visual Guide
+    </div>
+    <div class="three-col">
+
+      <!-- SCENARIO A: Normal Day -->
+      <div style="background:#F8F9FA; border:1px solid #E0E0E0; border-radius:6px; padding:12px 10px; text-align:center;">
+        <div style="font-size:0.76rem; font-weight:700; color:#263238; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.3px;">A — Normal Day</div>
+        <div style="font-size:0.71rem; color:#78909C; margin-bottom:8px;">No overnight gap · H−L wins</div>
+        <svg viewBox="0 0 175 215" style="width:100%; max-width:175px; height:auto; display:block; margin:0 auto;">
+          <rect x="0" y="25" width="90" height="145" fill="#E8F5E9" opacity="0.45" rx="2"/>
+          <line x1="55" y1="25" x2="55" y2="60" stroke="#37474F" stroke-width="2"/>
+          <line x1="55" y1="95" x2="55" y2="170" stroke="#37474F" stroke-width="2"/>
+          <rect x="40" y="60" width="30" height="35" fill="#EF5350" rx="1"/>
+          <line x1="5" y1="115" x2="82" y2="115" stroke="#FF6F00" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="4" y="124" font-size="8" fill="#E65100" font-weight="600" font-family="sans-serif">PrevC</text>
+          <text x="55" y="15" text-anchor="middle" font-size="10" fill="#1A237E" font-weight="700" font-family="sans-serif">H</text>
+          <text x="55" y="185" text-anchor="middle" font-size="10" fill="#1A237E" font-weight="700" font-family="sans-serif">L</text>
+          <!-- Winner bracket: H-L (y=25 to y=170) -->
+          <line x1="118" y1="25" x2="118" y2="170" stroke="#2E7D32" stroke-width="2.5"/>
+          <line x1="113" y1="25" x2="118" y2="25" stroke="#2E7D32" stroke-width="2.5"/>
+          <line x1="113" y1="170" x2="118" y2="170" stroke="#2E7D32" stroke-width="2.5"/>
+          <text x="122" y="90" font-size="9" fill="#2E7D32" font-weight="700" font-family="sans-serif">H−L</text>
+          <text x="122" y="103" font-size="8" fill="#2E7D32" font-weight="600" font-family="sans-serif">✓ wins</text>
+          <!-- Grey: |H-PrevC| (y=25 to y=115) -->
+          <line x1="102" y1="25" x2="102" y2="115" stroke="#90A4AE" stroke-width="1.5"/>
+          <line x1="98" y1="25" x2="102" y2="25" stroke="#90A4AE" stroke-width="1.5"/>
+          <line x1="98" y1="115" x2="102" y2="115" stroke="#90A4AE" stroke-width="1.5"/>
+          <!-- Grey: |L-PrevC| (y=115 to y=170) -->
+          <line x1="107" y1="115" x2="107" y2="170" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <line x1="103" y1="115" x2="107" y2="115" stroke="#B0BEC5" stroke-width="1.5"/>
+          <line x1="103" y1="170" x2="107" y2="170" stroke="#B0BEC5" stroke-width="1.5"/>
+        </svg>
+        <div style="font-size:0.76rem; font-weight:700; color:#2E7D32; margin-top:6px; font-family:monospace;">TR = H − L</div>
+      </div>
+
+      <!-- SCENARIO B: Gap Up -->
+      <div style="background:#F8F9FA; border:1px solid #E0E0E0; border-radius:6px; padding:12px 10px; text-align:center;">
+        <div style="font-size:0.76rem; font-weight:700; color:#263238; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.3px;">B — Gap Up</div>
+        <div style="font-size:0.71rem; color:#78909C; margin-bottom:8px;">Opened above PrevClose · |H−PrevC| wins</div>
+        <svg viewBox="0 0 175 215" style="width:100%; max-width:175px; height:auto; display:block; margin:0 auto;">
+          <rect x="0" y="25" width="90" height="155" fill="#E8F5E9" opacity="0.45" rx="2"/>
+          <!-- Gap zone between Low and PrevClose -->
+          <rect x="5" y="100" width="73" height="80" fill="#FFF8E1" opacity="0.9"/>
+          <text x="12" y="148" font-size="8" fill="#F57F17" font-style="italic" font-family="sans-serif">gap ↕</text>
+          <line x1="55" y1="25" x2="55" y2="55" stroke="#37474F" stroke-width="2"/>
+          <line x1="55" y1="90" x2="55" y2="100" stroke="#37474F" stroke-width="2"/>
+          <rect x="40" y="55" width="30" height="35" fill="#4CAF50" rx="1"/>
+          <!-- PrevClose below the low -->
+          <line x1="5" y1="180" x2="82" y2="180" stroke="#FF6F00" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="4" y="189" font-size="8" fill="#E65100" font-weight="600" font-family="sans-serif">PrevC</text>
+          <text x="55" y="15" text-anchor="middle" font-size="10" fill="#1A237E" font-weight="700" font-family="sans-serif">H</text>
+          <text x="55" y="112" text-anchor="middle" font-size="10" fill="#1A237E" font-weight="700" font-family="sans-serif">L</text>
+          <!-- Winner bracket: |H-PrevC| (y=25 to y=180) -->
+          <line x1="120" y1="25" x2="120" y2="180" stroke="#2E7D32" stroke-width="2.5"/>
+          <line x1="115" y1="25" x2="120" y2="25" stroke="#2E7D32" stroke-width="2.5"/>
+          <line x1="115" y1="180" x2="120" y2="180" stroke="#2E7D32" stroke-width="2.5"/>
+          <text x="124" y="95" font-size="8.5" fill="#2E7D32" font-weight="700" font-family="sans-serif">|H−PrevC|</text>
+          <text x="124" y="108" font-size="8" fill="#2E7D32" font-weight="600" font-family="sans-serif">✓ wins</text>
+          <!-- Grey: H-L (y=25 to y=100) -->
+          <line x1="104" y1="25" x2="104" y2="100" stroke="#90A4AE" stroke-width="1.5"/>
+          <line x1="99" y1="25" x2="104" y2="25" stroke="#90A4AE" stroke-width="1.5"/>
+          <line x1="99" y1="100" x2="104" y2="100" stroke="#90A4AE" stroke-width="1.5"/>
+          <!-- Grey: |L-PrevC| (y=100 to y=180) -->
+          <line x1="110" y1="100" x2="110" y2="180" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <line x1="105" y1="100" x2="110" y2="100" stroke="#B0BEC5" stroke-width="1.5"/>
+          <line x1="105" y1="180" x2="110" y2="180" stroke="#B0BEC5" stroke-width="1.5"/>
+        </svg>
+        <div style="font-size:0.76rem; font-weight:700; color:#2E7D32; margin-top:6px; font-family:monospace;">TR = |H − PrevClose|</div>
+      </div>
+
+      <!-- SCENARIO C: Gap Down -->
+      <div style="background:#F8F9FA; border:1px solid #E0E0E0; border-radius:6px; padding:12px 10px; text-align:center;">
+        <div style="font-size:0.76rem; font-weight:700; color:#263238; margin-bottom:2px; text-transform:uppercase; letter-spacing:0.3px;">C — Gap Down</div>
+        <div style="font-size:0.71rem; color:#78909C; margin-bottom:8px;">Opened below PrevClose · |L−PrevC| wins</div>
+        <svg viewBox="0 0 175 215" style="width:100%; max-width:175px; height:auto; display:block; margin:0 auto;">
+          <rect x="0" y="20" width="90" height="165" fill="#E8F5E9" opacity="0.45" rx="2"/>
+          <!-- Gap zone between PrevClose and High -->
+          <rect x="5" y="20" width="73" height="45" fill="#FFF8E1" opacity="0.9"/>
+          <text x="12" y="39" font-size="8" fill="#F57F17" font-style="italic" font-family="sans-serif">gap ↕</text>
+          <!-- PrevClose above the high -->
+          <line x1="5" y1="20" x2="82" y2="20" stroke="#FF6F00" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <text x="4" y="14" font-size="8" fill="#E65100" font-weight="600" font-family="sans-serif">PrevC</text>
+          <line x1="55" y1="65" x2="55" y2="95" stroke="#37474F" stroke-width="2"/>
+          <line x1="55" y1="140" x2="55" y2="185" stroke="#37474F" stroke-width="2"/>
+          <rect x="40" y="95" width="30" height="45" fill="#EF5350" rx="1"/>
+          <text x="55" y="57" text-anchor="middle" font-size="10" fill="#1A237E" font-weight="700" font-family="sans-serif">H</text>
+          <text x="55" y="197" text-anchor="middle" font-size="10" fill="#1A237E" font-weight="700" font-family="sans-serif">L</text>
+          <!-- Winner bracket: |L-PrevC| (y=20 to y=185) -->
+          <line x1="120" y1="20" x2="120" y2="185" stroke="#2E7D32" stroke-width="2.5"/>
+          <line x1="115" y1="20" x2="120" y2="20" stroke="#2E7D32" stroke-width="2.5"/>
+          <line x1="115" y1="185" x2="120" y2="185" stroke="#2E7D32" stroke-width="2.5"/>
+          <text x="124" y="97" font-size="8.5" fill="#2E7D32" font-weight="700" font-family="sans-serif">|L−PrevC|</text>
+          <text x="124" y="110" font-size="8" fill="#2E7D32" font-weight="600" font-family="sans-serif">✓ wins</text>
+          <!-- Grey: H-L (y=65 to y=185) -->
+          <line x1="104" y1="65" x2="104" y2="185" stroke="#90A4AE" stroke-width="1.5"/>
+          <line x1="99" y1="65" x2="104" y2="65" stroke="#90A4AE" stroke-width="1.5"/>
+          <line x1="99" y1="185" x2="104" y2="185" stroke="#90A4AE" stroke-width="1.5"/>
+          <!-- Grey: |H-PrevC| (y=20 to y=65) -->
+          <line x1="110" y1="20" x2="110" y2="65" stroke="#B0BEC5" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <line x1="105" y1="20" x2="110" y2="20" stroke="#B0BEC5" stroke-width="1.5"/>
+          <line x1="105" y1="65" x2="110" y2="65" stroke="#B0BEC5" stroke-width="1.5"/>
+        </svg>
+        <div style="font-size:0.76rem; font-weight:700; color:#2E7D32; margin-top:6px; font-family:monospace;">TR = |L − PrevClose|</div>
+      </div>
+
+    </div>
+  </div>
+
+  <h3>Step 2 — Wilder's Smoothing (ATR)</h3>
+  <div class="body-text">
+    <p>ATR is the smoothed average of True Range using Wilder's own exponential smoothing method.
+       This is the same smoothing Wilder used for RSI and ADX — it gives more weight to recent
+       values but never drops older values completely.</p>
+  </div>
+
+  <div class="formula">
+    <span class="label">First ATR (after N bars):</span>
+    <span class="eq">ATR₁ = (TR₁ + TR₂ + ... + TRₙ) / N</span>
+    <span class="comment">&nbsp;← simple average of first N true ranges</span>
+    <br><br>
+    <span class="label">All subsequent bars:</span>
+    <span class="eq">ATRᵢ = ( (N − 1) × ATRᵢ₋₁  +  TRᵢ ) / N</span>
+    <span class="comment">&nbsp;← Wilder's smoothing (equivalent to EWM with α = 1/N)</span>
+  </div>
+
+  <div class="body-text" style="margin-top:10px">
+    <p>Common period: <strong>N = 14</strong> (Wilder's original recommendation, matches RSI period).
+       Our ETH ADX bot research used N = 9 (same as ADX window) for the ATR trailing stop tests.</p>
+  </div>
+
+  <div class="insight">
+    <strong>Wilder's smoothing vs simple moving average:</strong> A 14-period SMA drops
+    the oldest bar completely each day. Wilder's smoothing never fully forgets old data —
+    it decays exponentially. This produces a smoother ATR that is less reactive to a single
+    extreme day, which is desirable for a volatility measure used in stop placement.
+  </div>
+</div>
+
+<!-- ── SECTION 3: WORKED EXAMPLE ── -->
+<div class="card">
+  <h2>3 — Worked Example (ETH, 3-Day ATR)</h2>
+  <div class="body-text">
+    <p>Using 3 days of realistic ETH price data. ATR(3) — the 3-day ATR — uses the simple
+       average of the first 3 True Ranges as the initial value.</p>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Day</th>
+        <th>Prev Close</th>
+        <th>High</th>
+        <th>Low</th>
+        <th>Close</th>
+        <th>H − L</th>
+        <th>|H − PrevC|</th>
+        <th>|L − PrevC|</th>
+        <th>TR = max</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Reference</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>$2,380</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>Day 1</strong></td>
+        <td>$2,380</td>
+        <td>$2,450</td>
+        <td>$2,310</td>
+        <td>$2,400</td>
+        <td class="max-val">$140</td>
+        <td>$70</td>
+        <td>$70</td>
+        <td class="hi">$140</td>
+      </tr>
+      <tr>
+        <td><strong>Day 2</strong></td>
+        <td>$2,400</td>
+        <td>$2,440</td>
+        <td>$2,370</td>
+        <td>$2,420</td>
+        <td class="max-val">$70</td>
+        <td>$40</td>
+        <td>$30</td>
+        <td class="hi">$70</td>
+      </tr>
+      <tr>
+        <td><strong>Day 3</strong></td>
+        <td>$2,420</td>
+        <td>$2,500</td>
+        <td>$2,400</td>
+        <td>$2,478</td>
+        <td class="max-val">$100</td>
+        <td>$80</td>
+        <td>$20</td>
+        <td class="hi">$100</td>
+      </tr>
+      <tr class="highlight-row">
+        <td colspan="8" style="text-align:right; font-weight:600;">
+          ATR(3) = ($140 + $70 + $100) / 3 =
+        </td>
+        <td><strong>$103.33</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="note">Yellow cells = largest of the three TR candidates (the winning value). H−L
+     wins on all three days — no overnight gaps in this example. If a gap occurred, one of the
+     other columns would be yellow instead.</p>
+
+  <div class="insight">
+    <strong>Reading the result:</strong> ATR = $103.33 means ETH is moving roughly $103 per day
+    on average over the past 3 days. At an ETH price of ~$2,450, that is approximately 4.2%
+    daily volatility. A stop placed 2× ATR below entry ($206.67) sits far enough to avoid
+    being hit by normal daily noise.
+  </div>
+</div>
+
+<!-- ── SECTION 4: WHAT ATR TELLS YOU ── -->
+<div class="card">
+  <h2>4 — What ATR Tells You</h2>
+  <div class="two-col">
+    <div class="body-text">
+      <p><strong>High ATR</strong> — price is making large moves. This typically occurs during:</p>
+      <ul style="font-size:0.83rem; line-height:1.8; padding-left:18px; margin:4px 0 12px;">
+        <li>Bear market crashes (large down moves)</li>
+        <li>Strong trend acceleration (large up moves)</li>
+        <li>News events and liquidation cascades</li>
+      </ul>
+      <p><strong>Low ATR</strong> — price is moving in a tight range. Typical in:</p>
+      <ul style="font-size:0.83rem; line-height:1.8; padding-left:18px; margin:4px 0 12px;">
+        <li>Sideways consolidation before a breakout</li>
+        <li>Low-volume weekend or holiday periods</li>
+        <li>Post-crash mean reversion to range</li>
+      </ul>
+    </div>
+    <div>
+      <div class="sub-card" style="margin-bottom:12px;">
+        <h4>ATR vs percentage volatility</h4>
+        <p>ATR is in <strong>dollar terms</strong> — useful for position sizing and stop
+           placement in absolute dollar amounts. Percentage-based volatility (e.g. daily
+           return standard deviation × 100) is relative. Both are valid; ATR is preferred
+           in position sizing because real risk is dollar-denominated, not percentage-denominated.</p>
+      </div>
+      <div class="sub-card">
+        <h4>ATR has no directional signal</h4>
+        <p>A rising ATR during a downtrend and a rising ATR during an uptrend look identical.
+           Always pair ATR with a directional indicator (e.g. ADX for trend strength,
+           RSI for mean reversion level) when making entry decisions.</p>
+      </div>
+    </div>
+  </div>
+  <div class="insight">
+    <strong>Key intuition:</strong> Think of ATR as the market's heartbeat — it tells you
+    how fast and hard the heart is beating, not whether the patient is healthy or sick.
+    Wide ATR = racing heartbeat. Narrow ATR = resting. Neither is inherently good or bad
+    — it depends on your strategy and timeframe.
+  </div>
+</div>
+
+<!-- ── SECTION 5: HOW ATR IS USED IN TRADING ── -->
+<div class="card">
+  <h2>5 — How ATR Is Used in Trading</h2>
+
+  <div class="three-col">
+
+    <div class="sub-card">
+      <h4>📏 Position Sizing</h4>
+      <p>Set a fixed dollar risk per trade, then divide by ATR to get position size.
+         This automatically reduces size during volatile periods and increases it during
+         calm periods — keeping risk per trade constant.</p>
+      <div class="example">
+        Risk per trade: $100<br>
+        Stop distance: 2× ATR<br>
+        &nbsp;&nbsp;&nbsp;= 2 × $103.33 = $206.67<br>
+        Position size:<br>
+        &nbsp;&nbsp;&nbsp;= $100 / $206.67<br>
+        &nbsp;&nbsp;&nbsp;= <strong>0.484 ETH</strong><br>
+        &nbsp;&nbsp;&nbsp;≈ $1,198 notional
+      </div>
+    </div>
+
+    <div class="sub-card">
+      <h4>🛑 Stop Placement</h4>
+      <p>Place the stop N × ATR below entry. This adapts to current market conditions —
+         wider stop when volatile, tighter stop when calm. Common multipliers: 1.5×, 2×,
+         2.5×. The stop moves up with peak price (trailing) using the same logic.</p>
+      <div class="example">
+        Entry: $2,478<br>
+        ATR: $103.33<br>
+        Stop (2× ATR):<br>
+        &nbsp;&nbsp;&nbsp;= $2,478 − (2 × $103.33)<br>
+        &nbsp;&nbsp;&nbsp;= $2,478 − $206.67<br>
+        &nbsp;&nbsp;&nbsp;= <strong>$2,271.33</strong><br>
+        &nbsp;&nbsp;&nbsp;= 8.3% below entry
+      </div>
+    </div>
+
+    <div class="sub-card">
+      <h4>🔍 Regime Filter</h4>
+      <p>Compare current ATR to its rolling average. A rising ATR often precedes or
+         accompanies trend moves (expansion phase). A falling or low ATR signals
+         consolidation. Some strategies only enter when ATR is above its N-day average,
+         filtering out low-volatility chop.</p>
+      <div class="example">
+        ATR today: $103<br>
+        ATR 20-day avg: $82<br>
+        Ratio: 1.26×<br>
+        → ATR expanding<br>
+        → Trend environment<br>
+        → <strong>Trend entry valid</strong>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="insight" style="margin-top:16px;">
+    <strong>Position sizing with ATR is the correct approach when risk is dollar-denominated.</strong>
+    A fixed percentage stop (e.g. 8%) gives a different dollar risk depending on how big your
+    position is, not how volatile the market is. ATR-based sizing keeps your actual dollar risk
+    constant regardless of entry price or current volatility — critical for portfolio-level
+    risk management as positions scale up.
+  </div>
+</div>
+
+<!-- ── SECTION 6: HOW ATR RELATES TO ADX ── -->
+<div class="card">
+  <h2>6 — How ATR Relates to ADX</h2>
+  <div class="body-text" style="margin-bottom:14px;">
+    <p>Both ATR and ADX were created by Wilder in 1978. Both are built on True Range as the
+       foundational calculation. The divergence is in what they do with it:</p>
+  </div>
+
+  <table class="compare-table">
+    <thead>
+      <tr>
+        <th>Property</th>
+        <th>ATR</th>
+        <th>ADX</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Creator / year</td>
+        <td>J. W. Wilder, 1978</td>
+        <td>J. W. Wilder, 1978</td>
+      </tr>
+      <tr>
+        <td>Foundation</td>
+        <td>True Range (TR)</td>
+        <td>True Range (TR) + Directional Movement</td>
+      </tr>
+      <tr>
+        <td>What TR is used for</td>
+        <td>Smoothed directly → volatility measure</td>
+        <td>Normalises DI+ and DI− → trend strength</td>
+      </tr>
+      <tr>
+        <td>Output</td>
+        <td>Dollar value (e.g. $103)</td>
+        <td>0–100 score (e.g. ADX = 25)</td>
+      </tr>
+      <tr>
+        <td>Answers the question</td>
+        <td>How much is price moving?</td>
+        <td>Is there a trend? How strong?</td>
+      </tr>
+      <tr>
+        <td>Directional?</td>
+        <td>No — volatility only</td>
+        <td>No — strength only (DI+/DI− gives direction)</td>
+      </tr>
+      <tr>
+        <td>Smoothing method</td>
+        <td>Wilder's smoothing (α = 1/N)</td>
+        <td>Wilder's smoothing (α = 1/N)</td>
+      </tr>
+      <tr>
+        <td>Typical period</td>
+        <td>14 (Wilder) or 9 (our bot)</td>
+        <td>14 (Wilder) or 9 (our bot)</td>
+      </tr>
+      <tr class="highlight-row">
+        <td>Used together?</td>
+        <td colspan="2" style="text-align:left; font-weight:400;">
+          Yes — ATR for stop distance / position sizing; ADX for entry signal.
+          Our ETH ADX bot tested ATR trailing stop (2.5× ATR) combined with ADX 19/9 entry signal.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="insight">
+    <strong>Memory aid:</strong> ADX answers "IS there a trend?" — it measures directional
+    conviction. ATR answers "HOW BIG are the moves?" — it measures move magnitude.
+    A market can have high ADX (strong trend) with low ATR (small steady moves) or
+    low ADX (no trend) with high ATR (large chaotic swings).
+    Use both together: ADX for <em>when</em> to enter, ATR for <em>how much</em> to risk.
+  </div>
+</div>
+
+<!-- ── SECTION 7: OUR BOT'S CONTEXT ── -->
+<div class="card">
+  <h2>7 — Our Bot's Context — ATR Trail vs Percentage Trail</h2>
+  <div class="body-text" style="margin-bottom:14px;">
+    <p>During Week 6 Stage 1 optimisation, we tested two trailing stop approaches on the
+       ETH ADX 19/9 strategy across a grid search (728+ combinations). Both were compared
+       against the fixed 5% stop baseline (Calmar 2.013) from the live bot at that point.</p>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Stop Method</th>
+        <th>Parameters</th>
+        <th>Annual Ret</th>
+        <th>MtM MaxDD</th>
+        <th>Calmar</th>
+        <th>Sortino</th>
+        <th>Trades</th>
+        <th>Stop Exit%</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="winner-row">
+        <td>Pct Trailing ✅ Deployed</td>
+        <td>ADX 19/9, trail 8%</td>
+        <td>+79.7%</td>
+        <td>−36.9%</td>
+        <td>2.160</td>
+        <td>1.761</td>
+        <td>159</td>
+        <td>61.0%</td>
+      </tr>
+      <tr class="loser-row">
+        <td>ATR Trailing</td>
+        <td>ADX 19/9, ATR 9 / 2.5×</td>
+        <td>+73.4%</td>
+        <td>−27.8%</td>
+        <td>1.710</td>
+        <td>1.423</td>
+        <td>~140</td>
+        <td>~55%</td>
+      </tr>
+      <tr>
+        <td>Fixed Stop (baseline)</td>
+        <td>ADX 20/10, fixed 5%</td>
+        <td>+67.4%</td>
+        <td>−31.6%</td>
+        <td>2.013</td>
+        <td>1.245</td>
+        <td>108</td>
+        <td>100%</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="note">ATR trail metrics are approximations from Stage 1b results. Pct trail metrics are Stage 5 authoritative (2026-05-13 run). Fixed stop baseline from Week 5 confirmed methodology.</p>
+
+  <div class="body-text" style="margin-top:14px;">
+    <h3>Why Percentage Trail Won on ETH Daily Candles</h3>
+    <p><strong>ATR advantage:</strong> Adaptive to volatility changes — stop widens automatically
+       in volatile periods and tightens in calm periods. Theoretically superior for assets with
+       regime-switching volatility. Also produced a lower MtM MaxDD (−27.8% vs −36.9%), meaning
+       smaller peak-to-trough drawdowns during the backtest.</p>
+    <p><strong>Why pct trail won overall:</strong> On ETH daily candles, ATR variability introduced
+       stop placement noise that reduced captured trend gains. ETH's ATR fluctuates significantly
+       day to day — a 2.5× ATR stop moved inconsistently, sometimes exiting positions at natural
+       volatility spikes before the trend completed. The fixed 8% percentage stop provided a more
+       stable, predictable stop distance that allowed trends to develop fully. The result: +6.3pp
+       more annual return from riding more of each trend, at the cost of accepting somewhat larger
+       drawdowns (+9.1pp deeper MaxDD).</p>
+    <p><strong>When ATR would be preferred:</strong> On shorter timeframes (hourly, 4H) where
+       volatility clustering is more pronounced and an adaptive stop provides genuine protection
+       against intraday spikes. Also appropriate for multi-asset portfolios where normalising stop
+       distance across assets with different volatility profiles is required.</p>
+  </div>
+
+  <div class="insight">
+    <strong>Decision:</strong> Percentage trailing stop (8%) deployed in the live ETH ADX bot.
+    ATR trailing stop remains a valid alternative and should be revisited if the strategy is
+    adapted to shorter timeframes or applied to assets with more extreme volatility differences
+    across regimes. Both methods outperform the fixed 5% stop on all risk-adjusted metrics.
+  </div>
+</div>
+
+</div><!-- /wrapper -->
+</body>
+</html>
