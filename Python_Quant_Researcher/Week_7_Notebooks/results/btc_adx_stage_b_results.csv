@@ -1,0 +1,96 @@
+BTC ADX 19/14 Fixed 3% Stop — Stage B Results
+Generated: 2026-05-14
+Decision: NO-GO (two hard failures)
+Candidate: ADX threshold=19  period=14  stop=3% fixed
+Methodology: daily MtM equity curve Sortino  bar-by-bar stop vs daily LOW  0.15% round-trip costs
+
+SECTION: FULL-PERIOD METRICS (2018-01-01 to 2026-05-14  8.4 yrs)
+metric,value
+annual_return_pct,42.1
+sortino,1.139
+calmar,1.003
+max_dd_trade_pct,-42.0
+max_dd_mtm_pct,-48.4
+n_trades,103
+win_rate_pct,27.0
+profitable_years,5 of 9 (56%)
+
+SECTION: YEAR-BY-YEAR RETURNS (exit-year attribution)
+year,n_trades,annual_return_pct,win_rate_pct,avg_win_pct,avg_loss_pct,max_dd_trade_pct,max_dd_mtm_pct,btc_bh_pct,profitable
+2018,11,-0.6,27,7.8,-2.8,-12.5,-19.3,-72.6,N
+2019,15,101.4,47,17.2,-2.8,-12.8,-31.4,87.2,Y
+2020,10,27.7,40,11.1,-2.7,-12.0,-17.5,302.8,Y
+2021,12,466.6,33,77.1,-3.2,-20.1,-35.7,57.6,Y
+2022,17,-42.0,0,0.0,-3.2,-40.1,-46.0,-65.3,N
+2023,9,111.2,44,25.0,-1.8,-6.2,-13.9,154.2,Y
+2024,14,33.2,29,16.8,-2.9,-18.6,-30.1,111.5,Y
+2025,11,-11.6,18,5.8,-2.6,-18.3,-24.0,-7.3,N
+2026 (partial),4,-9.8,0,0.0,-2.5,-6.9,-14.9,-8.0,N
+
+SECTION: HALF-SPLIT PRE/POST-2022
+period,n_trades,years,annual_return_pct,win_rate_pct,avg_win_pct,avg_loss_pct,sortino,calmar
+Pre-2022 (2018-2021),48,4.0,95.1,38,27.6,-2.9,1.800,4.738
+Post-2022 (2022-now),55,4.4,6.2,18,17.9,-2.8,0.349,0.156
+go_threshold_pct,15.0
+post_2022_vs_threshold,FAIL (6.2% < 15.0%)
+
+SECTION: REGIME ANALYSIS (signal frequency + trade quality by year)
+year,signal_days,signal_pct,avg_adx_when_on,n_entries,win_rate_pct,avg_net_return_pct,period
+2018,78,21.4,28.9,11,27,0.1,pre-2022
+2019,172,47.1,37.1,15,47,6.6,pre-2022
+2020,215,58.7,37.7,11,45,21.4,pre-2022
+2021,176,48.2,32.3,11,27,6.9,pre-2022
+2022,60,16.4,25.1,17,0,-3.2,post-2022
+2023,225,61.6,40.4,9,44,10.1,post-2022
+2024,158,43.2,33.1,14,29,2.7,post-2022
+2025,78,21.4,27.2,11,18,-1.0,post-2022
+2026,58,43.3,26.7,4,0,-2.5,post-2022
+pre_2022_avg_signal_pct,43.9
+post_2022_avg_signal_pct,37.2
+pre_2022_avg_adx,34.0
+post_2022_avg_adx,30.5
+pre_2022_avg_win_rate_pct,37
+post_2022_avg_win_rate_pct,18
+pre_2022_avg_net_return_pct,8.7
+post_2022_avg_net_return_pct,1.2
+structural_diagnosis,STRUCTURAL + PARAMETER SENSITIVITY
+
+SECTION: STOP% STABILITY SWEEP
+stop_pct,n_trades,annual_return_pct,sortino,calmar,max_dd_trade_pct,composite,passes_threshold
+2.0,130,38.8,1.102,1.102,-35.3,0.678,N
+2.5,115,41.7,1.148,1.125,-37.1,0.903,Y
+3.0,103,42.1,1.139,1.003,-42.0,0.800,Y (candidate)
+3.5,97,42.5,1.155,0.962,-44.2,0.813,Y
+4.0,93,41.1,1.121,0.939,-43.8,0.671,N
+4.5,92,39.5,1.073,0.838,-47.1,0.404,N
+5.0,90,38.5,1.046,0.785,-49.1,0.249,N
+5.5,89,36.7,0.998,0.718,-51.1,0.000,N
+6.0,86,38.3,1.023,0.779,-49.2,0.186,N
+7.0,82,38.7,1.030,0.790,-49.0,0.230,N
+8.0,81,38.9,1.033,0.781,-49.8,0.230,N
+stability_passing,3 of 11 (27%)
+stability_classification,FRAGILE
+plateau_peak_stop_pct,3.5 (interior)
+cliff_edge_check,PASS (peak not at boundary)
+
+SECTION: WALK-FORWARD VALIDATION (expanding train anchored 2018)
+window,n_trades,annual_return_pct,win_rate_pct,max_dd_trade_pct,max_dd_mtm_pct,pass
+2022,17,-42.0,0,-40.1,-46.0,FAIL
+2023,9,111.2,44,-6.2,-13.9,PASS
+2024,14,33.2,29,-18.6,-30.1,PASS
+windows_passing,2 of 3
+walk_forward_verdict,CONDITIONAL (2022 bear-year failure expected for long-only strategy)
+btc_bh_2022_pct,-65.3
+
+SECTION: GO/NO-GO DECISION
+check,result,detail
+N trades >= 30,PASS,103 trades
+Sortino >= 0.8,PASS,1.139
+Calmar >= 1.0,PASS,1.003
+Walk-forward >= 2/3,PASS,2/3 windows
+Stability STABLE or MARGINAL,FAIL,FRAGILE (27%)
+Post-2022 annual >= 15%/yr,FAIL (CRITICAL),6.2%/yr vs 15.0% threshold
+overall_decision,NO-GO
+stage_b_completed,2026-05-14
+monte_carlo_required,NO (Stage B decisive)
+next_action,BTC SMA 120/25% deployment preparation

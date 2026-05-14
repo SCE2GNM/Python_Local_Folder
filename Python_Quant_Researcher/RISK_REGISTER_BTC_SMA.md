@@ -1,10 +1,21 @@
 # Strategy Risk Register — BTC SMA Trailing Stop
 
+> **BTC ADX 19/14 FORMALLY EVALUATED AND REJECTED — Week 7 (2026-05-14)**
+> BTC ADX 19/14 was run through a full Stage A + Stage B validation pipeline.
+> **NO-GO: two hard failures** — post-2022 annual return +6.2%/yr (threshold ≥15%/yr)
+> and FRAGILE stability (27% of stop values pass composite threshold, vs 40% minimum).
+> Regime analysis confirmed both structural deterioration (BTC spending less time in
+> strong trends post-2022) and parameter sensitivity (win rate collapsed 37%→18%
+> post-2022; 3% fixed stop too tight for ETF-era BTC volatility).
+> Monte Carlo not required — Stage B is decisive.
+> **BTC SMA 120/25% remains the sole primary BTC strategy candidate.
+> BTC ADX 19/14 is not a fallback option.**
+
 **Strategy:** BTC-USD SMA Crossover with Percentage Trailing Stop
 **Asset / Exchange:** BTCUSDT / Binance Spot (proposed)
-**Version:** v1.1 — Status revised to CONDITIONAL GO
+**Version:** v1.2 — BTC ADX NO-GO note added
 **Date created:** 2026-05-02
-**Last updated:** 2026-05-04
+**Last updated:** 2026-05-14
 **Updated by:** Greg + Claude
 
 ---
