@@ -263,3 +263,35 @@ Strategies that profit during sustained crypto downtrends. Requires either short
 2. **DeFi perpetuals** (dYdX, GMX, Synthetix) — decentralised, no FCA jurisdiction, no KYC restriction. Proper study required before use (smart contract risk, liquidation mechanics, funding rates).
 
 Curriculum target: Weeks 13–18 (DeFi deep-dive already scheduled).
+
+---
+
+### SI010 — Retrospective Research: Trend-Following Indicator Selection
+
+| Field | Value |
+|---|---|
+| **ID** | SI010 |
+| **Name** | Retrospective Research: Trend-Following Indicator Selection |
+| **Type** | Methodology / Research |
+| **Source** | Week 7 |
+| **Priority** | HIGH |
+| **Target Week** | Week 8 (or when next trend-following strategy is built) |
+| **Date Added** | 2026-05-13 |
+
+**⚠ Review at Week 8 start before building any new trend-following strategy.**
+
+**Notes:**
+A structured Phase 0 research exercise to validate that ADX is the optimal trend-following indicator for ETH and BTC daily candles, or to identify a superior alternative that should be tested alongside or instead of ADX.
+
+**Background:** ADX was selected from the curriculum list without prior literature research. The validation pipeline (728-combination grid search, walk-forward, Monte Carlo) compensated for the missing research phase and produced a robust deployed strategy. However, we have never formally asked: is ADX the best trend-following indicator for this asset and timeframe, or did we happen to start with a reasonable choice?
+
+**Research must cover:**
+- Academic literature on trend-following indicators for crypto daily candles (ADX, Donchian, moving average crossovers, Ichimoku, Supertrend, Keltner Channel)
+- Which indicators have the strongest empirical support specifically on BTC and ETH daily data
+- Whether any indicator class consistently outperforms ADX on crypto in peer-reviewed backtests
+- Parameter sensitivity comparison across indicator families
+- Regime filter effectiveness across indicator types
+
+**Hypothesis to test:** Donchian Channel Breakout may be a natural complement or partial substitute for ADX — both have similar payoff profiles (30–40% WR, 3–5× R:R) but detect trends differently. ADX measures trend strength; Donchian detects trend start via price breakout. Running both may improve signal frequency without adding correlation.
+
+**Action:** Run full Phase 0 research brief before building any new trend-following strategy. Compare findings directly against ADX 19/9 backtest metrics (Annual +79.7%, Sharpe 1.425, Sortino 1.761, Calmar 2.160).
