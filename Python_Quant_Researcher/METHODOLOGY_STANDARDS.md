@@ -96,6 +96,18 @@ Telegram alerts mandatory when any of the following are breached:
 
 ---
 
+## Leveraged Strategy Standards
+
+### Dynamic Leverage Requirement
+
+**Standard:** For all leveraged strategies, leverage must scale with trend strength indicator — not be fixed at entry. Maximum leverage is deployed only at peak trend confidence. Leverage is reduced as the exit signal approaches. Static maximum leverage at entry is not permitted for any new leveraged strategy from Week 8 onwards.
+
+**Rationale:** Established in Week 7 based on exchange failure risk analysis (A021). Binance has documented stop order failures during extreme market stress (October 2025 crash, March 2023 trailing stop bug). At fixed 1.9× leverage, a 20% ETH decline during a 2-hour exchange outage produces a 38% loss on own capital with no stop ever firing. Dynamic leverage reduces maximum exposure to periods of genuine trend strength — the exact conditions where stop execution is most reliable. At ADX levels near the exit threshold, leverage is already reducing toward 1×, limiting outage exposure to the phase where trend confidence is lowest.
+
+**Implementation requirement:** Any leveraged strategy submitted for deployment review must include a backtested dynamic leverage function mapping the trend indicator value to a leverage multiplier. The function must be monotone (higher indicator → higher leverage) and bounded at the safety buffer minimum. Flat leverage is not acceptable.
+
+---
+
 ## Chart Production Standards
 
 All strategy deployment documents must include:

@@ -260,6 +260,36 @@ deployment. This is a prerequisite for leveraged ETH ADX live trading.
 
 ---
 
+### A021 — Exchange technical failure during stop execution
+
+**Category:** Execution / Infrastructure
+
+**Status:** Open
+
+**Priority:** High
+
+**Raised:** Week 7
+
+**Description:**
+Binance has documented history of stop order failures during extreme market stress. October 2025 crash: stop-loss orders failed to trigger, accounts frozen, Binance site went down. March 2023: Binance suspended all spot trading for 2 hours due to a bug in the trailing stop feature specifically. During peak volatility, the exchange may be unable to execute stop orders for minutes to hours. At 1.9× leverage, a 20% ETH decline during a 2-hour outage produces a 38% loss on own capital — without the stop ever firing.
+
+**Current mitigation:**
+None implemented. $150 cap on RSI, $994 on ADX spot — losses manageable at current unleveraged scale. At leveraged scale this becomes a primary risk.
+
+**Required before leveraged deployment:**
+1. Dynamic leverage framework built and backtested — leverage reduces as ADX weakens toward exit threshold
+2. Exchange failure stress test — maximum tolerable outage duration quantified at each leverage level
+3. Emergency manual exit protocol documented
+
+**Blocker:** Leveraged deployment
+
+**Target:** Before leveraged deployment
+
+**Update log:**
+- 2026-05-14: Raised. No mitigation implemented. Blocker for leveraged deployment.
+
+---
+
 ## Resolved Items
 
 | ID | Description | Resolution summary | Resolved | Week / Date |
