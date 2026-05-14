@@ -354,3 +354,29 @@ Run two complementary bots on the same asset (ETH or BTC): momentum bot active w
 **References:** SI003 (BTC regime-switching: SMA vs ADX rotation). SI012 is broader — applies to any asset and pairs two different strategy types rather than two variants of the same strategy type.
 
 **Dependency:** Bollinger and MAX strategies must be backtested and validated before implementation.
+
+---
+
+### SI013 — Quarter-Kelly Sizing for Unvalidated Momentum Strategies
+
+| Field | Value |
+|---|---|
+| **ID** | SI013 |
+| **Name** | Quarter-Kelly Sizing for Unvalidated Momentum Strategies |
+| **Type** | Methodology / Risk Management |
+| **Source** | Week 7 |
+| **Priority** | HIGH |
+| **Target Week** | Immediate — applies to all new momentum strategies from Week 8 onwards |
+| **Date Added** | 2026-05-14 |
+
+**Notes:**
+A sizing rule, not a strategy. Any new momentum strategy (Donchian, MAX, MACD) that has not been confirmed through a full bear market cycle should use quarter-Kelly position sizing, not half-Kelly. This reflects the power law distribution finding that momentum strategy confidence intervals are materially wider than backtest numbers suggest.
+
+**Current application:**
+- ETH ADX uses half-Kelly (12.41%) — justified because it has 2022 out-of-sample confirmation (+35.1% vs B&H −68.3%)
+- New momentum strategies in Weeks 8–12 should start at quarter-Kelly (~6%) until their first bear market validation period is complete
+- Promotion to half-Kelly requires documented out-of-sample evidence through a bear market period
+
+**Not applicable to:** Mean reversion strategies (Bollinger, RSI, MIN). Power law instability primarily affects momentum strategies that ride fat-tail returns. Mean reversion strategies cap individual trade size by design and are less affected.
+
+This rule is now codified in METHODOLOGY_STANDARDS.md under "Momentum Strategy Validation Standards."
