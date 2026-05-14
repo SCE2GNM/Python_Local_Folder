@@ -863,6 +863,20 @@ Trading implication: Hurst exponent calculated on a rolling basis could serve as
 
 Introduced: Week 7. Source: WEEK_7_RESEARCH_BRIEF_FULL.md.
 
+**Regime Detection Methods — Comparison** — Four methods exist for detecting whether a market is currently trending or ranging. The choice of method determines which strategy type to deploy.
+
+*Method 1 — Rolling Hurst Exponent:* Theoretically strongest. Directly measures whether recent price history is trending (H > 0.6), random (H ≈ 0.5), or mean-reverting (H < 0.4). Calculated on a rolling window of 100–200 days. BTC Hurst exponent 2021–2024 was 0.52 — barely above random walk, explaining why momentum strategies underperformed that period. Limitation: computationally intensive, requires long lookback, can lag regime changes by weeks.
+
+*Method 2 — ADX Threshold (already implemented):* ADX > 20 = trending regime, activate momentum strategy. ADX < 20 = ranging regime, activate mean reversion strategy. Simple, fast, already computed as part of the entry signal. Multi-source empirical support confirmed in WEEK_7_RESEARCH_BRIEF_FULL.md. Limitation: measures trend strength of recent moves, not underlying market structure — can give false signals during volatile ranging markets.
+
+*Method 3 — Volume-Based Filter:* Mean reversion outperforms when volume is below its historical average. Momentum outperforms when volume is above average. Simple to implement — compare today's volume to its N-day moving average. Confirmed by QuantifiedStrategies (2026): "Bitcoin mean reversion outperforms momentum when volume below historical averages." Limitation: volume data quality varies on crypto; reliable on BTC/ETH, less so on altcoins.
+
+*Method 4 — Bollinger Band Width:* Narrow bands (low volatility, price coiling) → breakout/trend move more likely → momentum. Wide bands (high volatility, price ranging) → mean reversion more likely. Already embedded in the Bollinger strategy itself. Limitation: reacts to recent volatility, not underlying market structure.
+
+Current recommendation: ADX threshold is the right practical choice for current single-asset infrastructure — already computed, multi-source support, simple to implement in regime-switching architecture (SI003). The Hurst exponent becomes more valuable at Week 9+ when the portfolio spans multiple assets and a single portfolio-level regime indicator is needed rather than per-asset ADX.
+
+Introduced: Week 7. Regime detection research and backtesting targeted for Week 8–9.
+
 ---
 
 ## Concepts Mastered
