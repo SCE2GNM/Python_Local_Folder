@@ -290,6 +290,32 @@ None implemented. $150 cap on RSI, $994 on ADX spot — losses manageable at cur
 
 ---
 
+### A022 — Monte Carlo analysis not completed for ETH ADX
+
+**Category:** Strategy / Methodology
+
+**Status:** Open
+
+**Priority:** MAJOR
+
+**Raised:** Week 7
+
+**Description:**
+Monte Carlo simulation has not been run for ETH ADX despite it being mandatory for all strategies under the updated Methodology Standards (Week 7). Walk-forward validation confirms the strategy works across historical regimes but does not address sequence risk or fat-tail uncertainty in the return distribution. With 159 trades and a fat-tailed momentum return distribution (power law α < 3 per Grobys et al. 2025), the true confidence intervals on backtest metrics are wider than the point estimates suggest.
+
+**Required:**
+Run Monte Carlo (minimum 10,000 simulations) on the 159-trade backtest results. Output: 5th/50th/95th percentile equity curves, P(negative year), P(50% drawdown), Monte Carlo-derived Kelly fraction. Compare MC Kelly to deployed half-Kelly (12.41%) — reduce position sizing if MC Kelly is materially lower.
+
+**Note on priority:**
+Classified MAJOR rather than HIGH because the strategy is validated through the 2022 bear market (+35.1% vs B&H −68.3%), which partially addresses the fat-tail concern. The 2022 confirmation provides direct empirical evidence of fat-tail survival that Monte Carlo alone cannot. However, this does not substitute for the simulation — sequence risk and the probability distribution of forward outcomes remain unquantified.
+
+**Target:** Week 8
+
+**Update log:**
+- 2026-05-14: Raised. Monte Carlo not yet run. Mandatory per updated Methodology Standards.
+
+---
+
 ## Resolved Items
 
 | ID | Description | Resolution summary | Resolved | Week / Date |
