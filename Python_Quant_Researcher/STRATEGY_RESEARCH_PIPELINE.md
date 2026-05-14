@@ -42,6 +42,8 @@ Claude Code reads the brief at week start before building any scripts. The brief
 
 Treat all sources critically. Always verify that cited papers use proper out-of-sample methodology. Reject any source claiming exceptional returns without methodology disclosure. Look for: train/test split, transaction cost assumptions, and whether the strategy was published before or after the test period.
 
+**Standing note:** Phase 0 research is always conducted in Claude Chat (web search enabled), never in Claude Code. Claude Code cannot search the web.
+
 ---
 
 ## Phase 1 — Strategy Design and Backtest

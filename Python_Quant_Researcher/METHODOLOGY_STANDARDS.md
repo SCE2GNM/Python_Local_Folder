@@ -139,5 +139,11 @@ deployment standard.
 
 ---
 
+## Document Versioning Protocol
+
+Each living document has exactly one file. No versioned copies (vN) are maintained. At the end of each week, upload the current versions of all modified living documents to the Claude Project to keep project knowledge current. Documents modified during a given week are identified in the Week N summary document.
+
+---
+
 *Version 1.0 — created 2026-05-04: initial document*
 *Update this document when methodology standards change — never mid-week.*

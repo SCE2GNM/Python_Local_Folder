@@ -823,6 +823,60 @@ A complete glossary of every meaningful concept introduced during the curriculum
 
 **Trailing Stop — Hourly Check with Minimum Improvement Threshold** — When managing a trailing stop via cron, checking every hour (rather than every 4–6 hours) better captures intraday highs during uptrends. Key guard: only cancel and replace the Binance stop order if the new calculated stop price is at least 0.25–0.5% higher than the current stop. This prevents unnecessary order churn and minimises the window where no stop exists on the exchange (the gap between cancel and replacement). Apply to all future bots from the start. Introduced: Week 7.
 
+**Kelly Criterion — Corrected Understanding** — Kelly output is a risk fraction — the percentage of total capital you are willing to LOSE if the stop fires. It is NOT the fraction of capital to allocate to the trade. With Half-Kelly at 12.41% and an 8% trailing stop: dollar_risk = capital × 12.41% = $124.10; position_size = $124.10 / 8% = $1,551. The position deployed is larger than the risk amount because the stop sits 8% below entry, not at zero. Half-Kelly (rather than full Kelly) is appropriate because backtest win rate and R:R are estimates, not guarantees — Half-Kelly builds in a margin of safety for the gap between backtest and live performance. This corrects the Week 4–6 implementation error where 12.41% was applied as the position fraction rather than the risk fraction, causing 20× position undersizing ($124 deployed instead of $1,551). Introduced: Week 7.
+
+**Power Law Distributions and Undefined Variance in Crypto Momentum Strategies** — Standard backtest metrics (Sharpe, Sortino, Kelly fraction, confidence intervals) all assume that return variance is finite and stable — meaning it converges to a reliable number as you collect more data. This assumption holds for normally distributed returns but breaks down for crypto momentum strategies.
+
+Crypto returns follow a power law distribution (fat-tailed), described by an exponent α (alpha). The critical threshold is α = 3:
+- α > 3: variance is finite and stable — standard statistics are reliable
+- α between 2 and 3: variance is technically finite but extremely unstable — never truly converges
+- α < 2: variance is literally mathematically infinite
+
+Two independent 2025 papers (Grobys et al., Springer; Huang et al., SSRN) found that cryptocurrency momentum strategy returns have α < 3 — sitting in the unstable zone.
+
+The plain English consequence: a 5-year backtest showing excellent momentum results (Sharpe 2.1, Sortino 1.8, Kelly 24%) is still statistically consistent with the strategy having negative long-run performance. The extreme event that would reveal this has simply not yet occurred in the sample. Your confidence interval looks like 40%–120% but the true interval might be −20% to 300%.
+
+The wealth analogy: measuring average wealth in a room of 999 ordinary people gives £50,000. One billionaire enters and the average jumps to £1 billion. Add 999 more ordinary people and it crashes back. The average never converges. Crypto momentum returns behave like wealth, not height.
+
+Why this does NOT apply equally to mean reversion: mean reversion strategies deliberately cut off the fat tail — they exit at the 20-day SMA or a fixed RSI level, harvesting small oscillations rather than riding extreme trends. Smaller wins, smaller losses, more stable variance. Bollinger and MIN strategies are relatively more trustworthy statistically than Donchian or MAX strategies.
+
+Practical implications — applied to every future momentum strategy:
+1. Monte Carlo is non-negotiable for all momentum strategies — not optional
+2. True confidence intervals are wider than backtest numbers suggest — build in more margin of safety than the numbers imply
+3. Out-of-sample testing through a bear market (2022) is especially valuable — it is direct evidence that at least one fat-tail event did not destroy the strategy. Strategies confirmed through 2022 (Donchian, MAX) are materially more trustworthy than those that have not been tested through a crash cycle
+4. Kelly sizing for momentum strategies: use quarter-Kelly (not half-Kelly) for any momentum strategy not yet validated through a full crash cycle. Half-Kelly remains appropriate for strategies with confirmed 2022 out-of-sample performance
+5. Never rely on a single backtest metric in isolation for a momentum strategy
+
+What this means for our current deployed strategies: ETH ADX trend-following is a momentum strategy. Its backtest metrics (Sharpe 1.425, Sortino 1.761) should be treated as upper bounds with wider true confidence intervals than they appear. The 2022 out-of-sample period (+35.1% when B&H was −68.3%) is the single most important validation data point we have — it is direct evidence of fat-tail survival.
+
+Introduced: Week 7. Source: WEEK_7_RESEARCH_BRIEF_FULL.md, Grobys et al. (2025) Springer, Huang et al. (2024) SSRN.
+
+**Hurst Exponent — Measuring Trend vs Mean Reversion Tendency** — A statistical measure of whether a time series tends to trend (H > 0.5), mean revert (H < 0.5), or move randomly (H = 0.5).
+
+- H > 0.6: persistently trending — momentum strategies favoured
+- H = 0.5: pure random walk — no exploitable structure
+- H < 0.4: mean reverting — mean reversion strategies favoured
+
+BTC Hurst exponent 2021–2024: 0.52 — barely above random walk. This explains why momentum strategies underperformed post-2021 and why mean reversion strategies outperformed during this period. The regime is not persistently trending.
+
+Trading implication: Hurst exponent calculated on a rolling basis could serve as a regime filter — more sophisticated than using ADX alone. When rolling Hurst drops toward 0.5, reduce momentum exposure and increase mean reversion exposure. Revisit at Week 9+ when the portfolio becomes multi-strategy.
+
+Introduced: Week 7. Source: WEEK_7_RESEARCH_BRIEF_FULL.md.
+
+**Regime Detection Methods — Comparison** — Four methods exist for detecting whether a market is currently trending or ranging. The choice of method determines which strategy type to deploy.
+
+*Method 1 — Rolling Hurst Exponent:* Theoretically strongest. Directly measures whether recent price history is trending (H > 0.6), random (H ≈ 0.5), or mean-reverting (H < 0.4). Calculated on a rolling window of 100–200 days. BTC Hurst exponent 2021–2024 was 0.52 — barely above random walk, explaining why momentum strategies underperformed that period. Limitation: computationally intensive, requires long lookback, can lag regime changes by weeks.
+
+*Method 2 — ADX Threshold (already implemented):* ADX > 20 = trending regime, activate momentum strategy. ADX < 20 = ranging regime, activate mean reversion strategy. Simple, fast, already computed as part of the entry signal. Multi-source empirical support confirmed in WEEK_7_RESEARCH_BRIEF_FULL.md. Limitation: measures trend strength of recent moves, not underlying market structure — can give false signals during volatile ranging markets.
+
+*Method 3 — Volume-Based Filter:* Mean reversion outperforms when volume is below its historical average. Momentum outperforms when volume is above average. Simple to implement — compare today's volume to its N-day moving average. Confirmed by QuantifiedStrategies (2026): "Bitcoin mean reversion outperforms momentum when volume below historical averages." Limitation: volume data quality varies on crypto; reliable on BTC/ETH, less so on altcoins.
+
+*Method 4 — Bollinger Band Width:* Narrow bands (low volatility, price coiling) → breakout/trend move more likely → momentum. Wide bands (high volatility, price ranging) → mean reversion more likely. Already embedded in the Bollinger strategy itself. Limitation: reacts to recent volatility, not underlying market structure.
+
+Current recommendation: ADX threshold is the right practical choice for current single-asset infrastructure — already computed, multi-source support, simple to implement in regime-switching architecture (SI003). The Hurst exponent becomes more valuable at Week 9+ when the portfolio spans multiple assets and a single portfolio-level regime indicator is needed rather than per-asset ADX.
+
+Introduced: Week 7. Regime detection research and backtesting targeted for Week 8–9.
+
 ---
 
 ## Concepts Mastered
