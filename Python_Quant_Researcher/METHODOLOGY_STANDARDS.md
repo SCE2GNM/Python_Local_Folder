@@ -108,6 +108,23 @@ Telegram alerts mandatory when any of the following are breached:
 
 ---
 
+## Momentum Strategy Validation Standards
+
+### Kelly Sizing for Momentum Strategies
+
+**Standard:** Quarter-Kelly is the default position sizing for any momentum strategy not yet confirmed through a full crash cycle (2022 or equivalent bear market). Half-Kelly is permitted only after out-of-sample confirmation through a bear market period.
+
+**Rationale:** Established in Week 7 based on power law distribution research findings (Grobys et al. 2025, Huang et al. 2024). Cryptocurrency momentum strategy returns have a tail index α < 3, placing them in the unstable variance zone where standard statistical confidence intervals are unreliable. A 5-year backtest with excellent metrics is statistically consistent with the strategy having negative long-run performance if the defining extreme event has not yet occurred in the sample. Quarter-Kelly builds in the additional margin of safety warranted by this structural uncertainty.
+
+**Application:**
+- ETH ADX trend-following: half-Kelly permitted — confirmed through 2022 (+35.1% when B&H −68.3%)
+- Any new momentum strategy (Donchian, MAX, MACD-based) without 2022 confirmation: quarter-Kelly at deployment
+- Promotion from quarter-Kelly to half-Kelly: requires at least one bear market validation period in live or out-of-sample data
+
+**Scope:** Momentum strategies only. Mean reversion strategies (Bollinger, MIN, RSI-based) are less affected by power law variance instability because they cap individual trade size by design. Half-Kelly remains the default for mean reversion strategies subject to normal Monte Carlo confirmation.
+
+---
+
 ## Chart Production Standards
 
 All strategy deployment documents must include:
