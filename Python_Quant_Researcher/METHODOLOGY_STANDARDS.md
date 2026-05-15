@@ -145,5 +145,36 @@ Each living document has exactly one file. No versioned copies (vN) are maintain
 
 ---
 
+---
+
+## Fat-Tail Warning — Metrics That Assume Normality
+
+All of the following metrics assume either normally distributed returns or finite/stable variance. Both assumptions are violated for crypto momentum strategies (power law exponent α < 3, confirmed Grobys et al. 2025, Huang et al. 2024). These metrics remain useful as relative comparators and directional indicators but must NOT be treated as precise absolute measures or used as hard decision gates in isolation:
+
+**Sharpe ratio:** uses standard deviation in denominator. Unstable when variance is fat-tailed. Use as relative comparator only — never as an absolute quality threshold.
+
+**Sortino ratio:** uses downside standard deviation. Same instability. Retained as primary ratio metric per Week 5 decision but interpreted with caution for momentum strategies.
+
+**Kelly fraction:** assumes stationary win rate and R:R ratio. Fat-tailed returns mean these parameters shift with extreme events. Always use Half-Kelly minimum; use Quarter-Kelly for unvalidated momentum strategies.
+
+**Confidence intervals on backtest metrics:** standard intervals assume normality. True intervals are materially wider. Monte Carlo simulation is the correct substitute — it uses the actual observed trade distribution rather than assuming a parametric form.
+
+**Value at Risk (VaR):** not currently used but flag for future reference — entirely inappropriate for fat-tailed distributions.
+
+**Mitigation for all affected metrics:**
+
+- Never use a single metric as a hard GO/NO-GO gate — require convergence across multiple metrics
+- Always run Monte Carlo — it is the only method that does not assume normality
+- Weight out-of-sample and walk-forward results more heavily than full-period backtest metrics
+- Apply additional conservatism to Kelly sizing for momentum strategies (Quarter-Kelly standard)
+- When metrics conflict, favour the more conservative interpretation
+
+This warning applies to ALL momentum strategies. Mean reversion strategies are relatively less affected due to narrower trade return distributions but the warning still applies.
+
+Added: Week 7. Source: STRATEGY_RESEARCH_PIPELINE.md Phase 3 requirements, Grobys et al. (2025), Huang et al. (2024), LEARNING_LOG.md power law distributions entry.
+
+---
+
 *Version 1.0 — created 2026-05-04: initial document*
+*Version 1.1 — updated 2026-05-15: added Fat-Tail Warning section (normality assumptions)*
 *Update this document when methodology standards change — never mid-week.*

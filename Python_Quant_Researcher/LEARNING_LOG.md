@@ -846,6 +846,7 @@ Practical implications — applied to every future momentum strategy:
 3. Out-of-sample testing through a bear market (2022) is especially valuable — it is direct evidence that at least one fat-tail event did not destroy the strategy. Strategies confirmed through 2022 (Donchian, MAX) are materially more trustworthy than those that have not been tested through a crash cycle
 4. Kelly sizing for momentum strategies: use quarter-Kelly (not half-Kelly) for any momentum strategy not yet validated through a full crash cycle. Half-Kelly remains appropriate for strategies with confirmed 2022 out-of-sample performance
 5. Never rely on a single backtest metric in isolation for a momentum strategy
+Affected metrics: Sharpe ratio, Sortino ratio, Kelly fraction, and all standard confidence intervals assume normality or stable variance and are therefore unreliable as precise absolute measures for crypto momentum strategies. Monte Carlo simulation is the correct substitute because it uses the actual observed trade distribution. See METHODOLOGY_STANDARDS.md Fat-Tail Warning section for the full mitigation framework.
 
 What this means for our current deployed strategies: ETH ADX trend-following is a momentum strategy. Its backtest metrics (Sharpe 1.425, Sortino 1.761) should be treated as upper bounds with wider true confidence intervals than they appear. The 2022 out-of-sample period (+35.1% when B&H was −68.3%) is the single most important validation data point we have — it is direct evidence of fat-tail survival.
 
