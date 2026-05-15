@@ -1,5 +1,12 @@
 # Strategy Risk Register — ETH RSI Mean Reversion
 
+**Purpose:** Tracks every known risk for the ETH RSI mean-reversion strategy. RR-RSI-002 (stop order monitoring absent) is the current most urgent item — must be resolved before capital increase beyond $150.
+**Who reads it:** Greg before any capital change. Claude Code when modifying the RSI bot.
+**When updated:** Whenever a new risk is identified, or an existing item's status changes.
+**Related documents:** RISK_REGISTER_ETH_ADX.md, LIVE_TRADING_CHECKLIST.md, ETH_RSI_Deployment_Card_v1.html.
+
+---
+
 **Strategy:** ETH RSI Mean Reversion (RSI-14, oversold bounce)
 **Asset / Exchange:** ETHUSDT / Binance Spot
 **Version:** v1.0

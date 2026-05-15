@@ -1,8 +1,14 @@
-> DEPRECATED — 2026-05-01
-> This file is superseded by:
-> - RISK_REGISTER_ETH_ADX.md (ADX strategy risk register)
-> - STRATEGY_RISK_REGISTER_TEMPLATE.md (template for new strategies)
-> Do not update this file. It is retained as audit trail for Weeks 1-5 only.
+# ⛔ DEPRECATED — DO NOT USE AS CURRENT REFERENCE
+
+**Status:** Superseded as of Week 5
+**Replaced by:** Per-strategy risk registers:
+- RISK_REGISTER_ETH_ADX.md (ETH ADX strategy)
+- RISK_REGISTER_ETH_RSI.md (ETH RSI strategy)
+- RISK_REGISTER_BTC_SMA.md (BTC SMA strategy)
+
+**Why kept:** Audit trail only. Contains the original Week 1-5 risk items and their resolution history. Do not add new items here. Do not treat any item here as current status.
+
+**Last active:** Week 5, 2026-05-04
 
 ---
 

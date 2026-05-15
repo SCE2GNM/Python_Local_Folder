@@ -383,6 +383,52 @@ This rule is now codified in METHODOLOGY_STANDARDS.md under "Momentum Strategy V
 
 ---
 
+### SI014 — Pension Investment Strategy Research
+
+| Field | Value |
+|---|---|
+| **ID** | SI014 |
+| **Name** | Pension Investment Strategy Research |
+| **Type** | Multi-asset / Long-term |
+| **Source** | Week 7 |
+| **Priority** | LOW |
+| **Target Week** | Week 20+ — after core crypto infrastructure is built and stable |
+| **Date Added** | 2026-05-15 |
+
+**What it is:** Research and develop systematic strategies suitable for pension investment — long-term, lower frequency, capital preservation focus. Not crypto — traditional assets (equities, bonds, ETFs, index funds).
+
+**Context:** Greg wants to apply quant principles learned in this curriculum to personal pension portfolio management. Different risk profile from crypto trading — lower volatility tolerance, longer time horizon, tax-efficient wrappers (ISA, SIPP in UK context).
+
+**What to research:** Systematic rebalancing strategies, factor investing (value, momentum, quality), passive vs active allocation, lifecycle investing principles, drawdown management for retirement portfolios.
+
+**Introduced:** Week 7
+
+---
+
+### SI015 — Stock Selection: Insider Buy Superstocks Methodology
+
+| Field | Value |
+|---|---|
+| **ID** | SI015 |
+| **Name** | Stock Selection: Insider Buy Superstocks Methodology |
+| **Type** | Equity / Semi-systematic |
+| **Source** | Week 7 |
+| **Priority** | LOW |
+| **Target Week** | Week 20+ — after core crypto work complete |
+| **Date Added** | 2026-05-15 |
+
+**What it is:** Research and backtest the stock selection methodology from the book "Insider Buy Superstocks" — identifies stocks with significant insider buying as a signal for outperformance.
+
+**Context:** Greg wants to apply this methodology to UK/US stock markets. Insider buying is a legally disclosed signal (Form 4 filings in US, PDMR disclosures in UK) where company executives and directors buy shares in their own company with personal money — historically a strong positive signal.
+
+**What to research:** How to access insider buying data (SEC EDGAR for US, FCA/Companies House for UK), screening criteria from the book, backtesting methodology on stock universe, position sizing for concentrated stock portfolios.
+
+**Note:** This is a discretionary/semi-systematic equity strategy, not crypto. Requires different data infrastructure and regulatory knowledge. Legal in all jurisdictions — insider buying (not selling) is a public signal.
+
+**Introduced:** Week 7
+
+---
+
 ## Infrastructure Improvements
 
 ### II-001 — Telegram Health Check Message Redesign

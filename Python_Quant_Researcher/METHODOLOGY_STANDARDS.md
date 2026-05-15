@@ -1,6 +1,13 @@
 # Methodology Standards
 ## DeFi Quant Engineer Curriculum
 
+**Purpose:** Defines non-negotiable methodology rules that apply to all strategy development, backtesting, and deployment decisions in this curriculum. Every Claude Code session must read this before writing any backtest script.
+**Who reads it:** Claude Code at the start of every session. Greg when making strategy decisions.
+**When updated:** When a new methodology insight is discovered that should apply to all future work. Never updated mid-backtest.
+**Related documents:** STRATEGY_RESEARCH_PIPELINE.md (pipeline phases), STRATEGY_TESTING_CHECKLIST.md (pre-deployment gates), LIVE_TRADING_CHECKLIST.md (deployment sign-off).
+
+---
+
 **Student:** Greg (Gmac)
 **Created:** 2026-05-04
 **Purpose:** Binding technical standards for backtesting, live execution,

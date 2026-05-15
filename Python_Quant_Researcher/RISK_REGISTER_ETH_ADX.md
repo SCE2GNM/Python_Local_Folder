@@ -1,5 +1,12 @@
 # Strategy Risk Register — ETH ADX Trailing Stop
 
+**Purpose:** Tracks every known risk for the ETH ADX trend-following strategy. Each item has an ID, severity, status, mitigation, and update log. HIGH items must be resolved before capital increases. MAJOR items must be documented and mitigated before deployment.
+**Who reads it:** Greg before any capital change. Claude Code when building or modifying the ETH ADX bot. Independent reviewer before leveraged deployment.
+**When updated:** Whenever a new risk is identified, or an existing item's status changes.
+**Related documents:** RISK_REGISTER_ETH_RSI.md, RISK_REGISTER_BTC_SMA.md, LIVE_TRADING_CHECKLIST.md, ETH_ADX_Deployment_Card_v1.html.
+
+---
+
 **Strategy:** ETH ADX Trend-Following with ATR Trailing Stop
 **Asset / Exchange:** ETHUSDT / Binance Spot (unleveraged → leveraged planned)
 **Version:** v2.0 (trailing stop)

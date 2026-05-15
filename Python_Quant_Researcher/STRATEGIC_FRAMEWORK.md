@@ -1,6 +1,13 @@
 # Strategic Framework
 ## DeFi Quant Engineer Curriculum
 
+**Purpose:** Defines the high-level investment philosophy, portfolio objectives, risk tolerance, and decision-making principles for the 24-week curriculum. The "why" behind all strategy decisions. Read this when a decision feels unclear — it usually resolves the ambiguity.
+**Who reads it:** Greg at the start of each new week. Claude at the start of any session involving capital allocation or strategy prioritisation decisions.
+**When updated:** Rarely — only when a fundamental shift in approach occurs. Not updated for tactical decisions.
+**Related documents:** CURRICULUM_OPERATING_MANUAL.md, RISK_REGISTER files.
+
+---
+
 **Student:** Greg (Gmac)
 **Created:** 2026-05-04
 **Purpose:** Cross-strategy decision rules and risk frameworks that apply to

@@ -1,6 +1,13 @@
 # Week 8 Agenda Notes
 ## DeFi Quant Engineer Curriculum
 
+**Purpose:** Carry-over items and priorities for the Week 8 session. Read this at the start of the Week 8 chat thread before doing anything else. Items are ordered by priority — work through them in sequence.
+**Who reads it:** Greg and Claude at the start of Week 8.
+**When updated:** Add items during Week 7 close-out. Do not modify once Week 8 begins.
+**Related documents:** WEEK_8_THREAD_STARTER.md (when created), WEEK_7_THREAD_STARTER.md.
+
+---
+
 **Student:** Greg (Gmac)
 **Week:** 8 of 24
 **Prepared:** End of Week 7 (2026-05-15)

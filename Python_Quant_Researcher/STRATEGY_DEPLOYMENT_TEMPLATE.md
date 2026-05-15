@@ -1,5 +1,12 @@
 # Strategy Deployment Document — [STRATEGY NAME]
 
+**Purpose:** Template for creating new strategy deployment documents. Copy this file when a new strategy reaches the deployment decision phase. Fill in all sections before any live capital is deployed.
+**Who reads it:** Claude Code when creating a new deployment card.
+**When updated:** When the deployment card format is improved. Apply improvements to new cards — do not retroactively update existing cards unless a material error is found.
+**Related documents:** ETH_ADX_Deployment_Card_v1.html, ETH_RSI_Deployment_Card_v1.html, LIVE_TRADING_CHECKLIST.md.
+
+---
+
 **Strategy:** [e.g. ETH RSI Mean Reversion]
 **Asset / Exchange:** [e.g. ETHUSDT / Binance Spot]
 **Version:** [e.g. v1.0]

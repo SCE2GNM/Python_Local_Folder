@@ -1,5 +1,12 @@
 # Strategy Risk Register — [STRATEGY NAME]
 
+**Purpose:** Template for creating per-strategy risk registers. Copy this file when a new strategy enters Phase 1 of the validation pipeline. Every deployed strategy must have its own risk register created from this template.
+**Who reads it:** Claude Code when creating a new risk register.
+**When updated:** When the risk register format is improved. Apply to new registers only.
+**Related documents:** RISK_REGISTER_ETH_ADX.md, RISK_REGISTER_ETH_RSI.md, RISK_REGISTER_BTC_SMA.md.
+
+---
+
 **Strategy:** [e.g. ETH ADX Trailing Stop]
 **Asset / Exchange:** [e.g. ETHUSDT / Binance Spot]
 **Version:** [e.g. v1.0]

@@ -1,5 +1,12 @@
 # Strategy Risk Register — BTC SMA Trailing Stop
 
+**Purpose:** Tracks every known risk for the BTC SMA trend-following strategy (candidate — not yet deployed). Also contains the BTC ADX 19/14 formal rejection note at the top. CONDITIONAL GO status — open items must be resolved before any capital deployment.
+**Who reads it:** Greg when reviewing BTC strategy progress. Claude Code during BTC SMA validation pipeline.
+**When updated:** As BTC SMA validation progresses through pipeline phases.
+**Related documents:** RISK_REGISTER_ETH_ADX.md, STRATEGY_RESEARCH_PIPELINE.md, STRATEGY_TESTING_CHECKLIST.md.
+
+---
+
 > **BTC ADX 19/14 FORMALLY EVALUATED AND REJECTED — Week 7 (2026-05-14)**
 > BTC ADX 19/14 was run through a full Stage A + Stage B validation pipeline.
 > **NO-GO: two hard failures** — post-2022 annual return +6.2%/yr (threshold ≥15%/yr)

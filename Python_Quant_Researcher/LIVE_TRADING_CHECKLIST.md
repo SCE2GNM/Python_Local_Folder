@@ -1,5 +1,12 @@
 # Live Trading Pre-Deployment Checklist
 
+**Purpose:** Mandatory pre-deployment sign-off checklist. Every item must be checked before any strategy goes live with real capital. No exceptions. Includes independent review requirement, API permission verification, stop order testing, and Telegram alert confirmation.
+**Who reads it:** Greg and Claude Code together during the deployment decision phase. Independent reviewer before leveraged deployment.
+**When updated:** When a new pre-deployment requirement is identified. Always add — never remove items.
+**Related documents:** STRATEGY_RESEARCH_PIPELINE.md Phase 6, METHODOLOGY_STANDARDS.md, deployment card HTML files.
+
+---
+
 **This checklist must be completed in full before deploying any strategy to live capital.**
 
 Partially completed checklists are not acceptable. If any item cannot be checked, document
