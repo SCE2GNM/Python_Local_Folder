@@ -380,3 +380,32 @@ A sizing rule, not a strategy. Any new momentum strategy (Donchian, MAX, MACD) t
 **Not applicable to:** Mean reversion strategies (Bollinger, RSI, MIN). Power law instability primarily affects momentum strategies that ride fat-tail returns. Mean reversion strategies cap individual trade size by design and are less affected.
 
 This rule is now codified in METHODOLOGY_STANDARDS.md under "Momentum Strategy Validation Standards."
+
+---
+
+## Infrastructure Improvements
+
+### II-001 — Telegram Health Check Message Redesign
+
+| Field | Value |
+|---|---|
+| **ID** | II-001 |
+| **Name** | Telegram Health Check Message Redesign |
+| **Type** | Infrastructure |
+| **Source** | Week 7 |
+| **Priority** | MEDIUM |
+| **Target Week** | Week 8 — implement before leveraged bot deployment |
+| **Date Added** | 2026-05-15 |
+
+**What it is:** Redesign the Telegram health check messages sent by all bots to improve readability and reduce noise.
+
+**Current problems:** Status buried after timestamp, portfolio block repeated identically across both bot messages, no visual hierarchy, redundant cash balance shown twice.
+
+**Required changes:**
+- Lead with status as the first word — FLAT / LONG / EXIT
+- When FLAT: short 3-line format. Bot name, signal proximity (e.g. ADX 18.9 vs threshold 19), capital allocated. No portfolio block.
+- When LONG: richer format showing entry price, current stop, peak price, current price, unrealised P&L, capital at risk
+- Remove shared cash balance from individual bot messages — show only in a separate daily portfolio summary if needed
+- Apply to all bots: day5_production_bot.py, rsi_production_bot.py, and any future bots including the leveraged bot
+
+**Introduced:** Week 7
