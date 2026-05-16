@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Reference — DeFi Quant Engineer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+           background: #ECEFF1; color: #212121; margin: 0; padding: 0; font-size: 14px; }
+
+    /* ── Header ── */
+    .header { background: linear-gradient(135deg, #263238 0%, #37474F 60%, #455A64 100%);
+               color: #fff; padding: 28px 32px 22px; }
+    .header h1 { margin: 0 0 6px; font-size: 1.7rem; font-weight: 700; letter-spacing: -0.3px; }
+    .header .sub { font-size: 0.88rem; opacity: 0.82; margin: 0 0 4px; }
+    .header .sub2 { font-size: 0.80rem; opacity: 0.65; margin: 0; }
+    .badge { display: inline-block; font-size: 0.72rem; font-weight: 700; padding: 3px 9px;
+             border-radius: 10px; margin: 8px 4px 0 0; letter-spacing: 0.4px; }
+    .badge-green  { background: #2E7D32; color: #fff; }
+    .badge-amber  { background: #E65100; color: #fff; }
+    .badge-grey   { background: #546E7A; color: #fff; }
+    .badge-blue   { background: #1565C0; color: #fff; }
+
+    /* ── Nav ── */
+    .nav { background: #37474F; padding: 8px 32px; display: flex; gap: 0; flex-wrap: wrap; }
+    .nav a { color: #B0BEC5; text-decoration: none; font-size: 0.79rem; font-weight: 500;
+             padding: 5px 14px; border-radius: 4px; white-space: nowrap; }
+    .nav a:hover { background: #455A64; color: #fff; }
+
+    /* ── Layout ── */
+    .wrapper { max-width: 1080px; margin: 0 auto; padding: 24px 20px 56px; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+            padding: 22px 24px; margin-bottom: 22px; }
+    .card h2 { font-size: 1rem; font-weight: 700; color: #263238; margin: 0 0 16px;
+               border-bottom: 2px solid #ECEFF1; padding-bottom: 8px;
+               text-transform: uppercase; letter-spacing: 0.4px; }
+    .card h3 { font-size: 0.86rem; font-weight: 700; color: #37474F; margin: 18px 0 8px;
+               text-transform: uppercase; letter-spacing: 0.3px; }
+
+    /* ── Status row ── */
+    .status-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+    .stat-box { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+                padding: 14px 16px; }
+    .stat-box .label { font-size: 0.72rem; font-weight: 600; color: #78909C;
+                       text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+    .stat-box .value { font-size: 1.4rem; font-weight: 700; color: #263238; }
+    .stat-box .sub { font-size: 0.74rem; color: #90A4AE; margin-top: 2px; }
+    @media(max-width: 700px) { .status-row { grid-template-columns: 1fr 1fr; } }
+
+    /* ── Tables ── */
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    thead th { background: #37474F; color: #fff; padding: 8px 11px; text-align: left;
+               font-weight: 600; white-space: nowrap; }
+    thead th.center { text-align: center; }
+    tbody tr:nth-child(even) { background: #F5F5F5; }
+    tbody td { padding: 7px 11px; border-bottom: 1px solid #EEEEEE; vertical-align: top; }
+    tbody td.center { text-align: center; }
+    .row-live td { background: #E8F5E9 !important; }
+    .row-amber td { background: #FFF8E1 !important; }
+    .row-grey td { background: #FAFAFA !important; color: #888; }
+    .row-section td { background: #37474F !important; color: #fff; font-weight: 700;
+                      font-size: 0.77rem; text-transform: uppercase; letter-spacing: 0.4px; padding: 5px 11px; }
+
+    /* ── Tree ── */
+    .tree { font-family: 'SF Mono', 'Menlo', monospace; font-size: 0.78rem; line-height: 1.65;
+            background: #F8F9FA; border: 1px solid #E0E0E0; border-radius: 6px;
+            padding: 14px 18px; color: #263238; overflow-x: auto; white-space: pre; }
+    .tree .folder { color: #1565C0; font-weight: 600; }
+    .tree .py     { color: #2E7D32; }
+    .tree .html   { color: #BF360C; }
+    .tree .md     { color: #4527A0; }
+    .tree .csv    { color: #795548; }
+    .tree .json   { color: #00838F; }
+    .tree .ipynb  { color: #E65100; }
+    .tree .note   { color: #90A4AE; }
+
+    /* ── Collapsible (notebooks) ── */
+    details { margin-bottom: 6px; }
+    details summary { cursor: pointer; background: #ECEFF1; border-radius: 4px;
+                      padding: 7px 12px; font-weight: 600; font-size: 0.83rem; color: #37474F;
+                      list-style: none; display: flex; align-items: center; gap: 8px;
+                      border: 1px solid #CFD8DC; }
+    details summary::-webkit-details-marker { display: none; }
+    details summary::before { content: '▶'; font-size: 0.65rem; color: #90A4AE;
+                               transition: transform 0.15s; }
+    details[open] summary::before { transform: rotate(90deg); }
+    details .detail-body { padding: 10px 14px 4px; }
+
+    /* ── Link cells ── */
+    a.file-link { color: #1565C0; text-decoration: none; font-family: 'SF Mono', monospace;
+                  font-size: 0.79rem; }
+    a.file-link:hover { text-decoration: underline; }
+    a.open-link { color: #1565C0; text-decoration: none; font-size: 0.80rem; font-weight: 500; }
+    a.open-link:hover { text-decoration: underline; }
+
+    /* ── Status pill ── */
+    .pill { display: inline-block; font-size: 0.69rem; font-weight: 700; padding: 2px 7px;
+            border-radius: 8px; letter-spacing: 0.3px; white-space: nowrap; }
+    .pill-live   { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+    .pill-val    { background: #FFF8E1; color: #E65100; border: 1px solid #FFCC80; }
+    .pill-pend   { background: #EDE7F6; color: #4527A0; border: 1px solid #CE93D8; }
+    .pill-flat   { background: #ECEFF1; color: #546E7A; border: 1px solid #B0BEC5; }
+    .pill-done   { background: #E3F2FD; color: #0D47A1; border: 1px solid #90CAF9; }
+
+    /* ── Code/formula box ── */
+    .code-box { background: #F8F9FA; border: 1px solid #DEE2E6; border-radius: 6px;
+                padding: 12px 16px; font-family: 'SF Mono', 'Menlo', monospace;
+                font-size: 0.79rem; line-height: 1.8; color: #212121; margin: 10px 0; }
+
+    /* ── Insight ── */
+    .insight { background: #E3F2FD; border-left: 4px solid #1565C0; border-radius: 0 6px 6px 0;
+               padding: 10px 14px; font-size: 0.82rem; color: #333; line-height: 1.6; margin: 14px 0; }
+    .warn { background: #FFF8E1; border-left: 4px solid #FF8F00; border-radius: 0 6px 6px 0;
+            padding: 10px 14px; font-size: 0.82rem; color: #333; line-height: 1.6; margin: 14px 0; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .note { font-size: 0.75rem; color: #888; margin-top: 8px; }
+    .body-text { font-size: 0.84rem; line-height: 1.7; color: #333; }
+  </style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <h1>DeFi Quant Engineer — Project Reference</h1>
+  <p class="sub">Master reference document · Auto-generated 2026-05-14 · Current Week: 7</p>
+  <p class="sub2">Greg (Gmac) · 24-week curriculum · MacBook M3 + EC2 ap-southeast-2 · GitHub: SCE2GNM/Python_Local_Folder</p>
+  <div>
+    <span class="badge badge-green">2 Bots Live / Validation</span>
+    <span class="badge badge-amber">1 Leveraged Bot Pending</span>
+    <span class="badge badge-blue">Week 7 In Progress</span>
+    <span class="badge badge-grey">$1,150 Capital Deployed</span>
+  </div>
+</div>
+
+<!-- ── NAV ── -->
+<div class="nav">
+  <a href="#overview">Overview</a>
+  <a href="#tree">Directory Tree</a>
+  <a href="#living">Living Documents</a>
+  <a href="#deploy-docs">Deployment Docs</a>
+  <a href="#bots">Deployed Bots</a>
+  <a href="#notebooks">Notebooks by Week</a>
+  <a href="#data">Data Files</a>
+  <a href="#ec2">EC2 Infrastructure</a>
+</div>
+
+<div class="wrapper">
+
+<!-- ── STATUS ROW ── -->
+<div class="status-row">
+  <div class="stat-box">
+    <div class="label">Current Week</div>
+    <div class="value">7</div>
+    <div class="sub">of 24 weeks total</div>
+  </div>
+  <div class="stat-box">
+    <div class="label">Capital Deployed</div>
+    <div class="value">$1,150</div>
+    <div class="sub">ETH ADX $1,000 · ETH RSI $150</div>
+  </div>
+  <div class="stat-box">
+    <div class="label">Strategies Live</div>
+    <div class="value">2</div>
+    <div class="sub">ETH ADX LONG · ETH RSI FLAT</div>
+  </div>
+  <div class="stat-box">
+    <div class="label">Strategy Ideas</div>
+    <div class="value">SI010</div>
+    <div class="sub">10 ideas logged (SI001–SI010)</div>
+  </div>
+</div>
+
+<!-- ── SECTION 1: PROJECT OVERVIEW ── -->
+<div class="card" id="overview">
+  <h2>1 — Project Overview</h2>
+  <div class="two-col">
+    <div class="body-text">
+      <p><strong>What this is:</strong> A systematic quant trading curriculum running over 24 weeks. Each week builds one skill layer — from basic backtesting through live execution, portfolio management, DeFi protocols, ML signal generation, and eventually HFT infrastructure.</p>
+      <p><strong>Operating model:</strong> Strategies are researched in Claude Chat (web search enabled), built and backtested in Claude Code (this environment), and deployed as cron-triggered Python bots on EC2. Every strategy goes through a 6-phase research pipeline before capital is committed.</p>
+      <p><strong>Live trading context:</strong> Three strategies have reached deployment decision. Two are funded and running on EC2 (ETH ADX live, ETH RSI in validation). BTC SMA has a CONDITIONAL GO decision but is unfunded pending capital constraints.</p>
+    </div>
+    <div>
+      <table>
+        <thead><tr><th>Milestone</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Week 1–2: Backtesting fundamentals</td><td><span class="pill pill-done">Complete</span></td></tr>
+          <tr><td>Week 3: Exchange connectivity</td><td><span class="pill pill-done">Complete</span></td></tr>
+          <tr><td>Week 4: Live bot framework</td><td><span class="pill pill-done">Complete</span></td></tr>
+          <tr><td>Week 5: Strategy validation</td><td><span class="pill pill-done">Complete</span></td></tr>
+          <tr><td>Week 6: Leverage analysis + deployment docs</td><td><span class="pill pill-done">Complete</span></td></tr>
+          <tr><td>Week 7: Leveraged bot + BTC validation</td><td><span class="pill pill-live">In Progress</span></td></tr>
+          <tr><td>Week 8: Volatility / breakout strategies</td><td><span class="pill pill-flat">Upcoming</span></td></tr>
+          <tr><td>Week 9: Multi-strategy portfolio</td><td><span class="pill pill-flat">Upcoming</span></td></tr>
+          <tr><td>Week 10: Machine learning signals</td><td><span class="pill pill-flat">Upcoming</span></td></tr>
+          <tr><td>Weeks 11–24: DeFi, HFT, infrastructure</td><td><span class="pill pill-flat">Future</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 2: DIRECTORY TREE ── -->
+<div class="card" id="tree">
+  <h2>2 — Directory Tree</h2>
+  <p class="note" style="margin-bottom:12px;">Project root: <code>/Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/</code> · <code>venv/</code> omitted (Python env, not project content)</p>
+<div class="tree"><span class="folder">Python_Quant_Researcher/</span>
+│
+├── <span class="md">CURRICULUM_OPERATING_MANUAL.md</span>     <span class="note">← Master SOP: how to use the curriculum tools each week (v1.1)</span>
+├── <span class="md">LEARNING_LOG.md</span>                    <span class="note">← Running learning log through Week 6 (superseded by v7)</span>
+├── <span class="md">LEARNING_LOG_v7.md</span>                 <span class="note">← Active learning log; Week 7 entries including Kelly correction</span>
+├── <span class="md">LIVE_TRADING_CHECKLIST.md</span>          <span class="note">← 14-item pre-deployment and ongoing operational checklist</span>
+├── <span class="md">METHODOLOGY_STANDARDS.md</span>           <span class="note">← Metric calculation standards (Sortino, Sharpe, costs, slippage)</span>
+├── <span class="md">RISK_AND_ASSUMPTIONS_REGISTER.md</span>   <span class="note">← Portfolio-level and shared risk assumptions register</span>
+├── <span class="md">RISK_REGISTER_BTC_SMA.md</span>           <span class="note">← Risk register for BTC SMA 120/25% strategy</span>
+├── <span class="md">RISK_REGISTER_ETH_ADX.md</span>           <span class="note">← Risk register for ETH ADX 19/9 (8% trail) — 16 open items</span>
+├── <span class="md">RISK_REGISTER_ETH_RSI.md</span>           <span class="note">← Risk register for ETH RSI 14/43/48 (15% stop) — 8 open items</span>
+├── <span class="md">STRATEGIC_FRAMEWORK.md</span>             <span class="note">← High-level framework: strategy selection, liquidation check methodology</span>
+├── <span class="md">STRATEGY_DEPLOYMENT_TEMPLATE.md</span>    <span class="note">← Template for new deployment decision documents</span>
+├── <span class="md">STRATEGY_IDEAS_LOG.md</span>              <span class="note">← 10 strategy ideas (SI001–SI010) for future weeks</span>
+├── <span class="md">STRATEGY_RESEARCH_PIPELINE.md</span>      <span class="note">← Research pipeline v1.5 (prior to v7 update)</span>
+├── <span class="md">STRATEGY_RESEARCH_PIPELINE_v7.md</span>   <span class="note">← Active pipeline document; Phase 0 standing note added</span>
+├── <span class="md">STRATEGY_RISK_REGISTER_TEMPLATE.md</span> <span class="note">← Template for new per-strategy risk registers</span>
+├── <span class="md">WEEK_6_SUMMARY.md</span>                  <span class="note">← End-of-week summary for Week 6</span>
+├── <span class="md">WEEK_6_THREAD_STARTER.md</span>           <span class="note">← Context doc used to open Week 6 Claude Chat thread</span>
+├── <span class="md">WEEK_7_RESEARCH_BRIEF.md</span>           <span class="note">← Phase 0 research brief for Week 7 (ADX leverage, BTC ADX)</span>
+├── <span class="md">WEEK_7_THREAD_STARTER.md</span>           <span class="note">← Context doc used to open Week 7 Claude Chat thread</span>
+├── <span class="py">portfolio_manager.py</span>               <span class="note">← Shared capital allocation; get_my_capital(), update_position(), rebalance</span>
+├── <span class="py">portfolio_rebalance.py</span>             <span class="note">← Weekly rebalance runner script (Monday 01:00 UTC)</span>
+├── <span class="py">requirements.txt</span>                   <span class="note">← Python dependencies (binance, pandas, ta, etc.)</span>
+│
+├── <span class="folder">Deployment_Documents/Week_6/</span>       <span class="note">← All HTML deployment cards and stage analysis outputs</span>
+│   ├── <span class="html">ETH_ADX_Deployment_Card_v1.html</span>   <span class="note">← ETH ADX strategy card (LIVE · 8 sections · Plotly equity curve)</span>
+│   ├── <span class="html">ETH_RSI_Deployment_Card_v1.html</span>   <span class="note">← ETH RSI strategy card (VALIDATION PHASE · Monte Carlo table)</span>
+│   ├── <span class="html">ATR_Explainer_v1.html</span>            <span class="note">← ATR indicator reference (7 sections · SVG candlestick diagrams)</span>
+│   ├── <span class="html">week6_stage5_final_comparison_v2.html</span>  <span class="note">← Stage 5 authoritative: ADX vs RSI vs B&amp;H · year-by-year breakdown</span>
+│   ├── <span class="html">btc_equity_interactive.html</span>      <span class="note">← BTC SMA vs ADX vs B&amp;H interactive equity curves</span>
+│   ├── <span class="html">strategy_comparison.html</span>         <span class="note">← Strategy metrics comparison chart</span>
+│   ├── <span class="html">strategy_pipeline.html</span>           <span class="note">← Strategy pipeline overview chart</span>
+│   ├── <span class="html">stage2_parallel_coordinates_interactive.html</span>  <span class="note">← Stage 2 parallel coords (top combinations)</span>
+│   ├── <span class="html">stage2_parallel_with_table.html</span>  <span class="note">← Stage 2 parallel coords with ranked metrics table</span>
+│   ├── <span class="html">stage3_equity_curve.html</span>         <span class="note">← Stage 3 equity curve (pre-full)</span>
+│   ├── <span class="html">stage3_equity_curve_full.html</span>    <span class="note">← Stage 3 full equity curve with drawdown subplot</span>
+│   ├── <span class="html">stage3a_maxdd_vs_leverage.html</span>   <span class="note">← MaxDD vs leverage grid for ETH ADX</span>
+│   ├── <span class="html">stage3a_return_vs_leverage.html</span>  <span class="note">← Annual return vs leverage grid for ETH ADX</span>
+│   ├── <span class="html">stage3b_stability.html</span>           <span class="note">← Stage 3b parameter stability heatmap</span>
+│   ├── <span class="html">stage3c_rate_sensitivity.html</span>    <span class="note">← Borrow rate sensitivity analysis for leveraged ETH ADX</span>
+│   ├── <span class="html">stage4a_btc_leverage.html</span>        <span class="note">← BTC ADX leverage analysis (Stage 4a)</span>
+│   └── <span class="html">week6_stage5_final_comparison.html</span>  <span class="note">← Stage 5 v1 (superseded by v2)</span>
+│
+├── <span class="folder">core/</span>                              <span class="note">← Shared execution modules used by all production bots</span>
+│   ├── <span class="folder">execution/</span>
+│   │   ├── <span class="py">trading_executor.py</span>           <span class="note">← Binance spot order execution (buy, sell, cancel)</span>
+│   │   └── <span class="py">risk_manager.py</span>               <span class="note">← Kelly position sizing, daily loss limits, drawdown guard</span>
+│   └── <span class="folder">loggers/</span>                       <span class="note">← Logging utilities</span>
+│
+├── <span class="folder">data/</span>                              <span class="note">← Live trade logs, optimisation CSVs, portfolio state</span>
+│   ├── <span class="json">portfolio_state.json</span>           <span class="note">← Live portfolio state (capital, positions, last rebalance)</span>
+│   ├── <span class="csv">trade_log_with_stoploss.csv</span>    <span class="note">← ETH ADX backtested trade log (108 trades, corrected)</span>
+│   ├── <span class="csv">trade_log_rsi_final.csv</span>        <span class="note">← ETH RSI backtested trade log (31 trades)</span>
+│   ├── <span class="csv">btc_adx_optimisation_results.csv</span>  <span class="note">← BTC ADX full grid search results</span>
+│   ├── <span class="csv">btc_adx_stage_a_results.csv</span>    <span class="note">← BTC ADX Stage A optimisation (Week 6)</span>
+│   ├── <span class="csv">rsi_optimisation_results.csv</span>   <span class="note">← RSI parameter grid search (all combinations)</span>
+│   ├── <span class="csv">stage1b_results.csv</span>            <span class="note">← ATR trailing stop grid search (Week 6 Stage 1b)</span>
+│   ├── <span class="csv">stage2a_results.csv</span>            <span class="note">← ETH ADX leverage analysis top combinations</span>
+│   ├── <span class="csv">stage2a_results_extended.csv</span>   <span class="note">← Extended leverage analysis (wider grid)</span>
+│   ├── <span class="csv">stage2b_results.csv</span>            <span class="note">← Full leverage grid (Stage 2b)</span>
+│   ├── <span class="csv">stage3a_results.csv</span>            <span class="note">← Stage 3a leverage optimisation results</span>
+│   ├── <span class="csv">stage3c_results.csv</span>            <span class="note">← Borrow rate sensitivity results</span>
+│   ├── <span class="csv">stage4a_results.csv</span>            <span class="note">← BTC ADX leverage analysis</span>
+│   ├── <span class="csv">joint_optimisation_results.csv</span> <span class="note">← Joint threshold/stop optimisation</span>
+│   ├── <span class="csv">joint_optimisation_results_refined.csv</span>  <span class="note">← Refined joint optimisation</span>
+│   └── <span class="csv">trade_log*.csv</span>                 <span class="note">← Various trade logs (bollinger, combined, week3)</span>
+│
+├── <span class="folder">Week_1_Notebooks/</span>                  <span class="note">← Jupyter notebooks; SMA/ADX fundamentals (Jan 2026)</span>
+├── <span class="folder">Week_2_Notebooks/</span>                  <span class="note">← Grid search, walk-forward, transaction cost analysis</span>
+├── <span class="folder">Week_3_Notebooks/</span>                  <span class="note">← Binance connectivity, live ADX, logging, dashboard</span>
+├── <span class="folder">Week_4_Notebooks/</span>                  <span class="note">← Production bots: day5_production_bot.py, rsi_production_bot.py</span>
+├── <span class="folder">Week_5_Notebooks/</span>                  <span class="note">← Stop loss research, RSI/Bollinger optimisation, BTC validation</span>
+├── <span class="folder">Week_6_Notebooks/</span>                  <span class="note">← Stage 1–5 analysis pipeline, leverage scripts, card builders</span>
+│
+├── <span class="folder">archive/</span>                            <span class="note">← Pre-curriculum scripts (Jan 2026, before Week 1 start)</span>
+└── <span class="folder">venv/</span>                               <span class="note">← Python virtual environment (not tracked in git)</span>
+</div>
+</div>
+
+<!-- ── SECTION 3: LIVING DOCUMENTS ── -->
+<div class="card" id="living">
+  <h2>3 — Living Documents</h2>
+  <p class="note" style="margin-bottom:12px;">Active documents that are updated as the project progresses. Open in browser or VS Code via the links.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Document</th>
+        <th>Purpose</th>
+        <th>Version / Last Updated</th>
+        <th class="center">Open</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-section"><td colspan="4">Process &amp; Standards</td></tr>
+      <tr>
+        <td><strong>CURRICULUM_OPERATING_MANUAL.md</strong></td>
+        <td>Master SOP: weekly startup procedure, tool allocation rules, compute upgrade schedule, key file locations</td>
+        <td>v1.1 · 2026-05-04</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/CURRICULUM_OPERATING_MANUAL.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>STRATEGY_RESEARCH_PIPELINE_v7.md</strong></td>
+        <td>6-phase pipeline (Phase 0 research → Phase 6 deployment); Kelly sizing, Monte Carlo, leverage screening, confidence-based allocation rules. v7 adds Phase 0 standing note.</td>
+        <td>v1.5 / v7 · 2026-05-13</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/STRATEGY_RESEARCH_PIPELINE_v7.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>METHODOLOGY_STANDARDS.md</strong></td>
+        <td>Metric calculation standards: daily equity Sortino/Sharpe, realistic vs conservative cost assumptions, bar-by-bar stop logic</td>
+        <td>2026-05-05</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/METHODOLOGY_STANDARDS.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>STRATEGIC_FRAMEWORK.md</strong></td>
+        <td>High-level trading framework; categorical liquidation check methodology; safety buffer constraints</td>
+        <td>2026-05-04</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/STRATEGIC_FRAMEWORK.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>LIVE_TRADING_CHECKLIST.md</strong></td>
+        <td>14-section pre-deployment checklist; mandatory sign-off before any strategy goes live</td>
+        <td>2026-05-07</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/LIVE_TRADING_CHECKLIST.md">Open</a></td>
+      </tr>
+
+      <tr class="row-section"><td colspan="4">Learning &amp; Research</td></tr>
+      <tr>
+        <td><strong>LEARNING_LOG_v7.md</strong></td>
+        <td>Running log of all concepts learned, errors corrected, and methodology decisions made. Week 7 adds Kelly Criterion corrected understanding entry.</td>
+        <td>v7 · 2026-05-13</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/LEARNING_LOG_v7.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>STRATEGY_IDEAS_LOG.md</strong></td>
+        <td>10 strategy ideas (SI001–SI010) with priority, target week, source, and research notes. Reviewed at start of each week.</td>
+        <td>SI010 added · 2026-05-14</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/STRATEGY_IDEAS_LOG.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>WEEK_7_RESEARCH_BRIEF.md</strong></td>
+        <td>Phase 0 research brief for Week 7: literature review on ADX leverage, BTC ADX validation parameters</td>
+        <td>2026-05-10</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/WEEK_7_RESEARCH_BRIEF.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>WEEK_7_THREAD_STARTER.md</strong></td>
+        <td>Context document pasted at the start of each Week 7 Claude Chat thread; open items, weekly goals, strategy status</td>
+        <td>2026-05-07</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/WEEK_7_THREAD_STARTER.md">Open</a></td>
+      </tr>
+
+      <tr class="row-section"><td colspan="4">Risk Registers</td></tr>
+      <tr>
+        <td><strong>RISK_REGISTER_ETH_ADX.md</strong></td>
+        <td>16 risk items for ETH ADX 19/9 strategy. Includes HIGH items: A013 (Kelly sizing error corrected Week 7), A014 (leverage safety buffer), A015/A016 (leveraged bot risks)</td>
+        <td>2026-05-13</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/RISK_REGISTER_ETH_ADX.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>RISK_REGISTER_ETH_RSI.md</strong></td>
+        <td>8 risk items for ETH RSI 14/43/48 strategy. RR-RSI-002 (win rate degradation) most urgent — capital increase blocker</td>
+        <td>2026-05-07</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/RISK_REGISTER_ETH_RSI.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>RISK_REGISTER_BTC_SMA.md</strong></td>
+        <td>Risk register for BTC SMA 120/25% strategy (CONDITIONAL GO, unfunded)</td>
+        <td>2026-05-04</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/RISK_REGISTER_BTC_SMA.md">Open</a></td>
+      </tr>
+      <tr>
+        <td><strong>RISK_AND_ASSUMPTIONS_REGISTER.md</strong></td>
+        <td>Portfolio-level shared risks and assumptions (exchange concentration, API dependencies, regulatory)</td>
+        <td>2026-05-01</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/RISK_AND_ASSUMPTIONS_REGISTER.md">Open</a></td>
+      </tr>
+
+      <tr class="row-section"><td colspan="4">Templates (not updated regularly)</td></tr>
+      <tr class="row-grey">
+        <td><strong>STRATEGY_DEPLOYMENT_TEMPLATE.md</strong></td>
+        <td>Template for new deployment decision documents</td>
+        <td>2026-05-07</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/STRATEGY_DEPLOYMENT_TEMPLATE.md">Open</a></td>
+      </tr>
+      <tr class="row-grey">
+        <td><strong>STRATEGY_RISK_REGISTER_TEMPLATE.md</strong></td>
+        <td>Template for new per-strategy risk registers</td>
+        <td>2026-05-01</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/STRATEGY_RISK_REGISTER_TEMPLATE.md">Open</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── SECTION 4: DEPLOYMENT DOCUMENTS ── -->
+<div class="card" id="deploy-docs">
+  <h2>4 — Deployment Documents</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Type</th>
+        <th>Content</th>
+        <th class="center">Status</th>
+        <th class="center">Open</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-section"><td colspan="5">Strategy Cards</td></tr>
+      <tr class="row-live">
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/ETH_ADX_Deployment_Card_v1.html">ETH_ADX_Deployment_Card_v1.html</a></td>
+        <td>Deployment Card</td>
+        <td>ETH ADX 19/9, 8% trail. Stage 5 metrics: +79.7% annual, Calmar 2.160, Sortino 1.761. Risk register, equity curve, Kelly sizing, deployment decision.</td>
+        <td class="center"><span class="pill pill-live">LIVE</span></td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/ETH_ADX_Deployment_Card_v1.html">Open</a></td>
+      </tr>
+      <tr class="row-amber">
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/ETH_RSI_Deployment_Card_v1.html">ETH_RSI_Deployment_Card_v1.html</a></td>
+        <td>Deployment Card</td>
+        <td>ETH RSI 14/43/48, 15% stop. Stage 5 metrics: +16.1% annual, Calmar 0.548, Profit Factor 5.395. Monte Carlo table, validation gate checklist.</td>
+        <td class="center"><span class="pill pill-val">VALIDATION</span></td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/ETH_RSI_Deployment_Card_v1.html">Open</a></td>
+      </tr>
+
+      <tr class="row-section"><td colspan="5">Reference Cards</td></tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/ATR_Explainer_v1.html">ATR_Explainer_v1.html</a></td>
+        <td>Indicator Reference</td>
+        <td>ATR: 7 sections covering True Range calculation, Wilder smoothing, SVG candlestick scenario diagrams, position sizing/stop placement/regime filter examples, ADX comparison, bot context (pct trail vs ATR trail backtest).</td>
+        <td class="center"><span class="pill pill-done">Reference</span></td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/ATR_Explainer_v1.html">Open</a></td>
+      </tr>
+
+      <tr class="row-section"><td colspan="5">Analysis Charts — Stage 5 (Authoritative)</td></tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/week6_stage5_final_comparison_v2.html">week6_stage5_final_comparison_v2.html</a></td>
+        <td>Stage 5</td>
+        <td>Authoritative 3-strategy comparison: ETH ADX vs ETH RSI vs B&amp;H. Daily MtM equity curves, year-by-year bar chart, full metrics table, parameter reference.</td>
+        <td class="center"><span class="pill pill-done">v2 · Final</span></td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/week6_stage5_final_comparison_v2.html">Open</a></td>
+      </tr>
+
+      <tr class="row-section"><td colspan="5">Analysis Charts — Stage 2–4 (ETH ADX Leverage Research)</td></tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage2_parallel_coordinates_interactive.html">stage2_parallel_coordinates_interactive.html</a></td>
+        <td>Stage 2</td>
+        <td>Interactive parallel coordinates: top combinations from Stage 2 leverage grid, coloured by safety buffer margin.</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage2_parallel_coordinates_interactive.html">Open</a></td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage2_parallel_with_table.html">stage2_parallel_with_table.html</a></td>
+        <td>Stage 2</td>
+        <td>Parallel coordinates with ranked metrics table (leverage, return, MaxDD, Sortino, buffer).</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage2_parallel_with_table.html">Open</a></td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3_equity_curve_full.html">stage3_equity_curve_full.html</a></td>
+        <td>Stage 3</td>
+        <td>Stage 3 full equity curve with drawdown subplot for ETH ADX at selected leverage levels.</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3_equity_curve_full.html">Open</a></td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3a_return_vs_leverage.html">stage3a_return_vs_leverage.html</a></td>
+        <td>Stage 3a</td>
+        <td>Annual return vs leverage grid for ETH ADX (top 20 combinations).</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3a_return_vs_leverage.html">Open</a></td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3a_maxdd_vs_leverage.html">stage3a_maxdd_vs_leverage.html</a></td>
+        <td>Stage 3a</td>
+        <td>MtM MaxDD vs leverage grid for ETH ADX (safety buffer coloured).</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3a_maxdd_vs_leverage.html">Open</a></td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3b_stability.html">stage3b_stability.html</a></td>
+        <td>Stage 3b</td>
+        <td>Parameter stability heatmap at 1.9× leverage.</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3b_stability.html">Open</a></td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3c_rate_sensitivity.html">stage3c_rate_sensitivity.html</a></td>
+        <td>Stage 3c</td>
+        <td>Borrow rate sensitivity (0%–10%/yr) at 1.9× leverage — annual return and Calmar vs borrow rate.</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage3c_rate_sensitivity.html">Open</a></td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage4a_btc_leverage.html">stage4a_btc_leverage.html</a></td>
+        <td>Stage 4a</td>
+        <td>BTC ADX leverage analysis: buffer vs leverage grid for BTC ADX 19/14 at 3% stop.</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/stage4a_btc_leverage.html">Open</a></td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/btc_equity_interactive.html">btc_equity_interactive.html</a></td>
+        <td>BTC Overview</td>
+        <td>BTC SMA vs BTC ADX vs BTC B&amp;H interactive equity curves.</td>
+        <td class="center">—</td>
+        <td class="center"><a class="open-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Deployment_Documents/Week_6/btc_equity_interactive.html">Open</a></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── SECTION 5: DEPLOYED BOTS ── -->
+<div class="card" id="bots">
+  <h2>5 — Deployed Bots</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Strategy</th>
+        <th>Bot Script</th>
+        <th>EC2 Location</th>
+        <th>Capital</th>
+        <th>Current Position</th>
+        <th class="center">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="row-live">
+        <td><strong>ETH ADX 19/9</strong><br><span style="font-size:0.76rem; color:#555;">8% trailing stop · 1× spot · Half-Kelly f*=12.41%</span></td>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/day5_production_bot.py">Week_4_Notebooks/<br>day5_production_bot.py</a></td>
+        <td>3.104.101.30<br><span style="font-size:0.76rem; color:#555;">ap-southeast-2 (Sydney)</span></td>
+        <td>$1,000<br><span style="font-size:0.76rem; color:#555;">50% of $2,000 target</span></td>
+        <td><strong>LONG</strong> 0.419 ETH<br><span style="font-size:0.76rem; color:#555;">Entry: $2,368.52 · 2026-05-11</span></td>
+        <td class="center"><span class="pill pill-live">LIVE</span></td>
+      </tr>
+      <tr class="row-amber">
+        <td><strong>ETH RSI 14/43/48</strong><br><span style="font-size:0.76rem; color:#555;">15% hard stop · 1× spot · $341 Monte Carlo sizing</span></td>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/rsi_production_bot.py">Week_4_Notebooks/<br>rsi_production_bot.py</a></td>
+        <td>3.104.101.30<br><span style="font-size:0.76rem; color:#555;">ap-southeast-2 (Sydney)</span></td>
+        <td>$150<br><span style="font-size:0.76rem; color:#555;">Fixed allocation (no rebalance)</span></td>
+        <td>FLAT · $150.00 cash<br><span style="font-size:0.76rem; color:#555;">Waiting for RSI &lt; 43 entry</span></td>
+        <td class="center"><span class="pill pill-val">VALIDATION</span></td>
+      </tr>
+      <tr class="row-grey">
+        <td><strong>BTC SMA 120/25%</strong><br><span style="font-size:0.76rem; color:#555;">25% retracement exit · 1× spot · GO decision pending capital</span></td>
+        <td><span style="font-size:0.76rem; color:#aaa;">Not yet built</span></td>
+        <td>3.104.101.30<br><span style="font-size:0.76rem; color:#555;">ap-southeast-2 (Sydney)</span></td>
+        <td>$0<br><span style="font-size:0.76rem; color:#555;">CONDITIONAL GO · unfunded</span></td>
+        <td>FLAT · not deployed</td>
+        <td class="center"><span class="pill pill-pend">PENDING</span></td>
+      </tr>
+      <tr class="row-amber">
+        <td><strong>ETH ADX 19/9 (1.9×)</strong><br><span style="font-size:0.76rem; color:#555;">8% trailing stop · 1.9× isolated margin · Week 7 build</span></td>
+        <td><span style="font-size:0.76rem; color:#aaa;">Week_7_Notebooks/<br>day6_leveraged_bot.py (planned)</span></td>
+        <td>3.104.101.30<br><span style="font-size:0.76rem; color:#555;">ap-southeast-2 (Sydney)</span></td>
+        <td>$1,000<br><span style="font-size:0.76rem; color:#555;">Same capital, 1.9× position</span></td>
+        <td>Not yet deployed</td>
+        <td class="center"><span class="pill pill-pend">BUILDING</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="code-box" style="margin-top:16px;">
+<span style="color:#546E7A; font-size:0.75rem; font-family:sans-serif; display:block; margin-bottom:4px;">CRON SCHEDULE (EC2 UTC)</span>
+5  0  * * *  python3 /path/to/day5_production_bot.py --mode=signal       # 00:05 UTC — daily candle, ADX signal, entry/exit decisions
+5  6  * * *  python3 /path/to/day5_production_bot.py --mode=stop_update  # 06:05 UTC — trailing stop update
+5 12  * * *  python3 /path/to/day5_production_bot.py --mode=stop_update  # 12:05 UTC — trailing stop update
+5 18  * * *  python3 /path/to/day5_production_bot.py --mode=stop_update  # 18:05 UTC — trailing stop update</div>
+
+  <div class="warn">
+    <strong>Week 7 Priority 1:</strong> Build <code>day6_leveraged_bot.py</code> — the 1.9× isolated margin version of the ETH ADX bot. Architectural diff reviewed and approved; awaiting execution venue decision (Binance Isolated Margin vs USDM Futures) before writing code.
+  </div>
+</div>
+
+<!-- ── SECTION 6: NOTEBOOKS BY WEEK ── -->
+<div class="card" id="notebooks">
+  <h2>6 — Notebooks &amp; Scripts by Week</h2>
+  <p class="note" style="margin-bottom:14px;">Click a week to expand. Weeks 1–2 use Jupyter notebooks (.ipynb); Weeks 3–6 use Python scripts (.py).</p>
+
+  <details>
+    <summary>📓 Week 1 — SMA &amp; ADX Fundamentals (Jan 2026)</summary>
+    <div class="detail-body">
+      <table>
+        <thead><tr><th>File</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_1_Notebooks/Day_2_SMA_Backtest_Fixed.ipynb">Day_2_SMA_Backtest_Fixed.ipynb</a></td><td>First SMA crossover backtest, fixed parameters</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_1_Notebooks/Day_3_Understanding_Metrics.ipynb">Day_3_Understanding_Metrics.ipynb</a></td><td>Sharpe, Sortino, Calmar definitions and calculation</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_1_Notebooks/Day_04_Data_Analysis_ADX.ipynb">Day_04_Data_Analysis_ADX.ipynb</a></td><td>ADX indicator analysis and data exploration</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_1_Notebooks/Day_05_ADX_Regime_Strategy.ipynb">Day_05_ADX_Regime_Strategy.ipynb</a></td><td>ADX regime strategy (first version)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_1_Notebooks/Interactive_3D_Optimization.ipynb">Interactive_3D_Optimization.ipynb</a></td><td>3D parameter optimisation visualisation</td></tr>
+          <tr><td><span style="color:#888;">Week_1_strategies.csv / .xlsx</span></td><td>Week 1 backtest results</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details>
+    <summary>📓 Week 2 — Grid Search, Walk-Forward &amp; Transaction Costs</summary>
+    <div class="detail-body">
+      <table>
+        <thead><tr><th>File</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_2_Notebooks/01_optimization_grid_search.ipynb">01_optimization_grid_search.ipynb</a></td><td>Grid search over SMA periods; heatmap visualisation</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_2_Notebooks/02_transaction_cost_model.ipynb">02_transaction_cost_model.ipynb</a></td><td>Transaction cost sensitivity analysis; break-even costs</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_2_Notebooks/02_walk_forward_analysis.ipynb">02_walk_forward_analysis.ipynb</a></td><td>Walk-forward validation methodology</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_2_Notebooks/03_web3_defi_integration.ipynb">03_web3_defi_integration.ipynb</a></td><td>Web3.py introduction; DeFi protocol interaction basics</td></tr>
+          <tr><td><span style="color:#888;">Week_2_grid/walkforward/transaction_cost results (.csv/.xlsx)</span></td><td>All Week 2 result files</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details>
+    <summary>🐍 Week 3 — Live Exchange Connectivity &amp; Monitoring</summary>
+    <div class="detail-body">
+      <table>
+        <thead><tr><th>File</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day1_binance_connection.py">day1_binance_connection.py</a></td><td>Binance API connection test and authentication</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day1_fetch_historical.py">day1_fetch_historical.py</a></td><td>Historical OHLCV data fetcher from Binance</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day1_cex_vs_dex_comparison.py">day1_cex_vs_dex_comparison.py</a></td><td>CEX vs DEX price comparison</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day2_candle_aggregator.py">day2_candle_aggregator.py</a></td><td>Candle aggregation for custom timeframes</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day2_live_adx_calculator.py">day2_live_adx_calculator.py</a></td><td>Live ADX calculation from streaming candle data</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day2_websocket_stream.py">day2_websocket_stream.py</a></td><td>Binance WebSocket stream consumer</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day3_position_tracker.py">day3_position_tracker.py</a></td><td>Position state tracker (precursor to bot_state.json)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day4_logging_framework.py">day4_logging_framework.py</a></td><td>Structured logging framework for bot output</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day5_dashboard.py">day5_dashboard.py</a></td><td>Simple monitoring dashboard for live signals</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/day6_alert_system.py">day6_alert_system.py</a></td><td>Telegram alert system (foundation for production bot)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_3_Notebooks/test_telegram.py">test_telegram.py</a></td><td>Telegram bot connection test</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details>
+    <summary>🤖 Week 4 — Production Bots &amp; Live Execution</summary>
+    <div class="detail-body">
+      <table>
+        <thead><tr><th>File</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/day5_production_bot.py"><strong>day5_production_bot.py</strong></a></td><td><strong>ETH ADX production bot — LIVE ON EC2</strong>. Signal (00:05) + stop_update (06:05/12:05/18:05) modes. Bar-by-bar trailing stop, portfolio_manager integration.</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/rsi_production_bot.py"><strong>rsi_production_bot.py</strong></a></td><td><strong>ETH RSI production bot — LIVE ON EC2 (VALIDATION)</strong>. RSI 14/43/48 with 15% hard stop, fixed $150 allocation.</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/day1_strategy_integration.py">day1_strategy_integration.py</a></td><td>Strategy signal integration with execution layer</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/day1_testnet_execution.py">day1_testnet_execution.py</a></td><td>Binance testnet order execution tests</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/day2_kelly_criterion.py">day2_kelly_criterion.py</a></td><td>Kelly criterion calculation (Note: pre-correction implementation)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/day2_rolling_window.py">day2_rolling_window.py</a></td><td>Rolling window parameter stability analysis</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/day2_window_comparison.py">day2_window_comparison.py</a></td><td>Rolling window period comparison</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/day3_trade_logger.py">day3_trade_logger.py</a></td><td>Trade result logger (precursor to record_trade_result())</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_4_Notebooks/week4_daily_validation.py">week4_daily_validation.py</a></td><td>Daily validation runner for bot health checks</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details>
+    <summary>🔬 Week 5 — Strategy Research: RSI, Bollinger, BTC Validation</summary>
+    <div class="detail-body">
+      <table>
+        <thead><tr><th>File</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day1_stoploss_backtest_fixed.py">day1_stoploss_backtest_fixed.py</a></td><td>Fixed stop loss vs trailing stop comparison on ETH ADX</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day2_kelly_and_simulator.py">day2_kelly_and_simulator.py</a></td><td>Kelly sizing and Monte Carlo portfolio simulator</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day3_joint_optimisation.py">day3_joint_optimisation.py</a></td><td>Joint optimisation of ADX threshold + stop loss parameters</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day4_bollinger_optimisation.py">day4_bollinger_optimisation.py</a></td><td>Bollinger Bands parameter grid search on ETH</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day4_bollinger_final.py">day4_bollinger_final.py</a></td><td>Bollinger Bands final selected parameters</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day5_rsi_optimisation.py">day5_rsi_optimisation.py</a></td><td>RSI parameter grid search (entry/exit threshold combinations)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day5_rsi_stability.py">day5_rsi_stability.py</a></td><td>RSI parameter stability analysis (half-split, rolling)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day5_rsi_final.py">day5_rsi_final.py</a></td><td>RSI final parameters (14/43/48) — defines the deployed strategy</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day6_combined_strategy.py">day6_combined_strategy.py</a></td><td>ETH ADX + ETH RSI combined portfolio analysis</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day7_bitcoin_validation.py">day7_bitcoin_validation.py</a></td><td>Cross-asset validation: ETH strategy applied to BTC</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/day7_walk_forward.py">day7_walk_forward.py</a></td><td>Walk-forward validation with expanding/rolling windows</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/btc_adx_optimisation.py">btc_adx_optimisation.py</a></td><td>BTC ADX grid search (Week 5 — pre-correction methodology)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/btc_adx_stability.py">btc_adx_stability.py</a></td><td>BTC ADX stability analysis</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/btc_sma_stability.py">btc_sma_stability.py</a></td><td>BTC SMA 120/25% stability analysis</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/recalculate_daily_metrics.py">recalculate_daily_metrics.py</a></td><td>Retrospective correction of per-trade metrics to daily equity curve method</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/margin_backtest.py">margin_backtest.py</a></td><td>Initial margin/leverage backtest framework</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/sma_crossover_backtest.py">sma_crossover_backtest.py</a></td><td>BTC SMA crossover final backtest</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/benchmark_comparison.py">benchmark_comparison.py</a></td><td>All strategies vs B&amp;H benchmark comparison chart</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_5_Notebooks/final_strategy_visualisation.py">final_strategy_visualisation.py</a></td><td>Final Week 5 strategy summary visualisation</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+
+  <details open>
+    <summary>⚡ Week 6 — ETH ADX Leverage Pipeline + Deployment (Current)</summary>
+    <div class="detail-body">
+      <table>
+        <thead><tr><th>File</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td colspan="2" style="background:#ECEFF1; font-weight:600; font-size:0.76rem; color:#546E7A; text-transform:uppercase; letter-spacing:0.3px;">Stage 1 — Trailing Stop Optimisation</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage1a_percentage_trailing.py">stage1a_percentage_trailing.py</a></td><td>Percentage trailing stop grid search (728+ combinations: ADX threshold × period × trail %)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage1b_atr_trailing.py">stage1b_atr_trailing.py</a></td><td>ATR trailing stop grid search (ADX × ATR period × ATR multiplier)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage1c_stability.py">stage1c_stability.py</a></td><td>Parameter stability analysis for Stage 1 top combinations</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage1d_final_comparison.py">stage1d_final_comparison.py</a></td><td>Stage 1 final: pct trail vs ATR trail head-to-head comparison</td></tr>
+          <tr><td colspan="2" style="background:#ECEFF1; font-weight:600; font-size:0.76rem; color:#546E7A; text-transform:uppercase; letter-spacing:0.3px;">Stage 2 — Leverage Analysis</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2_btc_sma_validation.py">stage2_btc_sma_validation.py</a></td><td>BTC SMA 120/25% full 4-stage validation (A stability, B walk-forward, C cross-asset, D leverage)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2_analysis_suite.py">stage2_analysis_suite.py</a></td><td>Stage 2 analysis suite for leverage grid output processing</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2a_extended_analysis.py">stage2a_extended_analysis.py</a></td><td>Extended Stage 2a leverage grid (wider parameter range)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2a_composite_analysis.py">stage2a_composite_analysis.py</a></td><td>Composite Stage 2a with safety buffer and plateau analysis</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2b_run.py">stage2b_run.py</a></td><td>Stage 2b: full leverage grid (1.0–5.0×, 0.1× steps) for top 3 combinations</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2c_stability.py">stage2c_stability.py</a></td><td>Stage 2c: parameter stability at deployment leverage (1.9×)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2d_walkforward_v2.py">stage2d_walkforward_v2.py</a></td><td>Stage 2d: walk-forward validation with expanding windows</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2e_eth_crossasset.py">stage2e_eth_crossasset.py</a></td><td>Stage 2e: ETH ADX cross-asset validation on BTC</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2_parallel_interactive.py">stage2_parallel_interactive.py</a></td><td>Interactive parallel coordinates chart builder</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage2_parallel_with_table.py">stage2_parallel_with_table.py</a></td><td>Parallel coordinates + ranked metrics table builder</td></tr>
+          <tr><td colspan="2" style="background:#ECEFF1; font-weight:600; font-size:0.76rem; color:#546E7A; text-transform:uppercase; letter-spacing:0.3px;">Stage 3 — ETH ADX Leverage Decision</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage3_eth_leverage.py">stage3_eth_leverage.py</a></td><td>ETH ADX leverage optimisation and buffer analysis (produces stage3a_results.csv)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage3_equity_curve_full.py">stage3_equity_curve_full.py</a></td><td>Full equity curve at 1.9× leverage with drawdown subplot</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage3b_3c_sensitivity.py">stage3b_3c_sensitivity.py</a></td><td>Stage 3b/3c: stability heatmap + borrow rate sensitivity</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/buffer_analysis.py">buffer_analysis.py</a></td><td>Safety buffer analysis: worst-case intraday move vs liquidation price</td></tr>
+          <tr><td colspan="2" style="background:#ECEFF1; font-weight:600; font-size:0.76rem; color:#546E7A; text-transform:uppercase; letter-spacing:0.3px;">Stage 4 — BTC Leverage Analysis</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage4_btc_leverage.py">stage4_btc_leverage.py</a></td><td>BTC ADX 19/14 leverage analysis (produces stage4a_results.csv)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage4b_4c.py">stage4b_4c.py</a></td><td>BTC leverage Stage 4b/4c (stability and cross-asset at leverage)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/btc_adx_validation.py">btc_adx_validation.py</a></td><td>BTC ADX full validation pipeline (corrected methodology)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/btc_sma_final_summary.py">btc_sma_final_summary.py</a></td><td>BTC SMA final summary and deployment decision output</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/btc_equity_interactive.py">btc_equity_interactive.py</a></td><td>BTC SMA vs ADX vs B&amp;H interactive equity chart builder</td></tr>
+          <tr><td colspan="2" style="background:#ECEFF1; font-weight:600; font-size:0.76rem; color:#546E7A; text-transform:uppercase; letter-spacing:0.3px;">Stage 5 — Authoritative Comparison</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/stage5_final_comparison.py"><strong>stage5_final_comparison.py</strong></a></td><td><strong>Authoritative final comparison</strong>: ETH ADX vs ETH RSI vs B&amp;H. Daily MtM equity curves, year-by-year breakdown. Produces stage5_final_comparison.csv + week6_stage5_final_comparison_v2.html.</td></tr>
+          <tr><td colspan="2" style="background:#ECEFF1; font-weight:600; font-size:0.76rem; color:#546E7A; text-transform:uppercase; letter-spacing:0.3px;">Deployment Card Builders</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/build_eth_adx_card.py">build_eth_adx_card.py</a></td><td>Generates ETH_ADX_Deployment_Card_v1.html (re-runs backtest internally for equity curve)</td></tr>
+          <tr><td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/build_eth_rsi_card.py">build_eth_rsi_card.py</a></td><td>Generates ETH_RSI_Deployment_Card_v1.html (includes Monte Carlo table)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </details>
+</div>
+
+<!-- ── SECTION 7: DATA FILES ── -->
+<div class="card" id="data">
+  <h2>7 — Data Files</h2>
+  <table>
+    <thead>
+      <tr><th>File</th><th>Location</th><th>Produced by</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr class="row-section"><td colspan="4">Live State</td></tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/portfolio_state.json">portfolio_state.json</a></td>
+        <td>data/</td>
+        <td>portfolio_manager.py</td>
+        <td>Live portfolio state: reserved_capital, position, entry_price, quantity for each strategy. Updated on every trade. ETH ADX: LONG 0.419 ETH @ $2,368.52. ETH RSI: FLAT $150.</td>
+      </tr>
+      <tr class="row-section"><td colspan="4">Stage 5 — Authoritative Results</td></tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/results/stage5_final_comparison.csv">stage5_final_comparison.csv</a></td>
+        <td>Week_6_Notebooks/results/</td>
+        <td>stage5_final_comparison.py</td>
+        <td>Authoritative daily equity curve data for ETH ADX, ETH RSI, B&amp;H (2018–2024). Source of all Stage 5 metrics. Regenerate by rerunning stage5_final_comparison.py.</td>
+      </tr>
+      <tr class="row-section"><td colspan="4">Backtest Trade Logs</td></tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/trade_log_with_stoploss.csv">trade_log_with_stoploss.csv</a></td>
+        <td>data/</td>
+        <td>Week 5 backtest scripts</td>
+        <td>ETH ADX backtested trade log — 108 trades, corrected methodology (0.15% costs, bar-by-bar stops). Reference for strategy validation.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/trade_log_rsi_final.csv">trade_log_rsi_final.csv</a></td>
+        <td>data/</td>
+        <td>Week 5 RSI scripts</td>
+        <td>ETH RSI backtested trade log — 31 trades, 93.5% win rate, Profit Factor 5.395.</td>
+      </tr>
+      <tr class="row-section"><td colspan="4">Optimisation Results</td></tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/Week_6_Notebooks/results/stage1a_results.csv">stage1a_results.csv</a></td>
+        <td>Week_6_Notebooks/results/</td>
+        <td>stage1a_percentage_trailing.py</td>
+        <td>Stage 1a grid search: all percentage trailing stop combinations (ADX threshold × period × trail %). 728+ rows. Best: ADX 19/9, trail 8%.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/stage1b_results.csv">stage1b_results.csv</a></td>
+        <td>data/</td>
+        <td>stage1b_atr_trailing.py</td>
+        <td>Stage 1b ATR trailing stop grid. Best: ADX 19/9, ATR(9) × 2.5. Comparison vs pct trail: lower MaxDD, lower return.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/stage2a_results.csv">stage2a_results.csv</a></td>
+        <td>data/</td>
+        <td>stage2_analysis_suite.py</td>
+        <td>Stage 2a: top combinations by leveraged annual return, with safety buffer ≥ 33%. Identifies 1.9× as optimal leverage for ADX 19/9.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/stage2b_results.csv">stage2b_results.csv</a></td>
+        <td>data/</td>
+        <td>stage2b_run.py</td>
+        <td>Stage 2b full leverage grid (1.0–5.0×, 0.1× steps) for top 3 combinations. 156K+ rows.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/stage3a_results.csv">stage3a_results.csv</a></td>
+        <td>data/</td>
+        <td>stage3_eth_leverage.py</td>
+        <td>Stage 3a: ETH ADX leverage optimisation final ranking. Confirms 1.9× as Kelly-optimal and buffer-confirmed deployment leverage.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/stage3c_results.csv">stage3c_results.csv</a></td>
+        <td>data/</td>
+        <td>stage3b_3c_sensitivity.py</td>
+        <td>Stage 3c: borrow rate sensitivity (0–10%/yr). Annual return stays positive until borrow rate exceeds ~7%/yr at 1.9×.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/stage4a_results.csv">stage4a_results.csv</a></td>
+        <td>data/</td>
+        <td>stage4_btc_leverage.py</td>
+        <td>Stage 4a: BTC ADX 19/14 leverage analysis. Safety buffer limits leverage to &lt;1.5× for BTC ADX at 3% stop.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/rsi_optimisation_results.csv">rsi_optimisation_results.csv</a></td>
+        <td>data/</td>
+        <td>Week 5 RSI scripts</td>
+        <td>Full RSI grid search (period × entry threshold × exit threshold). 900K+ combinations. Best: RSI 14, entry 43, exit 48.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/btc_adx_optimisation_results.csv">btc_adx_optimisation_results.csv</a></td>
+        <td>data/</td>
+        <td>btc_adx_optimisation.py</td>
+        <td>BTC ADX full grid search (pre-correction methodology from Week 5). Superseded by Week 6 corrected results.</td>
+      </tr>
+      <tr>
+        <td><a class="file-link" href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/data/btc_adx_stage_a_results.csv">btc_adx_stage_a_results.csv</a></td>
+        <td>data/</td>
+        <td>btc_adx_validation.py</td>
+        <td>BTC ADX Stage A results (Week 6, corrected methodology). Best: ADX 19/14, fixed 3% stop — 103 trades.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── SECTION 8: EC2 INFRASTRUCTURE ── -->
+<div class="card" id="ec2">
+  <h2>8 — EC2 Infrastructure</h2>
+  <div class="two-col">
+    <div>
+      <table>
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Public IP</strong></td><td><code>3.104.101.30</code> (Elastic IP — permanent)</td></tr>
+          <tr><td><strong>Region</strong></td><td>ap-southeast-2 (Sydney, Australia)</td></tr>
+          <tr><td><strong>Instance type</strong></td><td>c5.2xlarge (8 vCPUs, 16GB RAM) — available for heavy backtests from Week 13</td></tr>
+          <tr><td><strong>GitHub repo (code)</strong></td><td>SCE2GNM/Python_Local_Folder</td></tr>
+          <tr><td><strong>Live bots on EC2</strong></td><td>day5_production_bot.py (ETH ADX) · rsi_production_bot.py (ETH RSI)</td></tr>
+          <tr><td><strong>Log method</strong></td><td>stdout → cron mail or redirected per crontab entry</td></tr>
+          <tr><td><strong>Bot state files</strong></td><td>data/bot_state.json (ETH ADX) · data/rsi_bot_state.json (ETH RSI)</td></tr>
+          <tr><td><strong>Portfolio state</strong></td><td>data/portfolio_state.json</td></tr>
+          <tr><td><strong>Env file</strong></td><td>.env (Binance API keys, Telegram token) — not tracked in git</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>Cron Schedule (UTC)</h3>
+      <div class="code-box">5  0  * * *  python3 .../day5_production_bot.py --mode=signal
+5  6  * * *  python3 .../day5_production_bot.py --mode=stop_update
+5 12  * * *  python3 .../day5_production_bot.py --mode=stop_update
+5 18  * * *  python3 .../day5_production_bot.py --mode=stop_update
+<span style="color:#90A4AE;">
+# RSI bot — same cron schedule, separate process
+# Rebalance — Monday 01:00 UTC (portfolio_rebalance.py)</span></div>
+
+      <h3>EC2 Management Commands</h3>
+      <div class="code-box"><span style="color:#546E7A;"># SSH</span>
+ssh -i ~/.ssh/[key].pem ubuntu@3.104.101.30
+
+<span style="color:#546E7A;"># Check cron</span>
+crontab -l
+
+<span style="color:#546E7A;"># Pull latest code</span>
+git pull origin main
+
+<span style="color:#546E7A;"># Check bot state</span>
+cat data/bot_state.json
+cat data/portfolio_state.json</div>
+    </div>
+  </div>
+
+  <div class="warn" style="margin-top:6px;">
+    <strong>Week 13 compute upgrade trigger:</strong> If backtesting moves to minute-level intraday data or grid searches exceed 50,000 combinations, switch to running them on EC2 (c5.2xlarge, ~$0.34/hr) rather than blocking the local Mac. Google Colab (free) for ML model training from Week 10. No hardware purchase needed — cloud is the right solution.
+  </div>
+
+  <div class="insight">
+    <strong>Week 7 EC2 change pending:</strong> The leveraged bot (day6_leveraged_bot.py) will run on the same EC2 instance alongside the spot bot. The margin ratio check (4× daily) will be added as a new cron entry or integrated into the existing stop_update runs.
+  </div>
+</div>
+
+<p style="font-size:0.74rem; color:#B0BEC5; text-align:center; margin-top:8px;">
+  Generated 2026-05-14 · Week 7 · DeFi Quant Engineer Curriculum · Greg (Gmac) ·
+  <a href="file:///Users/Greg/Documents/Python_Local_Folder/Python_Quant_Researcher/CURRICULUM_OPERATING_MANUAL.md" style="color:#90A4AE;">Operating Manual</a>
+</p>
+
+</div><!-- /wrapper -->
+</body>
+</html>

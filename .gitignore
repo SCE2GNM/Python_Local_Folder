@@ -1,5 +1,25 @@
-# Python artifacts
+# Credentials - NEVER commit these
+.env
+
+# Virtual environment - too large, not needed on GitHub
+venv/
+
+# Python cache files
 __pycache__/
 *.py[cod]
-# macOS system file
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# Mac system files
 .DS_Store
+
+# Data files that don't need version control
+*.csv
+*.xlsx
+*.numbers
+*.png
+*.pdf
