@@ -131,6 +131,10 @@ No-stop baseline on ETH (SMA 110 only, no trail): Annual +28.3%, MtM MaxDD −75
 > 5. Deployment card complete (Week 8)
 >
 > **Signed off: Greg + Claude, Week 7**
+>
+> **First review date: 2026-07-16** (2 months post-deployment). Review agenda: (1) has a profit exit occurred? (2) has a loss exit occurred? (3) are live metrics broadly consistent with backtest? (4) set next review date.
+>
+> *Reminder: Telegram cron reminder to be added to EC2 when bot is deployed in Week 8.*
 
 ---
 
