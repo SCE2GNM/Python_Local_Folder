@@ -17,7 +17,7 @@
 
 ## Week 8 Setup Tasks — Do First
 
-### Task 0 — File System Reorganisation (before any new code)
+### Task 0 — File System Reorganisation ✅ COMPLETE (done Week 7 close-out, 2026-05-16)
 
 Reorganise the project root into the following folder structure. Do this as the first action of Week 8, before writing any new scripts or notebooks.
 
@@ -46,6 +46,18 @@ Reorganise the project root into the following folder structure. Do this as the 
 **Commit rule:** Reorganisation must be committed as a single clean commit before any Week 8 work begins. Message: `"Week 8: file system reorganisation — new folder structure 00_MASTER through 07_DATA"`. Do not mix reorganisation and new code in the same commit.
 
 **Introduced:** Week 7 (2026-05-16)
+
+---
+
+### Task 1 — EC2 Infrastructure Check
+
+**EC2 IP changed during Week 7:** The instance was restarted and received a new public IP (`3.104.101.30`, previously `15.134.135.221`). SSH key: `~/.ssh/trading-bot-key.pem`. Username: `ubuntu`.
+
+> **EC2 IP changed — consider adding an Elastic IP to prevent this happening again on next restart. Cost: ~$0.005/hr when instance is running, free when stopped.**
+
+Steps to add Elastic IP: AWS Console → EC2 → Elastic IPs → Allocate → Associate with instance. Once assigned, the IP is permanent across restarts.
+
+**Introduced:** Week 7 close-out (2026-05-16)
 
 ---
 
