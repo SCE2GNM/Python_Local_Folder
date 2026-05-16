@@ -15,14 +15,14 @@
 > strong trends post-2022) and parameter sensitivity (win rate collapsed 37%→18%
 > post-2022; 3% fixed stop too tight for ETF-era BTC volatility).
 > Monte Carlo not required — Stage B is decisive.
-> **BTC SMA 120/25% remains the sole primary BTC strategy candidate.
+> **BTC SMA 110/30% remains the sole primary BTC strategy candidate.
 > BTC ADX 19/14 is not a fallback option.**
 
 **Strategy:** BTC-USD SMA Crossover with Percentage Trailing Stop
 **Asset / Exchange:** BTCUSDT / Binance Spot (proposed)
-**Version:** v1.2 — BTC ADX NO-GO note added
+**Version:** v1.3 — Stage B/C/Phase 4 re-run; primary candidate updated to SMA110/T30%
 **Date created:** 2026-05-02
-**Last updated:** 2026-05-14
+**Last updated:** 2026-05-16
 **Updated by:** Greg + Claude
 
 ---
@@ -31,12 +31,16 @@
 
 | Stage | Status | Outcome |
 |---|---|---|
-| Stage 2a — Grid search (SMA × trail%) | Complete | Best: SMA 120/25% (Ann 48.9%) |
+| Stage 2a — Grid search (SMA × trail%) | Complete | Best: SMA 120/25% (Ann 48.9%) — prior pipeline |
 | Stage 2b — ATR trail grid | Complete | ATR trail decisively weaker than pct trail |
 | Stage 2c — Stability analysis | Complete | MARGINAL (50.5% composite stability) |
 | Stage 2d — Walk-forward validation | Complete | 2/3 windows pass (2022 bear year fails) |
 | Stage 2e — ETH cross-asset check | Complete | **FAIL — edge does not generalise to ETH** |
-| Final recommendation | **CONDITIONAL GO** | BTC-only deployment accepted; ETH failure reframed as asset-specificity |
+| Prior pipeline verdict | **CONDITIONAL GO** | BTC-only deployment; ETH failure reframed as asset-specificity |
+| Stage B re-run — SMA sweep (T8%, SMA80–160) | Complete | **NO-GO** — T8% too tight; 12 whipsaw entries Jan 2021 alone; post-2022 +11.1%/yr, Sortino 0.570 |
+| Stage B wider trail sweep (T15–35%, SMA100–150) | Complete | 33/55 configs qualify; **SMA110/T30% selected as new primary** (Sortino 1.379, MtM DD −31.4%, post-2022 +32.7%) |
+| Stage C — Phase 3 Monte Carlo (magnitude scaling) | Complete | SMA110/T30% viable at median to 20% magnitude; P10 first turns negative at 20% scale |
+| Phase 4 — ETH cross-asset re-validation | Complete | **PARTIAL PASS** — Sortino 0.701, annual +26.8%, post-2022 −0.5% (ETH asset-specificity confirmed) |
 
 **CONDITIONAL GO rationale:**
 The Stage 2e ETH cross-asset failure was originally interpreted as disqualifying. On reflection, it is more accurately an asset-specificity finding: SMA trend-following requires a sustained, low-whipsaw trend structure. BTC exhibits this (2020–2021 bull run, gradual range compression); ETH's higher volatility amplifies whipsaw losses in sideways markets. The ETH failure does not indicate the BTC edge is spurious — it indicates the strategy is BTC-specific and should be documented as such.
@@ -56,6 +60,58 @@ Additional context: BTC SMA 120/25% is **superior to BTC ADX 19/14** on every ri
 
 **Sortino threshold miss — accepted as marginal deviation:**
 The Sortino ratio is 1.43× B&H, a shortfall of 0.07× against the 1.50× target. This is formally logged as an accepted deviation, not an overlooked failure. Rationale: both other B&H thresholds pass comfortably (annual return 2.10×, MaxDD only 37% of B&H worst drawdown). The drawdown profile chart visually confirms dramatically better risk management than B&H — SMA MaxDD is −30.5% vs B&H −81.5%, and SMA recovers in ~5 months vs ~23 months for B&H. The 0.07× Sortino gap is within reasonable tolerance given the strength of all other evidence and the qualitative risk profile superiority. Deploying with this deviation formally acknowledged.
+
+*Note: B&H figures above are for the prior SMA120/T25% candidate. SMA110/T30% B&H re-check not yet run; figures will differ marginally. Full B&H comparison due before Stage D GO/NO-GO.*
+
+---
+
+## Phase 3 Monte Carlo Findings (2026-05-16)
+
+**Status:** Complete  
+**Primary candidate:** SMA110/T30% (supersedes prior SMA120/T25% candidate)  
+**Script:** `Week_6_Notebooks/btc_sma_stage_c_magnitude.py`  
+**Results file:** `Week_7_Notebooks/results/btc_sma_stage_c_results.csv`
+
+### Methodology
+Return magnitude scaling (Option A): winners scaled by factor (100%, 80%, 60%, 40%, 20%); losers unchanged (structurally determined by stop distance). 10,000 simulations. Standard win-rate stress test framework is inappropriate for this strategy (23–33% win rate / fat-tail payoff structure); magnitude scaling is the correct stress dimension for trend-following.
+
+### Key Findings — SMA110/T30% (primary)
+
+| Magnitude scale | Median annual % | P10 annual % | P(neg year) | Quarter-Kelly |
+|---|---|---|---|---|
+| 100% (backtest) | +55.3% | +27.5% | 39.7% | 47.7% |
+| 80% | +43.6% | +19.9% | 41.4% | 37.5% |
+| 60% | +31.5% | +12.2% | 43.4% | 27.8% |
+| 40% | +18.6% | +4.2% | 46.2% | 17.7% |
+| 20% | +5.6% | −1.5% | 50.1% | 8.3% |
+
+**Break-even at median:** Strategy does not reach negative median annual return within the 20% magnitude floor. At 20% scale, median is still +5.6%.
+
+**P10 floor:** P10 annual return first turns negative at 20% magnitude scale (−1.5%). All scenarios at 40%+ magnitude have positive P10.
+
+**Outcome dispersion:** Equity fan P5/P95 range at 2025 is approximately 5.2× to 487× (100:1 ratio) — extreme dispersion reflecting fat-tail payoff structure. This is expected and consistent with a strategy that generates a small number of very large wins.
+
+### Position Sizing Implication
+
+Quarter-Kelly at 100% magnitude = 47.7% of capital. This implies borrowing (leverage ~1.9×) to reach the Kelly-optimal fraction. Kelly fraction is unreliable for fat-tail distributions; the 47.7% figure cannot be taken at face value.
+
+**Recommendation for initial deployment: fixed 5–10% capital-at-risk sizing.** Do not use Kelly-derived position sizing until at least 20 live trades confirm win rate and average win/loss are consistent with backtest. Fixed sizing eliminates Kelly instability risk while preserving meaningful participation in winning trades.
+
+### Phase 4 ETH Cross-Asset Re-validation (SMA110/T30%)
+
+ETH-USD, same parameters (SMA 110, T30%, 0.15% costs), 2018-start:
+
+| Metric | SMA110/T30% on ETH | SMA110/T30% on BTC | Verdict |
+|---|---|---|---|
+| Annual return % | +26.8% | (to be confirmed) | ETH > 0 ✓ |
+| MtM MaxDD | −79.2% | −31.4% | ETH far worse |
+| Sortino | 0.701 | 1.379 | ETH below 0.8 threshold ✗ |
+| Post-2022 annual % | −0.5% | +32.7% | ETH negative post-2022 ✗ |
+| 2022 year return | −57.5% | −6.6% | ETH catastrophic vs BTC |
+
+**Verdict: PARTIAL PASS.** Annual return positive (+26.8%) but Sortino below 0.8 threshold and post-2022 return negative. ETH 2022 loss (−57.5%) vs BTC (−6.6%) confirms ETH bear market behaviour is structurally different. Asset-specificity finding consistent with BS001 — BTC-only restriction remains appropriate.
+
+No-stop baseline on ETH (SMA 110 only, no trail): Annual +28.3%, MtM MaxDD −75.9%, Sortino 0.681. Trail stop on ETH provides negligible Sortino improvement (+0.020) but does not rescue the Sortino or post-2022 failures. ETH is not a candidate for this strategy regardless of stop configuration.
 
 ---
 
@@ -285,7 +341,8 @@ Monitor first 5 live trades for any unexpected MR behaviour.
 
 ---
 
+*Register version: 1.3 — updated 2026-05-16: Stage B/C pipeline re-run complete. Primary candidate updated from SMA120/T25% to SMA110/T30%. Phase 3 Monte Carlo findings section added. Phase 4 ETH PARTIAL PASS noted. Fixed 5–10% capital-at-risk sizing recommended for initial deployment.*
 *Register version: 1.2 — updated 2026-05-04: added BS008 (Medium) — margin drawdown in worst historical crash at 2.0× leverage; confirmed 2.0× categorically safe, 2.5× unsafe.*
 *Register version: 1.1 — updated 2026-05-02: status revised from NO-GO to CONDITIONAL GO. ETH cross-asset failure reframed as asset-specificity finding.*
 *Previous version: v1.0 (NO-GO) — created 2026-05-02 following completion of Stage 2 (2a–2e) validation.*
-*Next review: Week 7 pre-deployment, when BTC capital allocation is confirmed.*
+*Next review: Stage D GO/NO-GO decision — requires B&H re-check on SMA110/T30% and final deployment card.*
