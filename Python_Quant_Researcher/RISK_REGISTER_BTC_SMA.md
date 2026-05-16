@@ -1,6 +1,6 @@
 # Strategy Risk Register — BTC SMA Trailing Stop
 
-**Purpose:** Tracks every known risk for the BTC SMA trend-following strategy (candidate — not yet deployed). Also contains the BTC ADX 19/14 formal rejection note at the top. CONDITIONAL GO status — open items must be resolved before any capital deployment.
+**Purpose:** Tracks every known risk for the BTC SMA trend-following strategy (candidate — not yet deployed). Also contains the BTC ADX 19/14 formal rejection note at the top. CONDITIONAL GO — Phase 3/4 Complete. Remaining conditions: Phase 5 leverage analysis and deployment card (Week 8).
 **Who reads it:** Greg when reviewing BTC strategy progress. Claude Code during BTC SMA validation pipeline.
 **When updated:** As BTC SMA validation progresses through pipeline phases.
 **Related documents:** RISK_REGISTER_ETH_ADX.md, STRATEGY_RESEARCH_PIPELINE.md, STRATEGY_TESTING_CHECKLIST.md.
@@ -20,7 +20,7 @@
 
 **Strategy:** BTC-USD SMA Crossover with Percentage Trailing Stop
 **Asset / Exchange:** BTCUSDT / Binance Spot (proposed)
-**Version:** v1.3 — Stage B/C/Phase 4 re-run; primary candidate updated to SMA110/T30%
+**Version:** v1.4 — Formal CONDITIONAL GO decision; BS005 resolved; Phase 3/4 complete
 **Date created:** 2026-05-02
 **Last updated:** 2026-05-16
 **Updated by:** Greg + Claude
@@ -112,6 +112,25 @@ ETH-USD, same parameters (SMA 110, T30%, 0.15% costs), 2018-start:
 **Verdict: PARTIAL PASS.** Annual return positive (+26.8%) but Sortino below 0.8 threshold and post-2022 return negative. ETH 2022 loss (−57.5%) vs BTC (−6.6%) confirms ETH bear market behaviour is structurally different. Asset-specificity finding consistent with BS001 — BTC-only restriction remains appropriate.
 
 No-stop baseline on ETH (SMA 110 only, no trail): Annual +28.3%, MtM MaxDD −75.9%, Sortino 0.681. Trail stop on ETH provides negligible Sortino improvement (+0.020) but does not rescue the Sortino or post-2022 failures. ETH is not a candidate for this strategy regardless of stop configuration.
+
+---
+
+## Formal Validation Decision
+
+> **FORMAL VALIDATION DECISION — Week 7 (2026-05-15)**
+>
+> **Decision: CONDITIONAL GO**
+>
+> All nine GO/NO-GO criteria passed. See validation status table for full results.
+>
+> **Conditions for deployment:**
+> 1. Phase 5 leverage analysis complete (Week 8)
+> 2. A021 emergency exit protocol documented
+> 3. Position sizing: fixed 5–10% capital-at-risk, not Kelly-derived
+> 4. Initial capital: $500 BTC (MARGINAL stability warrants conservative start)
+> 5. Deployment card complete (Week 8)
+>
+> **Signed off: Greg + Claude, Week 7**
 
 ---
 
@@ -212,7 +231,7 @@ Accept MARGINAL stability as a known risk, disclosed in deployment documentation
 
 **Category:** Strategy
 
-**Status:** Open
+**Status:** RESOLVED — 2026-05-16
 
 **Priority:** Medium
 
@@ -224,8 +243,12 @@ At SMA 135, trail sweep performance continues improving beyond 25% (27.5%: Calma
 **Impact:**
 If the true optimum is 30%+, deploying at 25% means leaving return on the table. More importantly, the performance improvement continuing at the boundary raises the question of whether the test range was adequate.
 
-**Fix:**
-Extend grid to 35% trail and re-run Stage 2c stability analysis before any deployment decision. Confirm the curve peaks and flattens rather than continuing to climb. If peak is confirmed at 30–32%, update candidate parameters.
+**Resolution:**
+Stage B wider trail sweep extended the grid to T35% across SMA 100–150 (55 combinations). The 30% trail was confirmed as optimal: performance peaks at T30% and does not continue improving at T35%. The curve peaks and flattens within the tested range — this is a genuine structural optimum, not a boundary artefact. Primary candidate updated to SMA110/T30%. Boundary risk is resolved.
+
+**Update log:**
+- 2026-05-02: Raised.
+- 2026-05-16: Resolved. Grid extended to T35%; T30% confirmed as optimum (performance does not improve further at T35%). Primary candidate updated to SMA110/T30%.
 
 ---
 
@@ -338,9 +361,11 @@ Monitor first 5 live trades for any unexpected MR behaviour.
 | ID | Description | Resolution summary | Resolved | Week / Date |
 |---|---|---|---|---|
 | BS001 (partial) | ETH cross-asset failure | Reframed as asset-specificity; BTC-only restriction imposed | 2026-05-02 | Week 6 end |
+| BS005 | Trail stop at parameter boundary | Grid extended to T35%; T30% confirmed as optimum, not a boundary artefact. Primary candidate updated to SMA110/T30% | 2026-05-16 | Week 7 end |
 
 ---
 
+*Register version: 1.4 — updated 2026-05-16: Formal CONDITIONAL GO decision block added (Week 7, signed off Greg + Claude). BS005 resolved — T30% confirmed as structural optimum, not boundary artefact. Status updated to CONDITIONAL GO — Phase 3/4 Complete. Remaining conditions: Phase 5 leverage analysis and deployment card (Week 8).*
 *Register version: 1.3 — updated 2026-05-16: Stage B/C pipeline re-run complete. Primary candidate updated from SMA120/T25% to SMA110/T30%. Phase 3 Monte Carlo findings section added. Phase 4 ETH PARTIAL PASS noted. Fixed 5–10% capital-at-risk sizing recommended for initial deployment.*
 *Register version: 1.2 — updated 2026-05-04: added BS008 (Medium) — margin drawdown in worst historical crash at 2.0× leverage; confirmed 2.0× categorically safe, 2.5× unsafe.*
 *Register version: 1.1 — updated 2026-05-02: status revised from NO-GO to CONDITIONAL GO. ETH cross-asset failure reframed as asset-specificity finding.*
