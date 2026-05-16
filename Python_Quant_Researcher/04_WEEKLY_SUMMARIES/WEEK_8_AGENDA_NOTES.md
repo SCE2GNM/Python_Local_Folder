@@ -49,13 +49,22 @@ Reorganise the project root into the following folder structure. Do this as the 
 
 ---
 
-### Task 1 — EC2 Infrastructure Check
+### Task 1 — EC2 Security and Stability
 
-**EC2 IP changed during Week 7:** The instance was restarted and received a new public IP (`3.104.101.30`, previously `15.134.135.221`). SSH key: `~/.ssh/trading-bot-key.pem`. Username: `ubuntu`.
+**Current temporary IP: `3.104.101.30`** (will change again on next restart until Elastic IP is added). SSH key: `~/.ssh/trading-bot-key.pem`. Username: `ubuntu`.
 
-> **EC2 IP changed — consider adding an Elastic IP to prevent this happening again on next restart. Cost: ~$0.005/hr when instance is running, free when stopped.**
+**1. Allocate an Elastic IP**
+Prevents the IP changing on every restart. Free while instance is running.
+Steps: AWS Console → EC2 → Elastic IPs → Allocate → Associate with instance.
 
-Steps to add Elastic IP: AWS Console → EC2 → Elastic IPs → Allocate → Associate with instance. Once assigned, the IP is permanent across restarts.
+**2. Update IP in all project files once Elastic IP is set**
+After allocation, update `3.104.101.30` in:
+- `WEEK_8_AGENDA_NOTES.md` (this file)
+- `WEEK_8_THREAD_STARTER.md`
+- Any other file referencing the current IP
+
+**3. Optionally restrict SSH security group**
+After Elastic IP is set, restrict inbound port 22 from `0.0.0.0/0` to a known IP range for better security.
 
 **Introduced:** Week 7 close-out (2026-05-16)
 
