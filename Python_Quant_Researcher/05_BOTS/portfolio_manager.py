@@ -8,16 +8,16 @@ Used by all production bots for:
   - Health check reporting (get_portfolio_summary)
   - Weekly rebalance (rebalance_portfolio, every Monday 01:00 UTC)
 
-State file: data/portfolio_state.json
+State file: 07_DATA/portfolio_state.json
 """
 
 import json
 import os
 from datetime import datetime
 
-PORTFOLIO_STATE_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), 'data', 'portfolio_state.json'
-)
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_BASE = os.path.dirname(_HERE)   # project root (05_BOTS/../)
+PORTFOLIO_STATE_FILE = os.path.join(_BASE, '07_DATA', 'portfolio_state.json')
 
 STRATEGY_SYMBOLS = {
     'eth_adx': 'ETHUSDT',

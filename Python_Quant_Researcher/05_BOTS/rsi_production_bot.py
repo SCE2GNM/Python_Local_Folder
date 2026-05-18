@@ -41,7 +41,7 @@ warnings.filterwarnings('ignore')
 
 # ── Path setup ────────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(BASE_DIR, 'core', 'execution'))
+sys.path.insert(0, os.path.join(BASE_DIR, '05_BOTS', 'core', 'execution'))
 sys.path.insert(0, BASE_DIR)
 
 from trading_executor import TradingExecutor
@@ -80,7 +80,7 @@ STOP_PCT    = 0.15                  # 15% fixed stop from entry price
 HALF_KELLY  = 0.384                 # 38.4% = half of 76.7% backtest Kelly fraction
 CANDLES_NEEDED = SMA_PERIOD + RSI_PERIOD + 30  # ~164 days
 
-STATE_FILE = os.path.join(BASE_DIR, 'data', 'rsi_bot_state.json')
+STATE_FILE = os.path.join(BASE_DIR, '07_DATA', 'rsi_bot_state.json')
 
 TELEGRAM_TOKEN   = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')

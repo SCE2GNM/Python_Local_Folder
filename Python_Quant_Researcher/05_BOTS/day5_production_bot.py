@@ -39,7 +39,7 @@ warnings.filterwarnings('ignore')
 
 # ── Path setup ────────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(BASE_DIR, 'core', 'execution'))
+sys.path.insert(0, os.path.join(BASE_DIR, '05_BOTS', 'core', 'execution'))
 sys.path.insert(0, BASE_DIR)
 
 from trading_executor import TradingExecutor
@@ -70,7 +70,7 @@ ADX_PERIOD     = 9              # Stage 1d validated (was 10)
 TRAIL_PCT      = 0.08           # 8% trailing stop — Stage 1b validated
 CANDLES_NEEDED = 50
 
-STATE_FILE = os.path.join(BASE_DIR, 'data', 'bot_state.json')
+STATE_FILE = os.path.join(BASE_DIR, '07_DATA', 'bot_state.json')
 
 TELEGRAM_TOKEN   = os.getenv('TELEGRAM_BOT_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
