@@ -11,11 +11,12 @@ import requests
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR     = os.path.dirname(os.path.abspath(__file__))   # 05_BOTS/
+PROJECT_ROOT = os.path.dirname(BASE_DIR)                     # project root
 sys.path.insert(0, BASE_DIR)
 sys.path.insert(0, os.path.join(BASE_DIR, 'core', 'execution'))
 
-load_dotenv(os.path.join(BASE_DIR, '.env'))
+load_dotenv(os.path.join(PROJECT_ROOT, '.env'))
 
 from binance.client import Client
 from portfolio_manager import rebalance_portfolio, get_portfolio_summary
