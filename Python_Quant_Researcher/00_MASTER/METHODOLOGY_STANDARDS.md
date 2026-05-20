@@ -132,6 +132,34 @@ Telegram alerts mandatory when any of the following are breached:
 
 ---
 
+## Regime Break Analysis — Mandatory Standard
+
+**Standard:** Before walk-forward validation on any asset, run a regime
+break analysis splitting the trade record at the most recent structural
+break date for that asset. Report pre-break and post-break metrics separately.
+
+**Rationale:** Confirmed in Week 8 across ETH ADX (ETF approval Jan 2024)
+and SOL Keltner (ATH Aug 2025). Full-period backtest metrics are dominated
+by the pre-institutional regime and materially overstate current expected
+performance for BTC and ETH. The post-break profit factor and win rate
+are the correct forward-looking inputs for deployment decisions.
+
+**Application:**
+- BTC/ETH: split at January 2024 (BTC ETF) and May 2024 (ETH ETF)
+- SOL: split at August 2025 (SOL ATH and regime shift)
+- BNB/AVAX/LINK/DOT/MATIC: split at January 2024 as default
+  (indirect institutional effect) — adjust if a specific break is identified
+- Any asset: if post-break profit factor < 1.0, strategy is rejected
+  regardless of full-period metrics
+- If post-break profit factor 1.0–2.0: edge compression — proceed with
+  caution, reduced sizing, explicit documentation
+- If post-break profit factor > 2.0: deployment case may proceed to
+  walk-forward
+
+**Week added:** Week 8 — 2026-05-20
+
+---
+
 ## Chart Production Standards
 
 All strategy deployment documents must include:
@@ -184,4 +212,5 @@ Added: Week 7. Source: STRATEGY_RESEARCH_PIPELINE.md Phase 3 requirements, Groby
 
 *Version 1.0 — created 2026-05-04: initial document*
 *Version 1.1 — updated 2026-05-15: added Fat-Tail Warning section (normality assumptions)*
+*Version 1.2 — updated 2026-05-20: added Regime Break Analysis mandatory standard (Week 8)*
 *Update this document when methodology standards change — never mid-week.*
