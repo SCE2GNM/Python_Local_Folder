@@ -880,6 +880,88 @@ Introduced: Week 7. Regime detection research and backtesting targeted for Week 
 
 ---
 
+### Week 8
+
+**Keltner Channel — Construction and Breakout Strategy Logic** — A volatility envelope indicator built around an EMA centre line. Upper band = EMA + multiplier × ATR; lower band = EMA − multiplier × ATR. Unlike Bollinger Bands (which use standard deviation), Keltner uses ATR, making the bands more stable in trending markets because ATR responds smoothly to true range rather than amplifying with price volatility spikes.
+
+Breakout strategy logic: enter long when close crosses above the upper band (price leaving the envelope signals trend initiation). Use the EMA centre line as a dynamic trailing stop — exit when the LOW of any bar touches or crosses below the prior bar's EMA (intrabar trigger), or when the CLOSE drops below the current bar's EMA (EOD trigger). This gives trades room to breathe during the trend while cutting quickly once momentum fades. The EMA-as-stop is more responsive than a fixed stop and more adaptive than a percentage trailing stop.
+
+Key design choice: EMA period and multiplier interact. Larger EMA period = smoother centre line, fewer but larger trades. Larger multiplier = wider envelope, fewer false breakouts but more slippage on stop. Best SOL result (ema=22, mult=1.5) balanced both, but regime break rendered the edge non-existent post-ATH (PF 0.055).
+
+Introduced: Week 8. Source: sol_grid_search.py, keltner_walkforward.py, sol_regime_break.py.
+
+**EMA Trailing Stop with Intrabar Trigger** — A two-tier exit check designed for daily candles where the intraday price path is unknown. The logic resolves the ambiguity of whether the low or the close triggered the stop first.
+
+Tier 1 (intrabar): check if LOW ≤ prior bar's EMA. If yes, assume the EMA was hit intraday and fill at the prior EMA value (conservative, slightly better than close fill). Tier 2 (EOD): if the low did not trigger, check if CLOSE < current bar's EMA. If yes, exit at close.
+
+Why tier 1 must be checked first: on a strong reversal day, both conditions can be simultaneously true (low hit the EMA and close is below current EMA). Checking the low first gives the correct execution price (EMA fill rather than close fill) and avoids attributing the loss to a different bar. Implemented in sol_regime_break.py and all Week 8 Keltner scripts.
+
+Introduced: Week 8. Source: keltner_walkforward.py run_period() function.
+
+**Multi-Strategy Discovery Grid Methodology** — A systematic approach to altcoin backtesting that tests all major indicator families before committing to deep optimisation of any single strategy. The grid runs ADX, Supertrend, Donchian Channel, Keltner Channel, and Bollinger Bands across their parameter space (~1,478 combos for SOL) with two hard filters: minimum 30 trades and MDD > −50%.
+
+The purpose is to identify which strategy class has exploitable edge on a specific asset before investing time in walk-forward or regime analysis. If no indicator family produces ≥5 passing combinations, the asset is considered unsuitable for daily trend-following at current market structure. For SOL, only Keltner produced passing combos (21 of ~320 Keltner combinations passed). ADX produced 1 borderline combo; Supertrend, Donchian, and Bollinger produced 0.
+
+B&H annual return is the benchmark — a strategy that passes both filters but underperforms B&H represents a sub-optimal allocation of capital and risk. This benchmark check eliminated the single ADX combo that technically passed (27.7%/yr vs B&H). The framework (sol_grid_search.py) is reusable across any asset.
+
+Introduced: Week 8. Source: sol_grid_search.py, Week_8_SUMMARY.md.
+
+**Exit Gap Analysis** — A verification step that checks whether the assumed fill price at exit matches what was actually achievable at market open on the exit bar. Required for any strategy that uses an indicator value (e.g., prior bar's EMA) as the exit fill price, since intraday execution can differ from the close of the prior bar.
+
+Method: for each trade, compare the open price on the exit day against the assumed fill (e.g., prior EMA value). Flag gaps exceeding 3% as material. Adverse gap = open is worse than assumed fill (lower open for longs). Favourable gap = better than assumed fill.
+
+SOL Keltner exit gap analysis (ema=22/mult=1.5): zero adverse gaps >3%. The EMA-based fill was validated as realistic. This is a pre-deployment checklist item per METHODOLOGY_STANDARDS.md and was the final validation step before the regime break analysis made deployment moot.
+
+Introduced: Week 8. Source: keltner_gap_analysis.py.
+
+**Walk-Forward Window Design for Short-History Assets** — Walk-forward analysis using 2-year in-sample (IS) and 6-month out-of-sample (OOS) windows, in both expanding (IS anchor fixed) and rolling (IS window moves forward with OOS) variants. For assets with limited history (SOL daily candles from Jan 2020 = ~5.5 years as of 2026), this produces only 6–7 windows, yielding ~2–4 trades per OOS window at a moderate trade frequency.
+
+With 2–4 trades per OOS window, standard statistical significance tests are meaningless. The correct interpretation is directional: are OOS windows consistently profitable, or do results deteriorate systematically? A consistent pattern of OOS profitability across most windows (e.g., 5/7) is meaningful directional evidence even without statistical significance. Random or deteriorating OOS performance is decisive negative evidence.
+
+SOL Keltner walk-forward result: last 2 OOS windows were negative, consistent with the regime break finding. The walk-forward confirmed the regime break from a different angle.
+
+Design note: for assets where SOLUSDT data begins 2020, the first valid 2-year IS window ends Jan 2022, leaving only ~4 years of OOS-eligible data. This is the practical minimum for walk-forward to be directionally informative.
+
+Introduced: Week 8. Source: keltner_walkforward.py, WEEK_8_SUMMARY.md.
+
+**Regime Break Analysis Methodology** — A structured test to determine whether a strategy's underperformance in recent data represents a temporary drawdown or a permanent structural change in market behaviour. The test splits the trade record at one or more structural break dates and compares profit factor, win rate, and annual return across periods.
+
+Decision rule: PF < 1.0 in the most recent period = regime change (not drawdown), strategy is non-viable. PF > 1.0 but degraded = potential drawdown, reopen condition applies. PF stable across all periods = no regime break detected.
+
+Break dates should be chosen based on market structure events, not based on where the backtest performance changes — choosing dates after seeing the data creates look-ahead bias. Valid anchors: major regulatory events (BTC spot ETF approval Jan 2024), macro inflections (BTC halving), asset-specific structural changes (SOL ATH and subsequent bear market Aug 2025).
+
+Applied in Week 8: ETH ADX split at May 2024 ETF approval — PF declined 2.947→1.689 (degraded, leverage deferred). SOL Keltner three-period split — PF 7.793→3.932→0.055 (decisive regime change, rejected).
+
+Introduced: Week 8. Source: stage0_regime_break.py, sol_regime_break.py, RISK_REGISTER_ETH_ADX.md.
+
+**Institutional Adoption Effect on Trend-Following** — When a crypto asset gains institutional adoption (ETF approval, large-cap index inclusion, major exchange listing), liquidity increases structurally. Higher liquidity means more participants entering and exiting at similar price levels, which causes trends to fade faster and mean reversion to become more pronounced.
+
+Mechanism: pre-ETF, fewer participants meant momentum could persist for days or weeks without being arbitraged away. Post-ETF, institutional arbitrageurs and market makers absorb momentum moves more quickly, reducing trend duration and magnitude. This compresses win rate (fewer trades run to full target) and average win size, which together compress profit factor even if loss behaviour is unchanged.
+
+Observed in Week 8 data: ETH ADX win rate fell 44.3%→35.1% post-ETF approval. SOL Keltner PF collapsed from 7.793 pre-ETF to 3.932 in the ETF-to-ATH period and 0.055 post-ATH. The pattern is consistent across both assets: institutional adoption is a structural headwind for daily trend-following strategies.
+
+Practical implication: treat spot ETF approval or equivalent adoption event as an automatic trigger for regime break analysis on any trend-following strategy applied to that asset. Do not assume pre-event parameters remain valid.
+
+Introduced: Week 8. Source: RISK_REGISTER_ETH_ADX.md (A022), sol_regime_break.py, WEEK_8_SUMMARY.md.
+
+**Survivorship Bias in Altcoin Backtesting** — When backtesting any altcoin on historical data, only assets that are still trading today can be tested. Assets that failed (collapsed, delisted, lost 99%+ of value) are invisible to the backtest. This means any observed backtest result is conditional on survival — it answers "how would this strategy have performed on the coins that survived?" not "how would this strategy have performed across the full universe of coins you might have picked?"
+
+For aggressive trend-following strategies applied to altcoins, survivorship bias inflates all metrics: the surviving assets by definition had enough price movement to generate the data needed to trigger entries and exits profitably. A failed coin would have generated continuous losing trades until it delisted. The true strategy expectancy across all possible altcoin selections is lower than any single backtested survivor suggests.
+
+Mitigation: use quarter-Kelly (not half-Kelly) for any momentum strategy on an altcoin that has not been validated through a full crash cycle. The quarter-Kelly adjustment is a practical correction for the unknown survivorship bias premium embedded in the backtest result. BNB, AVAX, LINK, DOT, MATIC — all in the Week 9 backtest queue — have survived through 2022 and represent a lower survivorship bias risk tier than newer assets.
+
+Introduced: Week 8. Source: METHODOLOGY_STANDARDS.md, WEEK_7_RESEARCH_BRIEF_FULL.md (fat-tail section).
+
+**SOL Market Characteristics and ADX Failure** — Solana (SOLUSDT daily) exhibits violent intraday reversals as a structural characteristic. This stems from its high retail participation, frequent network incidents that caused sharp confidence-driven selloffs in 2022–2023, and its position as a high-beta asset relative to BTC. The result is a candle pattern with frequent large bodies followed by immediate reversals, without the sustained multi-day trend continuation that ADX-based entries require.
+
+ADX failure mechanism on SOL: ADX entry fires on the third day of a directional move (ADX rising above 20, DI alignment confirmed). On BTC and ETH, this typically precedes several more trending days. On SOL, the reversal often arrives before the ADX-triggered trade can reach profit target, because the same high-beta characteristic that created the initial ADX signal also attracts mean-reverting counterparties. The result: SOL ADX produced 1 passing combination in 1,232 tested, all below B&H.
+
+Keltner was more effective because EMA-as-stop exits more quickly than ADX's lagging exit, capturing the initial momentum burst before reversal. Even so, post-ATH regime change eliminated the Keltner edge entirely (PF 0.055). SOL daily trend-following rejected across all indicator families.
+
+Introduced: Week 8. Source: sol_grid_search.py results, STRATEGY_ARCHIVE.md S007–S010.
+
+---
+
 ## Concepts Mastered
 
 Concepts you can explain clearly, apply correctly, and reason about independently.
