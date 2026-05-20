@@ -429,6 +429,106 @@ This rule is now codified in METHODOLOGY_STANDARDS.md under "Momentum Strategy V
 
 ---
 
+### SI016 — Pump Detection / Momentum Surfing on Intraday Candles
+
+| Field | Value |
+|---|---|
+| **ID** | SI016 |
+| **Name** | Pump Detection / Momentum Surfing (15-min / 1-hour) |
+| **Type** | Momentum / Intraday |
+| **Asset** | Mid-cap altcoins — small cap, high volatility, no significant institutional interest |
+| **Source** | Week 8 |
+| **Priority** | LOW |
+| **Target Week** | Week 16–18 — alongside DeFi deep-dive |
+| **Date Added** | 2026-05-20 |
+
+**What it is:** Detect the early phase of organic price pumps on 15-minute (minimum) or 1-hour candles and enter momentum positions before the move is fully priced. Exit on a fixed time basis (2–4 hours) OR on a volume collapse signal, whichever fires first.
+
+**Signals:**
+- Volume spike: 3–10× rolling average (primary — distinguishes pump from random move)
+- Price velocity: rate of change over a short window (confirms directional momentum)
+- Social sentiment (optional but significantly improves signal quality): LunarCrush or Santiment API — rising mention count or sentiment score correlated with volume spike
+
+**Entry / exit rules:**
+- Entry: confirmed volume spike + price velocity above threshold on same bar
+- Exit A: fixed time exit at 2–4 hours from entry (hard cap on trade duration)
+- Exit B: volume collapse — current bar volume falls below rolling average (momentum exhaustion)
+- Stop: hard stop at entry candle low (intraday, so tight)
+- Position sizing: very small — high risk / high reward profile; quarter-Kelly or fixed fractional (not Kelly-derived until live win rate established)
+
+**Infrastructure prerequisites (all required before this is viable):**
+- Intraday data pipeline — 15-min candle feed; not available in current daily-candle infrastructure
+- Event-driven execution — cron-based daily bot is insufficient; requires asyncio or message-queue architecture with sub-minute latency
+- Social data API — LunarCrush or Santiment (optional but materially improves signal quality)
+
+**Why deferred to Week 16–18:**
+All current infrastructure is daily candles and cron-based. Intraday requires a fundamentally different execution layer. Complete the daily strategy framework (Weeks 9–15) before introducing intraday complexity. Week 16–18 DeFi deep-dive is the natural entry point for on-chain and social data integration.
+
+**Legal distinction (important):**
+Detecting and riding an organic pump is legal. Participating in, coordinating, or promoting a pump-and-dump scheme is not — it constitutes market manipulation and is a criminal offence in most jurisdictions. Any implementation must target organic volume events only. No coordination with any third party about upcoming moves. This distinction must be maintained clearly in any future implementation research.
+
+**What to research when the time comes:**
+- Intraday data sources: WebSocket feeds vs REST polling; Binance WS API for real-time candles
+- Event-driven bot architecture: asyncio, Redis pub/sub, or Kafka for message queuing
+- Volume anomaly detection: rolling z-score vs static multiple — z-score adapts to regime changes
+- False positive rate analysis: what fraction of 3–10× volume spikes produce sustained moves vs immediate reversals
+- Social sentiment API integration: LunarCrush v3 or Santiment GraphQL
+- Backtesting methodology for intraday strategies (no daily close assumption; slippage modelling differs)
+
+**Introduced:** Week 8
+
+---
+
+### SI017 — Week 8 SOL Discovery Results + Altcoin Backtest Queue
+
+| Field | Value |
+|---|---|
+| **ID** | SI017 |
+| **Name** | SOL Discovery Results (Week 8) + Altcoin Backtest Queue |
+| **Type** | Research Log / Multi-asset |
+| **Source** | Week 8 |
+| **Priority** | HIGH |
+| **Target Week** | Week 9 — data quality checks first, then backtest queue |
+| **Date Added** | 2026-05-20 |
+
+**Purpose of this entry:** Record Week 8 SOL discovery outcomes for reference and define the Week 9 altcoin backtest queue.
+
+---
+
+**Week 8 SOL multi-strategy discovery results (sol_grid_search.py, ~1,478 combinations):**
+
+| Strategy | Combos tested | Combos passing filters | Best annual | Best MDD | Outcome |
+|---|---|---|---|---|---|
+| Keltner Channel | 44 | 21 | +121.9% (ema=22/mult=1.5) | −45.6% | **REJECTED** — regime break post-Aug 2025 (PF 0.055) |
+| ADX | 1,232 | 1 | +27.7% (p=14/thr=21/stop=6%) | −49.9% | **REJECTED** — 1 viable combo, below B&H, Sortino 0.668 |
+| Supertrend | 70 | 0 | N/A | N/A | **REJECTED** — 0 combos pass ≥30 trades / MDD > −50% filter |
+| Donchian | 77 | 0 | N/A | N/A | **REJECTED** — 0 combos pass filter |
+| Bollinger | 55 | 0 | N/A | N/A | **REJECTED** — 0 combos pass filter |
+
+Filter criteria: ≥30 trades AND MDD > −50%. All results documented in STRATEGY_ARCHIVE.md (S006–S010).
+
+**Key SOL finding:** Keltner Channel was the only viable indicator family on SOLUSDT, but regime break analysis (sol_regime_break.py) showed complete edge collapse post-ATH (PF 7.793 pre-ETF → 3.932 ETF-to-ATH → 0.055 post-ATH). SOL daily candles are not a productive research direction at current market structure.
+
+---
+
+**Week 9 altcoin backtest queue:**
+
+The following assets are added to the research queue for multi-strategy discovery grids in Week 9. Data quality checks must be completed before running any backtest (confirm data start date, identify any gaps or delistings, verify symbol availability on Binance).
+
+| Asset | Symbol | Notes |
+|---|---|---|
+| BNB | BNBUSDT | Binance native token — data available from 2017; well-established liquidity |
+| AVAX | AVAXUSDT | Data from ~2020; institutional interest growing |
+| LINK | LINKUSDT | Data from 2017 on Binance; strong liquidity |
+| DOT | DOTUSDT | Data from ~2020; lower liquidity than BNB/LINK |
+| MATIC | MATICUSDT | Renamed POLYGONUSDT in some feeds — verify symbol before data pull |
+
+**Methodology note:** Run the same multi-strategy discovery grid used for SOL (sol_grid_search.py framework — ADX, Supertrend, Donchian, Keltner, Bollinger, ~1,478 combos) on each asset. Only proceed to walk-forward validation for assets where ≥1 strategy type shows ≥5 passing combinations with Sortino > 0.8.
+
+**Introduced:** Week 8
+
+---
+
 ## Infrastructure Improvements
 
 ### II-001 — Telegram Health Check Message Redesign
