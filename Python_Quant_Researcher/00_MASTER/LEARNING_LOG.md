@@ -960,6 +960,14 @@ Keltner was more effective because EMA-as-stop exits more quickly than ADX's lag
 
 Introduced: Week 8. Source: sol_grid_search.py results, STRATEGY_ARCHIVE.md S007–S010.
 
+**Telegram Monitoring Design — Exposing Full Signal State** (II-001, Week 9 carry-over) — A health-check Telegram message should expose the full decision logic, not just the outcome. For an ADX strategy: showing only "ADX=24 — SIGNAL" hides whether the direction check passed. Showing "ADX=24 (threshold 19) | +DI=18 | -DI=12 | ADX ✅ | Direction ✅" makes the entry condition independently verifiable from the message alone. Similarly, when FLAT, the reason matters: "ADX below threshold" vs "-DI > +DI (wrong direction)" are different failure modes that suggest different diagnoses. For an RSI strategy: always displaying both entry (<43) and exit (>48) thresholds in every message state means the operator never has to cross-reference the codebase to understand the current position's exit criteria.
+
+Principle: a monitoring message is read under pressure, without context. Every number should be self-contained and its threshold visible alongside it.
+
+Documentation drift corollary: stale comments (trading_executor.py said ADX >= 20, period 10 — live bot uses 19, period 9) create genuine confusion because they are read under the same pressure as monitoring messages. Keep docstrings updated whenever parameters change in production.
+
+Introduced: Week 9. Source: day5_production_bot.py, rsi_production_bot.py, trading_executor.py.
+
 ---
 
 ## Concepts Mastered

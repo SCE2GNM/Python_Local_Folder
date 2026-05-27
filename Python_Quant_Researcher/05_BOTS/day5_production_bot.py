@@ -735,8 +735,17 @@ def run_signal():
     # ── Step 9: Daily health check Telegram ──────────────────────────────────
     # Sent every signal run. Absence by 00:10 UTC = bot did not run — investigate.
     hc_lines = [f"✅ Bot ran {datetime.now().strftime('%Y-%m-%d %H:%M UTC')}"]
-    adx_val    = signal_data['adx']
-    adx_buffer = adx_val - ADX_THRESHOLD
+    adx_val  = signal_data['adx']
+    plus_di  = signal_data['plus_di']
+    minus_di = signal_data['minus_di']
+    trending = signal_data['trending']
+    bullish  = signal_data['bullish']
+    adx_ok   = "✅" if trending else "❌"
+    dir_ok   = "✅" if bullish else "❌"
+    hc_lines += [
+        f"Signal: ADX={adx_val:.1f} (threshold {ADX_THRESHOLD}) | +DI={plus_di:.1f} | -DI={minus_di:.1f}",
+        f"Entry: ADX {adx_ok} | Direction {dir_ok}",
+    ]
     if state['position'] == 'LONG' and state['entry_price']:
         eth_qty       = state.get('position_size_eth') or eth_balance
         entry_p       = state['entry_price']
@@ -747,19 +756,20 @@ def run_signal():
         stop_dist_usd = eth_price - stop_p
         stop_dist_pct = stop_dist_usd / eth_price if eth_price else 0.0
         hc_lines += [
-            f"Signal: ADX={adx_val:.1f} vs threshold {ADX_THRESHOLD} — {signal}",
-            f"ADX buffer: {adx_buffer:.1f}pts above threshold",
             f"Position: LONG {eth_qty:.3f} ETH @ ${entry_p:,.2f} entry",
             f"Current price: ${eth_price:,.2f}",
             f"Unrealised P&L: {pnl_pct:+.1%} (${pnl_usd:+.2f})",
             f"Peak since entry: ${peak_p:,.2f}",
-            f"Stop: ${stop_p:,.2f} (${stop_dist_usd:,.0f} below current, {stop_dist_pct:.1%} downside)",
+            f"Trailing stop: ${stop_p:,.2f} (${stop_dist_usd:,.0f} below current, {stop_dist_pct:.1%} downside)",
             f"Cash balance: ${usdt_balance:,.2f} USDT",
         ]
     else:
+        if not trending:
+            flat_reason = f"FLAT: ADX below threshold ({adx_val:.1f} < {ADX_THRESHOLD})"
+        else:
+            flat_reason = f"FLAT: -DI > +DI (wrong direction, -DI={minus_di:.1f} > +DI={plus_di:.1f})"
         hc_lines += [
-            f"Signal: ADX={adx_val:.1f} vs threshold {ADX_THRESHOLD} — {signal}",
-            f"Position: FLAT",
+            flat_reason,
             f"Cash balance: ${usdt_balance:,.2f} USDT",
         ]
     hc_lines.append(get_portfolio_summary(executor.client))

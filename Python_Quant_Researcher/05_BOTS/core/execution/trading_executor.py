@@ -176,7 +176,7 @@ class TradingExecutor:
         [METHOD] Execute a market buy order.
 
         This is called when our ADX strategy fires a LONG signal:
-          - ADX >= 20 (market is trending)
+          - ADX >= 19 (market is trending, period=9)
           - +DI > -DI (trend is bullish)
 
         Args:

@@ -575,14 +575,14 @@ def run_signal():
 
     # ── Step 6: Daily health check Telegram ──────────────────────────────────
     # Sent every run. Absence by 00:10 UTC = bot did not run — investigate.
-    rsi_val    = signal_data['rsi']
-    sig        = signal_data['signal']
+    rsi_val = signal_data['rsi']
+    sig     = signal_data['signal']
     if state['position'] == 'FLAT':
-        signal_display = f"WAITING (RSI={rsi_val:.1f}, entry triggers at <{ENTRY_RSI})"
+        signal_display = f"WAITING | RSI={rsi_val:.1f} | entry <{ENTRY_RSI} | exit >{EXIT_RSI}"
     elif sig == 'EXIT':
-        signal_display = f"EXIT (RSI={rsi_val:.1f} above {EXIT_RSI})"
+        signal_display = f"EXIT | RSI={rsi_val:.1f} above {EXIT_RSI} | entry <{ENTRY_RSI}"
     else:
-        signal_display = f"ENTRY (RSI={rsi_val:.1f} < {ENTRY_RSI})"
+        signal_display = f"HOLDING | RSI={rsi_val:.1f} | entry <{ENTRY_RSI} | exit >{EXIT_RSI}"
 
     hc_lines = [
         f"✅ RSI Bot ran {datetime.now().strftime('%Y-%m-%d')} 00:06 UTC",
@@ -598,6 +598,7 @@ def run_signal():
             f"Position: LONG {eth_qty:.3f} ETH @ ${entry_p:,.2f} entry",
             f"Current: ${eth_price:,.2f}",
             f"P&L: {pnl_pct:+.1%} (${pnl_usd:+.2f})",
+            f"Exit target: RSI > {EXIT_RSI} (current {rsi_val:.1f})",
             f"Stop: ${stop_p:,.2f} (-{STOP_PCT:.0%} fixed)",
             f"Cash: ${usdt_balance:,.2f} USDT",
         ]
