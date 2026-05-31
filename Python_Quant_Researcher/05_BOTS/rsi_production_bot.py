@@ -575,14 +575,24 @@ def run_signal():
 
     # ── Step 6: Daily health check Telegram ──────────────────────────────────
     # Sent every run. Absence by 00:10 UTC = bot did not run — investigate.
-    rsi_val = signal_data['rsi']
-    sig     = signal_data['signal']
+    rsi_val  = signal_data['rsi']
+    sig      = signal_data['signal']
+    rsi_ok   = rsi_val < ENTRY_RSI
+    sma_ok   = signal_data['above_sma']
+    rsi_tick = "✅" if rsi_ok else "❌"
+    sma_txt  = f"SMA{SMA_PERIOD} ✅ (price above)" if sma_ok else f"SMA{SMA_PERIOD} ❌ (price below)"
+
     if state['position'] == 'FLAT':
-        signal_display = f"WAITING | RSI={rsi_val:.1f} | entry <{ENTRY_RSI} | exit >{EXIT_RSI}"
+        if rsi_ok and sma_ok:
+            signal_display = (f"ENTRY | RSI={rsi_val:.1f} (entry <{ENTRY_RSI} ✅) | "
+                              f"{sma_txt} → entering LONG")
+        else:
+            signal_display = (f"WAITING | RSI={rsi_val:.1f} (entry <{ENTRY_RSI} {rsi_tick}) | "
+                              f"{sma_txt}")
     elif sig == 'EXIT':
-        signal_display = f"EXIT | RSI={rsi_val:.1f} above {EXIT_RSI} | entry <{ENTRY_RSI}"
+        signal_display = f"EXIT | RSI={rsi_val:.1f} (exit >{EXIT_RSI} ✅) | entry <{ENTRY_RSI}"
     else:
-        signal_display = f"HOLDING | RSI={rsi_val:.1f} | entry <{ENTRY_RSI} | exit >{EXIT_RSI}"
+        signal_display = f"HOLDING | RSI={rsi_val:.1f} | exit >{EXIT_RSI} | entry <{ENTRY_RSI}"
 
     hc_lines = [
         f"✅ RSI Bot ran {datetime.now().strftime('%Y-%m-%d')} 00:06 UTC",
