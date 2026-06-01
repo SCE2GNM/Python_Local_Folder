@@ -12,7 +12,7 @@ Build-First Approach | Quality Over Schedule
 **Approach:** Quality-first, gap resolution prioritized
 **Time Commitment:** Full-time (6-8 hours/day)
 **Philosophy:** Validate and optimize before scaling
-**Current Progress:** Week 7 complete, Week 8 in progress
+**Current Progress:** Week 9 complete, Week 10 in progress. You are 37.5% complete (9 of 24 core weeks).
 **Outcome:** Job-ready with production-grade live trading system
 
 ---
@@ -28,7 +28,8 @@ Build-First Approach | Quality Over Schedule
 | 5 | Mean Reversion Suite | ADX Refinement + BB/RSI | HYBRID |
 | 6 | Momentum (MACD/ROC/CMO) | Strategy Refinement + Leverage | DEFER |
 | 7 | Volatility Trading | BTC ADX NO-GO + BTC SMA CONDITIONAL GO + Methodology standards + Leveraged bot paused | HYBRID |
-| 8 | Multi-Strategy Portfolio | Volatility Trading | SHIFTED |
+| Week 8 | Volatility Trading (planned) | SOL multi-strategy discovery grid — all 5 indicator families tested, all rejected. Keltner only pass, then decisive regime break post-ATH (PF 0.055). ETH ADX regime break confirmed (post-ETF PF 1.689). Regime break analysis added as mandatory methodology standard. | HYBRID |
+| Week 9 | Multi-Strategy Portfolio (planned) | Altcoin discovery grid (LINK/DOT/MATIC/AVAX/BNB) — BNB Donchian Phases 0–5 complete, CONDITIONAL GO but deployment blocked pending RR-BNB-008/009/010. ETH RSI stability confirmed STABLE. Phase Gate Checklist and Phase 3A–3E process improvements permanently embedded. | HYBRID |
 
 **Impact:** All subsequent weeks shifted by +1. No change to Week 24 completion date if working full-time. Curriculum remains 24 weeks core + 4 weeks elite extensions.
 
@@ -176,16 +177,17 @@ Rust/C++, CEX/DEX hedging, HFT infrastructure
 
 **Deliverable:** Leveraged bot live + 1-2 momentum strategies validated
 
-### Week 9: Volatility Trading + Regime-Switching (REVISED)
+### Week 9: Altcoin Discovery + Process Improvements (ACTUAL) ✓
 
-- ATR strategies
-- Keltner Channels
-- Volatility breakouts
-- VIX correlation analysis
-- Dynamic position sizing based on volatility
-- Regime-switching portfolio design (ADX trend + Bollinger mean reversion on same asset)
-- Portfolio-level dynamic capital allocation (SI007)
-- **Deliverable:** Volatility system + regime-switching architecture
+- Phase 0 research brief: six altcoin topics researched (LINK, DOT, MATIC, AVAX, BNB, leverage sizing)
+- ETH RSI stability (RR-RSI-006): STABLE — 314/314 combinations profitable. Six-week outstanding item closed.
+- Data quality checks: all five altcoins cleared
+- Altcoin discovery grid: 740 combinations tested. LINK zero passes, DOT best Sortino 0.49, MATIC B&H floor too high, AVAX one pass failed regime break (PF 1.413), BNB 23 hard-filter passes
+- BNB Donchian full validation: boundary check (PLATEAU), stability (STABLE 62%), exit comparison (channel exit optimal), regime filter (SMA-120 raises post-break PF 2.199→2.961), Monte Carlo (0% negative year probability), walk-forward 9/13 profitable
+- BNB Donchian CONDITIONAL GO — Phases 0–5 signed off. Deployment blocked: RR-BNB-008 (separate band optimisation), RR-BNB-009 (trailing stop range), RR-BNB-010 (red team review)
+- Process improvements permanently embedded: Phase Gate Checklist, Phase 3A–3E mandatory sequence, mandatory visualisation deliverables at Phases 3/4/6, B&H exception rule for high-MDD assets
+- Deferred: BTC SMA Phase 5 (fourth consecutive deferral), II-001 Telegram health check (fourth week)
+- **Deliverable:** BNB Donchian Phases 0–5 complete + permanent process improvements
 
 ### Week 10: Multi-Strategy Portfolio (REVISED)
 
@@ -412,7 +414,7 @@ Rust/C++, CEX/DEX hedging, HFT infrastructure
 | MACD momentum | Week 6 | Trailing stops + leverage priority | Week 8 |
 | ROC indicator | Week 6 | Trailing stops + leverage priority | Week 8 |
 | CMO indicator | Week 6 | Trailing stops + leverage priority | Week 8–9 |
-| Breakout / Donchian | Week 6 | Trailing stops + leverage priority | Week 8 — Priority 1 |
+| Breakout / Donchian | Week 6 | Trailing stops + leverage priority | Complete Week 9 — BNB Donchian CONDITIONAL GO (deployment blocked RR-BNB-008/009/010) |
 | Dynamic leverage framework | Not listed — ADD | Exchange failure risk + Kelly instability | Week 8 |
 | Exchange failure risk protocol | Not listed — ADD | A021 documented Oct 2025 + Mar 2023 | Week 8 |
 | Regime detection (Hurst exponent) | Not listed — ADD | Methodology standards Week 7 | Week 9 |
@@ -422,6 +424,9 @@ Rust/C++, CEX/DEX hedging, HFT infrastructure
 | Altcoin pairs — higher volatility | Not listed — ADD | SI idea logged Week 7 | Week 13+ |
 | Pension investment strategies | Not listed — ADD | SI014 logged Week 7 | Week 20+ |
 | Insider Buy Superstocks methodology | Not listed — ADD | SI015 logged Week 7 | Week 20+ |
+| BTC SMA Phase 5 leverage analysis | Not listed — ADD | Identified Week 6 — deferred four consecutive weeks | Week 10 Priority 2 — MUST complete — no further deferral |
+| II-001 Telegram health check redesign | Not listed — ADD | Infrastructure item identified Week 7 — four weeks outstanding | Week 10 Priority 3 — no further deferral |
+| Separate upper/lower Donchian band optimisation | Not listed — ADD | Identified Week 9 close-out — RR-BNB-008 — symmetric period=20/20 never validated | Week 10 Priority 1 Step A — blocks BNB deployment |
 
 **Integration Plan:** Deferred topics will be integrated into later weeks when appropriate, or included in the portfolio project (Weeks 22-23) if not critical to core curriculum.
 
@@ -437,7 +442,11 @@ Rust/C++, CEX/DEX hedging, HFT infrastructure
 
 **Week 7:** BTC ADX rejected, BTC SMA CONDITIONAL GO, methodology framework expanded
 
-**Week 9:** Multi-strategy diversified portfolio
+**Week 8:** SOL all strategies rejected. Regime break analysis mandatory standard added. ETH ADX post-ETF PF 1.689 — leverage deferred.
+
+**Week 9:** BNB Donchian Phases 0–5 complete (CONDITIONAL GO, deployment blocked). LINK/DOT/MATIC/AVAX closed. Phase Gate and Phase 3A–3E process standards permanently embedded.
+
+**Week 11:** Multi-strategy diversified portfolio (shifted +2)
 
 **Week 13:** Professional backtesting complete + ML integration
 
@@ -455,7 +464,7 @@ Rust/C++, CEX/DEX hedging, HFT infrastructure
 
 ---
 
-**Current Status:** Week 7 COMPLETE. Live portfolio: ETH ADX $1,000 (trailing stop active) + ETH RSI $150 (validation phase). BTC SMA CONDITIONAL GO — deployment pending Phase 5 and leveraged bot framework. All methodology standards formalised including fat-tail warning, Monte Carlo mandatory, regime-based position sizing. 17 weeks remaining in core curriculum. You are 29% complete.
+**Current Status:** Week 9 COMPLETE. Live portfolio: ETH ADX $1,000 (trailing stop active) + ETH RSI $150 (validation phase). BNB Donchian CONDITIONAL GO — deployment blocked pending RR-BNB-008/009/010. BTC SMA CONDITIONAL GO — Phase 5 leverage analysis four weeks outstanding (Week 10 mandatory). All methodology standards formalised including Phase Gate, Phase 3A–3E mandatory sequence, B&H exception rule, mandatory visualisation deliverables. 15 weeks remaining in core curriculum. You are 37.5% complete (9 of 24 core weeks).
 
 ---
 
@@ -485,8 +494,44 @@ These standards now apply to ALL future strategy work:
 - **Deployment card standard:** All strategies require 13-section deployment card before
   capital deployment.
 
+## Methodology Standards Established (Weeks 8–9)
+
+- **Regime Break Analysis:** Mandatory before walk-forward on any asset. Split the trade
+  record at the most recent structural break date (BTC/ETH: Jan 2024 BTC ETF; BNB/AVAX/
+  LINK/DOT/MATIC: Jan 2024 default). Post-break PF is the correct forward-looking metric.
+  Full-period backtest metrics are historical reference only. If post-break PF < 1.0,
+  strategy is rejected regardless of full-period metrics.
+
+- **B&H Exception Rule:** When an asset's buy-and-hold MDD exceeds −60%, the annual return
+  gate (≥ 2× B&H) and Sortino gate (≥ 1.5× B&H) are both suspended. Substitute quality
+  gates apply instead: Strategy Sortino > 0.8 AND Strategy MtM MDD better than −50%.
+  The MDD gate is never suspended. First applied to BNB (B&H MDD −80.1%, Week 9).
+
+- **Pipeline Phase Gate Checklist:** Every strategy risk register must contain a Phase 0–6
+  table immediately after the document header. At the start of every session, check the
+  table and identify the highest signed-off phase. Do not begin Phase N+1 work if Phase N
+  is not marked signed off. Written justification required for any skipped or deferred phase.
+
+- **Phase 3A–3E Mandatory Optimisation Sequence:** For every new strategy, optimisation
+  must follow this order: (A) entry parameters, (B) exit method comparison, (C) regime
+  filter test, (D) joint optimisation of top combinations, (E) Monte Carlo stress test.
+  Out-of-order optimisation (e.g. selecting a regime filter before testing exit methods)
+  is not permitted. Applied retroactively to ETH RSI as gap items RR-RSI-008 and RR-RSI-009.
+
+- **Mandatory Visualisation Deliverables:** Chart package required at Phases 3, 4, and 6.
+  A phase is not complete until the required charts are produced and saved. Interactive
+  Plotly HTML is the deployment standard; static PNG is acceptable for quick reference only.
+  Minimum Phase 6 package: equity curve, year-by-year panels, trade distribution,
+  underwater curve, walk-forward bars, annual returns comparison, stability heatmap.
+
+- **Dual MaxDD Reporting:** Both per-trade MaxDD (worst single trade on the equity curve)
+  and daily MtM MaxDD (worst daily drawdown from peak across the full equity curve) must
+  be reported on all backtests. These are different quantities and must not be confused.
+  MtM MaxDD is always worse than per-trade MaxDD and is what you experience live.
+
 ---
 
 *Document version: 2.0 — converted to Markdown and updated 2026-05-16 to reflect Week 7 actual progress.*
+*Document version: 2.1 — updated 2026-06-01 to reflect Week 9 actual progress. Week 8/9 rows added to progress table; Week 9 section replaced with actual; Weeks 8–9 methodology standards added; deferred topics updated.*
 *Source: DeFi_Quant_Roadmap_REVISED_ACTUAL.pdf (iCloud, superseded by this Markdown version).*
 *PDF export: at major phase milestones only (end of Phase 1, Phase 2, etc). This Markdown file is the live document.*
