@@ -129,8 +129,11 @@ No-stop baseline on ETH (SMA 110 only, no trail): Annual +28.3%, MtM MaxDD −75
 > 3. Position sizing: fixed 5–10% capital-at-risk, not Kelly-derived
 > 4. Initial capital: $500 BTC (MARGINAL stability warrants conservative start)
 > 5. Deployment card complete (Week 8)
+> 6. Phase 3B exit method comparison complete — BS009 (added 2026-06-01, pipeline v2.0)
+> 7. Phase 3C regime filter optimisation complete — BS010 (added 2026-06-01, pipeline v2.0)
 >
 > **Signed off: Greg + Claude, Week 7**
+> *Conditions 6 and 7 added 2026-06-01 per STRATEGY_RESEARCH_PIPELINE.md v2.0.*
 >
 > **First review date: 2026-07-16** (2 months post-deployment). Review agenda: (1) has a profit exit occurred? (2) has a loss exit occurred? (3) are live metrics broadly consistent with backtest? (4) set next review date.
 >
@@ -358,6 +361,87 @@ Monitor first 5 live trades for any unexpected MR behaviour.
   not deployed. Monitoring requirement (35% alert) added to
   LIVE_TRADING_CHECKLIST.md and STRATEGIC_FRAMEWORK.md.
 
+### BS009 — Phase 3B exit method comparison required before deployment
+
+**Category:** Strategy / Methodology
+
+**Status:** Open — pre-deployment blocker
+
+**Priority:** High
+
+**Raised:** 2026-06-01 (STRATEGY_RESEARCH_PIPELINE.md v2.0 update)
+
+**Description:**
+STRATEGY_RESEARCH_PIPELINE.md Phase 3B requires that all five exit methods be formally
+tested before the deployed configuration is selected. The BTC SMA strategy uses SMA
+crossover as the primary exit signal (price crosses below 110-day SMA) combined with a
+30% percentage trailing stop. The following have not been tested:
+
+- Exit method 3 (ATR trailing stop): ATR multipliers 1.5, 2.0, 2.5, 3.0 vs current 30% pct trail
+- Exit method 4 (EMA trailing stop): EMA periods 20, 30, 50
+- Exit method 5 (hybrid): SMA signal + ATR trail, whichever fires first
+
+Stage B pipeline (btc_sma_stage_b.py) compared ATR trail vs pct trail and found ATR
+decisively weaker — but this was a 2-way comparison, not a full 5-method Phase 3B
+comparison with post-break PF as the selection metric.
+
+**Impact:**
+High — blocks deployment. The current exit (SMA signal + pct 30% trail) was selected
+from a limited comparison. A full Phase 3B test may confirm it is optimal, or may
+identify a better configuration. This must be resolved before capital is deployed.
+
+**Fix:**
+Run Phase 3B exit comparison: all five methods on BTC-USD daily data. Use post-break PF
+(Jan 2024 onwards) as the ranking metric, consistent with pipeline v2.0 standard.
+Confirm the current SMA + pct 30% trail combination or select an improved alternative.
+
+**Target:** Before deployment (condition 6 in formal decision block)
+
+**Update log:**
+- 2026-06-01: Raised. Pre-deployment blocker. Phase 3B requirement from pipeline v2.0.
+
+---
+
+### BS010 — Phase 3C regime filter optimisation required before deployment
+
+**Category:** Strategy / Methodology
+
+**Status:** Open — pre-deployment blocker
+
+**Priority:** High
+
+**Raised:** 2026-06-01 (STRATEGY_RESEARCH_PIPELINE.md v2.0 update)
+
+**Description:**
+STRATEGY_RESEARCH_PIPELINE.md Phase 3C requires that SMA regime filters (SMA-50,
+SMA-100, SMA-120, SMA-200, EMA-50) be tested as additional entry gates for all
+trend-following strategies. The BTC SMA strategy uses the SMA crossover as both the
+entry signal AND the implicit regime filter (the SMA is the signal). This is
+structurally different from a separate regime filter layer.
+
+The question to answer: does adding a SECOND SMA filter as an additional entry gate
+(e.g. only enter when close > SMA-50 AND price has just crossed above SMA-110) improve
+post-break PF? Or does the SMA crossover entry already embed sufficient regime filtering?
+
+For BTC SMA, the Phase 3C question becomes: should a separate fast SMA (50, 100) be
+required as a trend confirmation gate in ADDITION to the existing 110-day SMA crossover?
+
+**Impact:**
+High — blocks deployment. This has not been tested. It may have no impact (the SMA
+signal is already a strong regime filter) or it may materially improve post-break PF
+by reducing false entries in choppy markets.
+
+**Fix:**
+Test: entry only when close > SMA-110 crossover AND close > [SMA-50 / SMA-100 / no
+additional filter]. Report post-break PF and trade count for each. If additional filter
+improves post-break PF without excessive trade count reduction, adopt it.
+
+**Target:** Before deployment (condition 7 in formal decision block). Can be run
+alongside BS009 as a combined analysis.
+
+**Update log:**
+- 2026-06-01: Raised. Pre-deployment blocker. Phase 3C requirement from pipeline v2.0.
+
 ---
 
 ## Resolved Items
@@ -369,6 +453,7 @@ Monitor first 5 live trades for any unexpected MR behaviour.
 
 ---
 
+*Register version: 1.5 — updated 2026-06-01: BS009 and BS010 added (pre-deployment blockers per pipeline v2.0 Phase 3B/3C requirements). Deployment conditions 6 and 7 added to formal decision block.*
 *Register version: 1.4 — updated 2026-05-16: Formal CONDITIONAL GO decision block added (Week 7, signed off Greg + Claude). BS005 resolved — T30% confirmed as structural optimum, not boundary artefact. Status updated to CONDITIONAL GO — Phase 3/4 Complete. Remaining conditions: Phase 5 leverage analysis and deployment card (Week 8).*
 *Register version: 1.3 — updated 2026-05-16: Stage B/C pipeline re-run complete. Primary candidate updated from SMA120/T25% to SMA110/T30%. Phase 3 Monte Carlo findings section added. Phase 4 ETH PARTIAL PASS noted. Fixed 5–10% capital-at-risk sizing recommended for initial deployment.*
 *Register version: 1.2 — updated 2026-05-04: added BS008 (Medium) — margin drawdown in worst historical crash at 2.0× leverage; confirmed 2.0× categorically safe, 2.5× unsafe.*

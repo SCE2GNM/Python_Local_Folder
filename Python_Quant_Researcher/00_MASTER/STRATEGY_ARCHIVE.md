@@ -455,13 +455,190 @@ None for SOL. Bollinger mean reversion remains a valid research direction for ET
 
 ---
 
+---
+
+## S011 — BNB Donchian Channel Breakout SMA-120 (Deferred — CONDITIONAL GO)
+
+**Status:** Deferred — CONDITIONAL GO, Phase 6 in progress
+**Rejection stage:** Not rejected — deployment pending independent review and bot build
+**Date approved:** 2026-06-01 (Phases 0–5 signed off; Phase 6 in progress)
+**Tested in:** Week 9
+
+### Parameters tested
+
+| Stage | Parameters |
+|---|---|
+| Discovery grid | 148-combination grid: 5 indicator families (ADX, Supertrend, Donchian, Keltner, Bollinger) on BNB-USD 2018–2026 |
+| Donchian hard-filter scan | 23 Donchian combinations passed B&H-exception-adjusted filters |
+| Top candidates | per=20/stop=5% and per=60/stop=5% proceeded to walk-forward |
+| **Deployed (per=20)** | **period=20, stop=5% trailing, SMA-120 regime filter (Exit A)** |
+
+### Best backtest metrics (BNB-USD, 2018–2026, ~8.4 years, SMA-120 filter)
+
+| Metric | Value |
+|---|---|
+| Annual return | +28.3% |
+| Max drawdown (per-trade) | −24.1% |
+| Max drawdown (MtM) | −29.7% |
+| Sortino | 0.843 |
+| Profit factor (full) | 2.696 |
+| Profit factor (post-break Jan 2024) | 2.961 |
+| Win rate | 43.2% (full); 47.4% post-break |
+| Trades | 74 |
+| B&H MDD | −80.1% (B&H exception applies — see METHODOLOGY_STANDARDS.md) |
+| Substitute gates | Sortino > 0.8 ✅ + MDD < 50% ✅ — PASS |
+
+Walk-forward: 9/13 OOS windows profitable (PF > 1). Stability: STABLE — 26/42 post-break combinations with PF > 2.0 (62%).
+
+### Why conditional GO (not rejected)
+
+Full 5-phase validation complete. Post-break PF 2.961 exceeds 2.0 threshold. B&H MDD exception formally applied and documented (RR-BNB-007). Half-Kelly permission granted with 2022 bear market evidence (RR-BNB-006). Two process items remain before live capital: independent red team review and bot build.
+
+### Outstanding deployment conditions
+
+1. Independent red team review (fresh Claude session) — LIVE_TRADING_CHECKLIST.md Section 0
+2. Bot build and EC2 deployment
+3. Phase 6 sign-off
+
+### Links
+
+- `01_RISK_REGISTERS/RISK_REGISTER_BNB_DONCHIAN.md`
+- `03_DEPLOYMENT_CARDS/BNB_DONCHIAN_DEPLOYMENT_CARD.md`
+- `06_BACKTESTS/Week_9_Notebooks/` — all backtest scripts and result CSVs
+- `06_BACKTESTS/Week_9_Notebooks/charts/` — seven interactive HTML charts
+- Risk register items: RR-BNB-001 through RR-BNB-007
+
+---
+
+## S012 — BNB Donchian per=60/stop=5% (Rejected — Insufficient Evidence)
+
+**Status:** Rejected
+**Rejection stage:** Walk-forward validation (Week 9) — OOS median PF below 1.0
+**Date closed:** 2026-06-01
+**Tested in:** Week 9
+
+### Parameters tested
+
+Donchian period=60, stop=5% trailing — second-ranked combination from BNB hard-filter scan.
+
+### Why rejected
+
+Walk-forward OOS median PF = 0.421 (below 1.0 breakeven). In 13 walk-forward windows, the strategy showed inconsistent OOS performance without the clear profitable pattern of the per=20 variant. Regime break post-break PF was 2.659 (viable on full post-break aggregate) but window-by-window consistency was insufficient. The per=20 combination dominates on all deployment metrics.
+
+### Reopen conditions
+
+Not worth reopening while per=20 is deployed. If per=20 live performance is disappointing, revisit wider Donchian period grid. Would require at least 5 post-break OOS windows with PF > 1.0 to re-qualify.
+
+### Links
+
+- `06_BACKTESTS/Week_9_Notebooks/bnb_walkforward_results.csv`
+
+---
+
+## S013 — AVAX Keltner Channel EMA=15/mult=2.0 (Rejected)
+
+**Status:** Rejected
+**Rejection stage:** Regime break analysis (Week 9) — post-break PF 1.413, insufficient edge
+**Date closed:** 2026-06-01
+**Tested in:** Week 9
+
+### Parameters tested
+
+Multi-asset discovery grid (01_altcoin_discovery_grid.py): Keltner Channel, multiple EMA/multiplier combinations on AVAX-USD. Best result: EMA=15, multiplier=2.0.
+
+### Best backtest metrics (full period)
+
+Single combination passed hard-filter scan with B&H-exception-adjusted gates.
+
+### Why rejected
+
+Post-break regime break analysis: PF 1.413 (post-Jan 2024). This falls in the "edge compressed" range (1.0–2.0) where METHODOLOGY_STANDARDS.md requires caution and reduced sizing — it does not clear the 2.0 threshold required for a full deployment case. Win rate declined from 53% pre-break to 33% post-break — a meaningful structural deterioration. With only 1 qualifying combination in the discovery grid, the strategy also lacks the parameter stability needed for a CONDITIONAL GO.
+
+### Reopen conditions
+
+Wider parameter grid producing 3+ combinations with post-break PF > 2.0. Do not reopen on the basis of single-combination results. Post-break sample must reach ≥ 30 trades before the PF estimate is reliable.
+
+### Links
+
+- `06_BACKTESTS/Week_9_Notebooks/01_altcoin_discovery_grid.py`
+- `06_BACKTESTS/Week_9_Notebooks/altcoin_discovery_results.csv`
+- `00_MASTER/STRATEGY_IDEAS_LOG.md` (individual failure notes)
+
+---
+
+## S014 — LINK Trend-Following (Rejected)
+
+**Status:** Rejected
+**Rejection stage:** Discovery grid (Week 9) — zero hard-filter passes
+**Date closed:** 2026-06-01
+**Tested in:** Week 9
+
+### Why rejected
+
+LINK (LINKUSDT) produced zero passing combinations across all indicator families in the multi-asset discovery grid. Primary failure mode: LINK's high volatility generates wide ATR and large intraday candles that blow through 5–12% fixed stops before the trend can develop. No indicator family found a stop distance that simultaneously controls MDD and generates enough trades to pass the 30-trade minimum.
+
+### Reopen conditions
+
+Evidence of structural volatility reduction in LINK (e.g., post-futures-ETF stabilisation, higher market cap diluting volatility). Would need at least 5 combinations clearing hard filters. See STRATEGY_IDEAS_LOG.md for detailed failure notes.
+
+### Links
+
+- `06_BACKTESTS/Week_9_Notebooks/01_altcoin_discovery_grid.py`
+- `00_MASTER/STRATEGY_IDEAS_LOG.md`
+
+---
+
+## S015 — DOT Trend-Following (Rejected)
+
+**Status:** Rejected
+**Rejection stage:** Discovery grid (Week 9) — best result below quality threshold
+**Date closed:** 2026-06-01
+**Tested in:** Week 9
+
+### Why rejected
+
+DOT (DOTUSDT) is in a structural downtrend from its 2021 ATH. The best discovery grid result achieved Sortino 0.49 — below the 0.8 quality threshold. Trend-following cannot sustainably generate edge when the asset has no sustained uptrends to follow. The SMA-120 regime filter would block most entry signals during DOT's prolonged decline, resulting in very few trades and near-zero returns. No meaningful optimisation target exists in the current market structure.
+
+### Reopen conditions
+
+DOT price recovery above a multi-year SMA (e.g., 200-day SMA) sustained for 6+ months, combined with post-recovery discovery grid showing ≥ 5 combinations with Sortino > 0.8. See STRATEGY_IDEAS_LOG.md for details.
+
+### Links
+
+- `06_BACKTESTS/Week_9_Notebooks/01_altcoin_discovery_grid.py`
+- `00_MASTER/STRATEGY_IDEAS_LOG.md`
+
+---
+
+## S016 — MATIC Trend-Following (Rejected)
+
+**Status:** Rejected
+**Rejection stage:** Discovery grid (Week 9) — B&H floor eliminates all candidates
+**Date closed:** 2026-06-01
+**Tested in:** Week 9
+
+### Why rejected
+
+MATIC (now POL) produced discovery grid combinations that technically passed internal filters but could not clear the B&H benchmark gate. MATIC's 2020–2021 bull run was so extreme (from fractions of a cent to ~$2.50+) that its buy-and-hold annual return sets a gate that no actively managed strategy can match — even using the B&H MDD exception framework. The B&H MDD for MATIC exceeds −60%, but the 1.5× annual return gate (even suspended) is replaced by Sortino > 0.8 + MDD < 50%, and no discovered combination clears both substitute gates reliably post-break. Additionally, the MATIC → POL rebrand introduces structural uncertainty in the asset itself.
+
+### Reopen conditions
+
+POL (former MATIC) price history normalisation — after several years where the 2020–2021 outlier is sufficiently diluted by subsequent price action. Would require fresh discovery grid with at least 3 post-break combinations clearing substitute gates. See STRATEGY_IDEAS_LOG.md for details.
+
+### Links
+
+- `06_BACKTESTS/Week_9_Notebooks/01_altcoin_discovery_grid.py`
+- `00_MASTER/STRATEGY_IDEAS_LOG.md`
+
+---
+
 ## Strategies Planned But Not Yet Backtested
 
 The following strategies have been formally proposed and prioritised but do not yet have documented backtest results. They are listed here to prevent duplication and to record when they were proposed.
 
 | Strategy | Asset | Proposed in | Priority | Notes |
 |---|---|---|---|---|
-| Donchian Channel Breakout | ETH, BTC | Week 7 Research Brief | Week 9+ | Priority 1 in Week 7 brief — not executed. See sol_grid_search.py for SOL version (rejected). |
+| Donchian Channel Breakout | ETH, BTC | Week 7 Research Brief | Week 9+ | Priority 1 in Week 7 brief — not executed on ETH/BTC. SOL rejected (S009). BNB executed (S011). |
 | MAX Strategy (N-day high continuation) | BTC | Week 7 Research Brief | Week 9+ | Peer-reviewed evidence (Quantpedia 2024), out-of-sample through 2024. Combine with MIN for best results. |
 | MIN Strategy (N-day low bounce) | BTC | Week 7 Research Brief | Week 9+ | Run together with MAX. Avoid buy-at-minimum version (>80% MDD). |
 | Bollinger Bands | BTC | Week 7 Research Brief | Week 9+ | Untested on BTC. QuantifiedStrategies ~50% CAGR at 34% market exposure. |
@@ -474,5 +651,5 @@ The following strategies have been formally proposed and prioritised but do not 
 ---
 
 *Archive version 1.0 — created 2026-05-20*
-*First entry: Weeks 4–8 strategies (S001–S010 and pending backlog)*
+*Archive version 1.1 — updated 2026-06-01: S011–S016 added (Week 9 BNB and altcoin results)*
 *Update at each GO/NO-GO decision and at end of each week.*

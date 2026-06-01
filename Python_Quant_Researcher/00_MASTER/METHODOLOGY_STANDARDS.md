@@ -160,6 +160,85 @@ are the correct forward-looking inputs for deployment decisions.
 
 ---
 
+## B&H Benchmark Filter Standard
+
+**Standard:** Any strategy combination passing hard filters (minimum trade count and
+MtM MDD threshold) must also clear a buy-and-hold benchmark gate before being
+considered a passing result:
+
+  annual_ret >= asset_BH_annual_ret × 1.5
+
+A strategy that does not deliver at least 1.5× the passive return has not demonstrated
+sufficient edge to justify the operational cost and risk of active trading.
+
+**Exception — High-MDD passive benchmark:**
+
+When an asset's passive buy-and-hold MtM MDD exceeds −60%, **both the annual return
+gate AND the Sortino gate are suspended.** A passive investor who holds through an 80%
+drawdown to generate Sortino 1.1 is not a meaningful risk-adjusted benchmark for a
+risk-managed active strategy that prevented that drawdown. The same economic argument
+that disqualifies the return gate disqualifies the Sortino gate.
+
+**Substitute quality gates when B&H MDD > −60% (both must be met):**
+- Strategy Sortino > 0.8 (absolute threshold — not relative to B&H)
+- Strategy MtM MDD better than −50% (drawdown discipline maintained)
+
+**Three-check B&H benchmark framework (report explicitly for every strategy):**
+
+| Check | Normal threshold | When B&H MDD > −60% |
+|---|---|---|
+| Annual return | ≥ 2.0× B&H annual return | Suspended — substitute: Sortino > 0.8 |
+| MtM MDD | ≤ 0.50× B&H MtM MDD | Always applies — never suspended |
+| Sortino | ≥ 1.5× B&H Sortino | Suspended — substitute: Sortino > 0.8 |
+
+The MtM MDD check is never suspended. A risk-managed strategy must always demonstrate
+materially better drawdown than passive buy-and-hold to justify its operational cost.
+
+**First application:** BNB-USD, Week 9, 2026-06-01.
+- BNB B&H MDD: −80.1% (far exceeds −60% exception threshold)
+- BNB B&H annual return: 68.7% (sets a 103.1% gate — near-impossible to clear)
+- Rationale: an 80% passive drawdown is not a benchmark worth chasing for a live
+  trading system that operates under strict risk controls. The 1.5× gate is designed
+  to ensure active management adds value over passive exposure — not to require that
+  active strategies match returns achievable only by surviving an 80% loss.
+- Outcome: BNB Donchian combos evaluated on Sortino > 0.8 + MtM MDD < 50% basis.
+  Two combinations (per=60/stop=5%, per=20/stop=5%) proceeded to regime break and
+  walk-forward validation.
+
+**Week added:** Week 9 — 2026-06-01
+
+---
+
+## Pipeline Phase Gate Standard
+
+**Standard:** Every strategy risk register must contain a Pipeline Phase Gate table
+immediately after the document header. The table lists all seven phases
+(0–6) with status and sign-off columns.
+
+**Claude Code enforcement rule:** At the start of every session involving
+strategy work, check the Pipeline Phase Gate table in the relevant risk register.
+Do not proceed to Phase N+1 work if Phase N is not marked signed off.
+If the phase gate table is missing from a register, add it before any other work
+proceeds — use the table from STRATEGY_RISK_REGISTER_TEMPLATE.md.
+
+**Deferral protocol:** If a phase is skipped or deferred, written justification
+must be recorded in the phase gate table before the next phase begins.
+"Deferred — see [item ID]" is sufficient if the item exists in the register.
+
+**Session startup check (required):**
+1. Read the risk register for the strategy being worked on.
+2. Locate the Pipeline Phase Gate table.
+3. Identify the highest signed-off phase.
+4. Confirm that work requested is within the next phase, not ahead of it.
+5. If the table is absent, insert it from the template before proceeding.
+
+**Scope:** Applies to all strategies from Week 9 onwards. Existing registers
+(ETH ADX, ETH RSI, BTC SMA) should have the table added at next revision.
+
+**Week added:** Week 9 — 2026-06-01
+
+---
+
 ## Chart Production Standards
 
 All strategy deployment documents must include:

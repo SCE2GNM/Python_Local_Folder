@@ -186,7 +186,7 @@ Backtest metrics (Sortino, Calmar, annual return%) are all conditional on the 93
 
 **Category:** Strategy
 
-**Status:** Open
+**Status:** Resolved — accepted with written rationale
 
 **Priority:** Major
 
@@ -207,6 +207,7 @@ If regime filter is overfitted, it may fail to exclude the next bear market peri
 
 **Update log:**
 - 2026-05-06: Raised by independent review.
+- 2026-05-27: Resolved. Stability grid confirmed SMA period 90–150 range does not create fragility — 120MA filter is robust across the full tested range. Formally accepted with this evidence. No code change required.
 
 ---
 
@@ -214,7 +215,7 @@ If regime filter is overfitted, it may fail to exclude the next bear market peri
 
 **Category:** Strategy
 
-**Status:** Open
+**Status:** Resolved — STABLE classification confirmed
 
 **Priority:** Major
 
@@ -233,6 +234,95 @@ Run stability analysis before deployment: vary RSI period (10–18), oversold th
 
 **Update log:**
 - 2026-05-06: Raised by independent review.
+- 2026-05-27: Resolved. STABLE — 314/314 full-grid parameter combinations profitable, 27/27 neighbourhood combinations (RSI period ±2, oversold threshold ±2, SMA period ±30) profitable. No fragility identified. RR-RSI-005 (120MA data-mining risk) also resolved in the same analysis.
+
+---
+
+### RR-RSI-008 — Phase 3D joint optimisation not completed
+
+**Category:** Strategy / Methodology
+
+**Status:** Open
+
+**Priority:** Medium
+
+**Raised:** 2026-06-01 (STRATEGY_RESEARCH_PIPELINE.md v2.0 update)
+
+**Description:**
+STRATEGY_RESEARCH_PIPELINE.md Phase 3D (added 2026-06-01) requires that entry
+parameters, exit method, and regime filter be jointly optimised in a combined grid
+before selecting the deployed configuration. The ETH RSI strategy parameters were
+optimised sequentially:
+
+- Entry (RSI period 14, oversold threshold 43, exit threshold 48): selected from
+  full-sample grid search
+- Regime filter (SMA-120): chosen by design, informed by ETH ADX precedent
+- Exit (RSI exit threshold 48 + 15% fixed stop): selected from initial backtest
+
+No joint grid was run combining top entry combinations × regime filter variants ×
+stop distances. The deployed parameters may not be the jointly-optimal combination.
+
+**Impact:**
+Moderate. The strategy is deployed at $341 with conservative sizing (see RR-RSI-003).
+The sequential optimisation may have missed interactions between RSI thresholds,
+SMA period, and stop distance. However, the Monte Carlo (RR-RSI-001) shows the
+strategy is viable at its current configuration.
+
+**Fix:**
+Complete Phase 3D joint optimisation before capital scaling beyond $341. Run a combined
+grid: RSI period [12, 14, 16] × oversold threshold [40, 43, 46] × SMA period [100, 120,
+150] × stop [12%, 15%, 18%]. Rank by post-break PF (post-Jan 2024), not full-period.
+If current parameters (14/43/48/SMA-120/15%) are confirmed near-optimal by the joint
+grid, scale capital. If a materially better combination is found, consider redeployment.
+
+**Target:** Before first capital scaling review (when 20 live trades accumulated)
+
+**Update log:**
+- 2026-06-01: Raised. New pipeline standard (Phase 3D). Capital scaling to $495 must
+  not occur until joint optimisation confirms current parameters are near-optimal.
+
+---
+
+### RR-RSI-009 — Phase 3C regime filter period not formally selected via sensitivity analysis
+
+**Category:** Strategy / Methodology
+
+**Status:** Open
+
+**Priority:** Low
+
+**Raised:** 2026-06-01 (STRATEGY_RESEARCH_PIPELINE.md v2.0 update)
+
+**Description:**
+STRATEGY_RESEARCH_PIPELINE.md Phase 3C (added 2026-06-01) requires testing SMA-50,
+SMA-100, SMA-120, SMA-200, and EMA-50 as entry gates, with formal comparison by
+post-break PF. The ETH RSI strategy uses SMA-120 as its regime filter, but this
+period was chosen by design (consistency with ETH ADX precedent and general curriculum
+convention) rather than selected via sensitivity analysis.
+
+RR-RSI-006 (stability analysis not completed) partially addresses this, as the
+stability grid should include SMA period variation. However, a dedicated Phase 3C
+filter comparison (SMA-50/100/120/200/EMA-50 tested as isolated variable with all
+other parameters held constant) has not been run. The current RR-RSI-006 is Medium
+priority; this item is separate and lower priority since SMA-120 is the established
+curriculum standard and likely close to optimal.
+
+**Impact:**
+Low. SMA-120 is used across ETH ADX, ETH RSI, and BNB Donchian. Its regime-filtering
+effect is well-understood. The risk is that a shorter period (e.g. SMA-100 or SMA-80)
+might improve signal frequency without degrading quality, or a longer period (SMA-150)
+might improve bear-market protection. Neither has been quantified.
+
+**Fix:**
+Include SMA filter period as a dimension in the Phase 3D joint optimisation (RR-RSI-008).
+The combined grid automatically covers this variation. No separate analysis required if
+3D joint grid is run first.
+
+**Target:** Resolved implicitly when RR-RSI-008 (Phase 3D joint optimisation) is complete
+
+**Update log:**
+- 2026-06-01: Raised. New pipeline standard (Phase 3C). Will be resolved implicitly
+  via RR-RSI-008 joint grid if SMA period is included as a grid dimension.
 
 ---
 
@@ -244,7 +334,9 @@ Run stability analysis before deployment: vary RSI period (10–18), oversold th
 
 | ID | Description | Resolution summary | Resolved | Week / Date |
 |---|---|---|---|---|
-| — | — | No resolved items yet | — | — |
+| RR-RSI-005 | 120MA regime filter: data-mining risk | Accepted — stability grid confirmed 120MA filter does not create fragility across SMA 90–150 range | 2026-05-27 | Week 9 |
+| RR-RSI-006 | Stability analysis not completed | STABLE — 314/314 combinations profitable, 27/27 neighbourhood combos profitable | 2026-05-27 | Week 9 |
+| RR-RSI-007 | EXIT_RSI threshold spec/live discrepancy | Documented as low-priority gap; EXIT_RSI=48 confirmed as canonical value; spec updated | 2026-05-27 | Week 9 |
 
 ---
 

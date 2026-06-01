@@ -93,55 +93,198 @@ Requires Monte Carlo stress test before deployment decision.
 
 ## Phase 3 — Optimisation
 
-### Leverage Screening
-
-**Run after top 20 strategy parameter combinations identified.**
-
-After ranking the top 20 combinations by annual return at 1×:
-
-1. Run a preliminary leverage grid (1.0× to 3.0×, 0.5× steps) for each of the top 20.
-2. Re-rank the top 20 by leveraged annual return, subject to safety buffer ≥ 33%.
-3. If the ranking shifts from the 1× ranking, run full leverage optimisation (1.0×–5.0×, 0.1× steps) on the top 3 combinations.
-4. Final strategy selection is based on leveraged performance, not 1× performance.
-
-**Rationale:** Strategies with lower raw return but lower drawdown and higher Sortino may support higher safe leverage, producing better final returns than a higher-raw-return strategy constrained to lower leverage by its drawdown profile. The 1× winner is not always the leveraged winner.
-
-Low MaxDD and high Sortino are leverage multipliers, not just quality filters — weight them more heavily when leverage is planned. Joint optimisation of strategy parameters and leverage simultaneously is the theoretically correct approach. Sequential optimisation (strategy first, leverage second) may miss the global optimum.
+Every sub-phase is required for every strategy. If a sub-phase is deferred, written
+justification must be recorded in the strategy risk register before Phase 4 begins.
+The sequence 3A → 3B → 3C → 3D → 3E is mandatory and cannot be reordered.
 
 ---
 
-### Monte Carlo Stress Test
+### 3A — Entry Optimisation
 
-**Required for all strategies with fewer than 100 backtest trades. Recommended for all strategies.**
+Test all relevant entry parameter combinations within the research-brief-informed range.
+Apply the minimum 30-trade filter throughout. Metric for ranking: **post-break profit
+factor** (not full-period). Record the top 3 entry parameter combinations for use in 3D.
 
-Run 1,000 Monte Carlo simulations at five win rate scenarios: backtest rate, 80%, 75%, 70%, 65%. For each scenario report:
+**Grid boundary check:** the best result must not sit at the edge of the tested range.
+If it does, extend the range until performance clearly peaks and plateaus before accepting.
 
-- Median annual return%
-- 10th percentile annual return% (bad luck)
-- 90th percentile annual return%
+---
+
+### 3B — Exit Optimisation
+
+Test all five exit methods for every strategy before selecting one. Report for each:
+full-period PF, post-break PF, win rate, trade count, annual return, Sortino, MtM MDD,
+per-trade MDD. **Select based on post-break PF, not full-period metrics.**
+Document selection with an explicit comparison table showing all five methods tested.
+
+**Exit method 1 — Signal-based:**
+Indicator reversal (e.g. ADX drops below threshold, RSI crosses exit level,
+price breaks below Donchian lower channel). The "default" exit for the strategy type.
+
+**Exit method 2 — Fixed percentage stop only:**
+Pure stop management, no signal exit. Stop set at entry and fixed (does not trail).
+Test stops at: 2%, 3%, 4%, 5%, 6%, 7%, 8%, 10%, 12%, 15%.
+
+**Exit method 3 — ATR trailing stop:**
+Stop = peak price − (multiplier × ATR). Ratchets upward only, never down.
+Exit when daily LOW touches the trailing stop level.
+Test ATR multipliers: 1.5, 2.0, 2.5, 3.0. Default ATR period: 14.
+
+**Exit method 4 — EMA trailing stop:**
+Two-tier check. Tier 1: exit when daily LOW ≤ prior bar's EMA (intrabar, fill at prior EMA).
+Tier 2: exit when close < current EMA (EOD trigger, fill at close). Always check LOW first.
+Test EMA periods: 20, 30, 50.
+
+**Exit method 5 — Hybrid (signal + ATR trailing stop):**
+Signal-based exit combined with ATR trailing stop; whichever fires first exits the position.
+Use the best ATR multiplier from method 3.
+
+**Stop range optimisation (mandatory):**
+Test stop values at: 2%, 3%, 4%, 5%, 6%, 7%, 8%, 10%, 12%, 15%.
+For each, report: annual return, Sortino, profit factor, trade count, MtM MDD.
+Confirm the chosen stop sits on a plateau — not a cliff edge or a grid boundary.
+If a stop value fails hard filters (trade count or MDD gate), report the failure reason
+explicitly (MDD failure vs trade count failure — these are different diagnostics).
+
+---
+
+### 3C — Regime Filter Optimisation
+
+**Required for all trend-following strategies** (ADX, Donchian, Supertrend, Keltner,
+any MACD-based trend strategy).
+
+For each filter, report: full-period PF, post-break PF, MtM MDD, annual return, trade count.
+**Select based on post-break PF improvement vs trade count cost.**
+Always include no-filter baseline in the comparison.
+
+| Filter | Entry condition |
+|---|---|
+| No filter (baseline) | Always enter on signal |
+| SMA-50 | Enter only when close > 50-day SMA |
+| SMA-100 | Enter only when close > 100-day SMA |
+| SMA-120 | Enter only when close > 120-day SMA |
+| SMA-200 | Enter only when close > 200-day SMA |
+| EMA-50 | Enter only when close > 50-day EMA |
+
+**For mean reversion strategies** (RSI, Bollinger Bands): the SMA-120 regime filter is
+validated on ETH RSI. For any new asset or parameter set, run the same sensitivity
+analysis above to confirm the existing period is optimal.
+
+---
+
+### 3D — Joint Optimisation
+
+After 3A, 3B, and 3C are individually complete, run a joint grid:
+- Top 3 entry parameter combinations from 3A
+- Best exit method from 3B with top 2 stop distances
+- Best 2 regime filters from 3C (always include no-filter as baseline)
+
+**The deployed configuration must come from this joint grid** — not from individually
+optimised phases. Sequential optimisation (entry → exit → regime → combine) misses
+interactions between parameters. 3D is the correct final parameter selection step.
+
+---
+
+### 3E — Monte Carlo Stress Test
+
+**Required for all strategies with fewer than 100 backtest trades. Recommended for all.**
+
+Bootstrap method: resample wins and losses separately in the required win-rate proportion
+to adjust win rate while preserving actual win/loss size distributions. Apply 0.15%
+transaction costs to each simulated trade return before compounding.
+
+Run 1,000 simulations at five win-rate scenarios: backtest rate, 80%, 75%, 70%, 65%.
+For each scenario report:
+
+- Median annual return %
+- 10th percentile annual return % (bad luck)
+- 90th percentile annual return %
 - Probability of negative annual return
-- Kelly fraction at this win rate
-- Recommended position size at this win rate
+- Kelly fraction at this win rate: f* = p − (1−p)/b
+- Recommended Half-Kelly position size at deployed capital
+- Kelly breakeven win rate: p_breakeven = 1/(1+b)
 
-Flag any scenario where:
-- Kelly turns negative → **DO NOT DEPLOY at this win rate**
-- Probability of negative year exceeds 30% → flag for explicit acceptance
+**Mandatory flags — no exceptions:**
+- Kelly turns negative at any scenario → **DO NOT DEPLOY at this win rate**
+- Probability of negative year > 30% at any scenario → flag for explicit acceptance
 
-Use results to determine deployment position size — not backtest win rate alone. If live win rate is expected to be materially lower than backtest (common for mean-reversion strategies), size position for the expected live win rate, not the backtest win rate.
+Use conservative sizing scenario (worst viable Kelly-positive scenario) as deployment
+reference — not the backtest scenario. If live win rate is expected lower than backtest
+(common for mean-reversion strategies), size for the expected live win rate.
 
-**This step is mandatory when n < 100 backtest trades.**
+---
+
+### Leverage Screening
+
+**Run after Phase 3D joint optimisation identifies top 20 combinations.**
+
+1. Run preliminary leverage grid (1.0× to 3.0×, 0.5× steps) for each of the top 20.
+2. Re-rank top 20 by leveraged annual return, subject to safety buffer ≥ 33%.
+3. If ranking shifts from the 1× ranking, run full leverage grid (1.0×–5.0×, 0.1× steps)
+   on the top 3 combinations.
+4. Final selection is based on leveraged performance, not 1× performance.
+
+Low MaxDD and high Sortino are leverage multipliers — a strategy with lower raw return
+but lower drawdown may support higher safe leverage than the raw-return winner.
+
+**Deferral:** Leverage screening may be formally deferred for unleveraged initial deployments.
+The deferral and its justification must be recorded in the strategy risk register before
+Phase 4 begins. Reopen condition must also be stated.
+
+---
+
+### Phase 3 Visualisation Deliverables
+
+The following must be produced after Phase 3D is complete.
+**Phase 3 is not complete until all six deliverables exist as saved files.**
+
+| ID | Chart | Format | Required content |
+|---|---|---|---|
+| 3V1 | Post-break PF heatmap | PNG | PF across entry parameter grid (period × threshold or equivalent). Diverging colourmap centred at PF=2.0. Deployed combination marked with ★. |
+| 3V2 | Full-period Sortino heatmap | PNG | Sortino across the same grid. Diverging colourmap centred at Sortino=0.8. Deployed combination marked. |
+| 3V3 | Annual return heatmap | PNG | Annual return across the same grid. Diverging colourmap centred at B&H annual return for that asset. Deployed combination marked. |
+| 3V4 | Stop sensitivity chart | PNG | Annual return and MtM MDD vs stop % (line chart, two y-axes). Mark chosen stop value with vertical dashed line. |
+| 3V5 | Regime filter comparison chart | PNG | Grouped bar chart showing post-break PF for each filter option tested. Baseline (no filter) as reference bar. |
+| 3V6 | Exit method comparison table | Console + CSV | All five exit methods with full metrics: full-period PF, post-break PF, WR, trades, annual return, Sortino, MtM MDD, per-trade MDD. |
+
+Save all charts to `06_BACKTESTS/Week_[N]_Notebooks/charts/` (or equivalent week folder).
 
 ---
 
 ## Phase 4 — Stability Analysis
 
-*(To be documented)*
+*(Full methodology to be documented)*
+
+Complete the following before marking Phase 4 signed off:
+- Grid boundary extension on chosen stop value
+- Stability grid classification: STABLE / MARGINAL / FRAGILE (post-break PF > 2.0 threshold)
+- Walk-forward validation (expanding IS window, 6-month OOS, step 6 months)
+- Regime break analysis (mandatory per METHODOLOGY_STANDARDS.md)
+
+---
+
+### Phase 4 Visualisation Deliverables
+
+**Phase 4 is not complete until all three deliverables exist as saved files.**
+
+| ID | Chart | Format | Required content |
+|---|---|---|---|
+| 4V1 | Walk-forward OOS bar chart | PNG | OOS profit factor by window. Green bars = profitable (PF ≥ 1.0), red = loss. Mark January 2024 regime break date with vertical dashed line. |
+| 4V2 | Annual returns vs B&H | PNG | Strategy annual return vs B&H annual return, grouped bars by calendar year. B&H as grey reference bars. |
+| 4V3 | Drawdown comparison | PNG | Strategy MtM MDD vs B&H MDD by year, line chart. Show both on same axes to illustrate drawdown reduction from active management. |
 
 ---
 
 ## Phase 5 — Stress Testing
 
-*(To be documented)*
+*(Full methodology to be documented)*
+
+Phase 5 stress testing builds on Phase 3E Monte Carlo with additional layers:
+- Conservative cost assumptions (0.30% round-trip, doubled from realistic)
+- Worst-case stop slippage scenarios (0.25% vs 0.10% realistic)
+- Leverage interaction analysis (if leveraged deployment is planned)
+
+---
 
 ### Kelly Criterion and Leverage Interaction
 
@@ -246,7 +389,26 @@ Live trade count starts at zero for every new deployment and grows over time —
 
 ---
 
-*Pipeline version: 1.5 — updated 2026-05-07: added Phase 2 (Maximum Loss Per Trade Check, Payoff Profile Sanity Check); added Monte Carlo Stress Test to Phase 3*
+### Phase 6 Visualisation Deliverables
+
+The following must be produced as part of the deployment documentation.
+**Phase 6 is not complete until all five deliverables exist as saved files.**
+
+| ID | Chart | Format | Required content |
+|---|---|---|---|
+| 6V1 | Interactive equity curve | Plotly HTML | Strategy vs B&H, log scale, daily MtM. Entry markers (▲), exit markers (▼), trailing stop line (dashed). Drawdown panel as lines below main chart. |
+| 6V2 | Year-by-year equity panels | PNG | One panel per year, normalised to 1.0 at year start. Show strategy vs B&H per year. |
+| 6V3 | Trade return distribution | PNG | Histogram of individual trade returns. Wins in green, losses in red. Mark mean win and mean loss with vertical dashed lines. |
+| 6V4 | Underwater curve | PNG | Drawdown from equity peak (MtM), time series. Shade depth of drawdown. Mark regime break date. |
+| 6V5 | Parallel coordinates chart | Plotly HTML | Top 50 combinations from Phase 3D joint grid by annual return. Axes: entry param, stop, regime filter, annual return, Sortino, post-break PF. |
+
+Interactive HTML charts saved to `06_BACKTESTS/Week_[N]_Notebooks/charts/interactive/`.
+PNG charts saved to `06_BACKTESTS/Week_[N]_Notebooks/charts/`.
+Deployment document must embed or link all charts.
+
+---
+
+*Pipeline version: 2.0 — updated 2026-06-01: comprehensive Phase 3 rewrite (3A–3E mandatory sequence); visualisation deliverables added to Phases 3, 4, 6; Phase 4 and Phase 5 stubs expanded — updated 2026-05-07: added Phase 2 (Maximum Loss Per Trade Check, Payoff Profile Sanity Check); added Monte Carlo Stress Test to Phase 3*
 *Pipeline version: 1.4 — updated 2026-05-06: added §Confidence-Based Capital Allocation under Phase 6*
 *Pipeline version: 1.3 — updated 2026-05-05: added §Kelly Criterion and Leverage Interaction under Phase 5*
 *Pipeline version: 1.2 — updated 2026-05-05: added Phase 4/5 stubs; added Phase 6 with Kelly position sizing*

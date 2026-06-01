@@ -11,7 +11,7 @@
 **Asset / Exchange:** ETHUSDT / Binance Spot (unleveraged → leveraged planned)
 **Version:** v2.0 (trailing stop)
 **Date created:** 2026-03-20
-**Last updated:** 2026-05-05
+**Last updated:** 2026-05-18
 **Updated by:** Greg + Claude
 
 ---
@@ -301,7 +301,7 @@ None implemented. $150 cap on RSI, $994 on ADX spot — losses manageable at cur
 
 **Category:** Strategy / Methodology
 
-**Status:** Open
+**Status:** In Progress — Stage 0 complete, Stage 1+ deferred (see below)
 
 **Priority:** MAJOR
 
@@ -316,10 +316,123 @@ Run Monte Carlo (minimum 10,000 simulations) on the 159-trade backtest results. 
 **Note on priority:**
 Classified MAJOR rather than HIGH because the strategy is validated through the 2022 bear market (+35.1% vs B&H −68.3%), which partially addresses the fat-tail concern. The 2022 confirmation provides direct empirical evidence of fat-tail survival that Monte Carlo alone cannot. However, this does not substitute for the simulation — sequence risk and the probability distribution of forward outcomes remain unquantified.
 
-**Target:** Week 8
+**Stage 0 finding — Regime Break (confirmed 2026-05-18):**
+Full backtest (159 trades, Jan 2018 – May 2026) split at ETH spot ETF approval date (1 May 2024). Results confirm a material regime change in strategy character post-ETF:
+
+| Metric | Pre-ETF (122 trades) | Post-ETF (37 trades) |
+|---|---|---|
+| Win rate | 44.3% | 35.1% |
+| Avg win | +17.01% | +12.04% |
+| Avg loss | −4.59% | −3.86% |
+| Profit factor | 2.947 | 1.689 |
+| Annual return | +102.78% | +23.00% |
+| Max drawdown (MtM) | −36.88% | −34.68% |
+| Avg hold (days) | 7.9 | 8.0 |
+
+The strategy's risk architecture is intact (worst loss capped at −8.00% in both periods; trade duration unchanged). The edge has compressed: post-ETF win rate is 9pp lower and average wins are 5pp smaller, consistent with more institutionally-driven ETH price action producing shorter-lived or lower-magnitude trends.
+
+**Leverage deployment decision (formal — 2026-05-18):**
+Post-ETF regime break confirmed May 2026. Post-ETF profit factor 1.689 vs pre-ETF 2.947. Leverage deployment deferred until post-ETF sample reaches minimum 80 trades and profit factor confirmed above 2.0 over that sample. Revisit: approximately Week 16–18 if strategy remains live.
+
+**Implication for Monte Carlo Stage 1:**
+Running MC on the full 159-trade sample would blend two materially different regimes and overstate current forward expectation. When Stage 1 is run, it should be run on: (a) full history, and (b) post-ETF only — with the post-ETF result treated as the conservative case for leverage decision-making.
+
+**Output:** `06_BACKTESTS/Week_8_Notebooks/stage0_regime_break.html` — equity curve split pre/post-ETF with regime statistics.
+
+**Target:** Stage 1 (Monte Carlo) deferred to Week 16–18. Current target: accumulate post-ETF sample to 80 trades while strategy remains live.
 
 **Update log:**
+- 2026-05-18: Stage 0 regime break analysis complete. Post-ETF profit factor 1.689 vs pre-ETF 2.947. Leverage deployment formally deferred until post-ETF sample ≥ 80 trades and PF > 2.0. Revisit Week 16–18. Output: stage0_regime_break.html.
 - 2026-05-14: Raised. Monte Carlo not yet run. Mandatory per updated Methodology Standards.
+
+---
+
+### A023 — Phase 3B exit method comparison not completed against new pipeline standard
+
+**Category:** Strategy / Methodology
+
+**Status:** Open
+
+**Priority:** Medium
+
+**Raised:** 2026-06-01 (STRATEGY_RESEARCH_PIPELINE.md v2.0 update)
+
+**Description:**
+STRATEGY_RESEARCH_PIPELINE.md Phase 3B (added 2026-06-01) requires that all five exit
+methods be formally tested before selecting one. The ETH ADX strategy uses ADX signal
+reversal exit (ADX drops below threshold or −DI > +DI) combined with a percentage
+trailing stop (8% from peak). The following alternatives have not been formally tested
+or compared:
+
+- Exit method 3 (ATR trailing stop): ATR multipliers 1.5, 2.0, 2.5, 3.0 — not systematically compared against the current pct 8% trail
+- Exit method 4 (EMA trailing stop): EMA periods 20, 30, 50 — not tested
+- Exit method 5 (hybrid: ADX signal + ATR trail, whichever fires first)
+
+Week 6 Stage 1b did compare ATR 9/2.5x vs pct 8% trailing stop, but this was a partial
+test (two variants of trailing stop), not a full Phase 3B comparison across all five
+exit methods with post-break PF as the ranking metric.
+
+**Impact:**
+Low at current deployment scale. The existing configuration (ADX signal + pct 8% trail)
+was validated through walk-forward and regime break analysis. The gap is methodology
+compliance, not imminent risk.
+
+**Fix:**
+Complete the full Phase 3B exit comparison when the leveraged bot is designed in Weeks
+16–18. Post-break PF is the ranking metric. All five exit methods to be tested on the
+post-ETF data period (Jan 2024 onwards) as the primary evaluation window.
+
+**Target:** Weeks 16–18 (alongside A013 leverage design review)
+
+**Update log:**
+- 2026-06-01: Raised. New pipeline standard (Phase 3B) requires formal exit comparison.
+  Partial work done in Week 6 Stage 1b. Full comparison deferred to leveraged bot design.
+
+---
+
+### A024 — Phase 3C SMA regime filter not tested
+
+**Category:** Strategy / Methodology
+
+**Status:** Open
+
+**Priority:** Low
+
+**Raised:** 2026-06-01 (STRATEGY_RESEARCH_PIPELINE.md v2.0 update)
+
+**Description:**
+STRATEGY_RESEARCH_PIPELINE.md Phase 3C (added 2026-06-01) requires that SMA regime
+filters be tested as entry gates for all trend-following strategies. The ETH ADX strategy
+uses +DI > −DI as a direction confirmation gate but does not require price to be above
+a long-term SMA before entering.
+
+The following SMA entry filters have not been formally tested:
+- SMA-50 filter: only enter when ETH close > 50-day SMA
+- SMA-100 filter: only enter when ETH close > 100-day SMA
+- SMA-120 filter: only enter when ETH close > 120-day SMA (validated on ETH RSI)
+- SMA-200 filter: only enter when ETH close > 200-day SMA
+- EMA-50 filter: only enter when ETH close > 50-day EMA
+
+Relevant context: post-ETF profit factor is 1.689 (A022 regime break analysis). A regime
+filter that blocked some of the post-2024 losing trades could improve this metric.
+The ETH RSI strategy demonstrates SMA-120 improving post-break PF (from 2.199 to 2.961).
+A similar analysis has not been done for ETH ADX.
+
+**Impact:**
+Low at current scale. Post-break PF of 1.689 is workable but below the VIABLE threshold
+(>2.0). A regime filter that improved this toward 2.0+ would strengthen the case for
+leveraged deployment in Weeks 16–18.
+
+**Fix:**
+Test SMA 50/100/120/200 and EMA-50 filters on ETH ADX as a joint grid with the exit
+method comparison (A023). Complete before the leveraged deployment review. Post-break PF
+(Jan 2024 onwards) is the primary ranking metric.
+
+**Target:** Weeks 16–18 alongside A023 and A013 leverage design review
+
+**Update log:**
+- 2026-06-01: Raised. New pipeline standard (Phase 3C). No SMA filter testing done to
+  date on ETH ADX. Potential to improve post-ETF profit factor above 2.0 threshold.
 
 ---
 
@@ -368,4 +481,5 @@ Classified MAJOR rather than HIGH because the strategy is validated through the 
 | Before leveraged deployment | A013 and A014 resolved; liquidation price documented; safety buffer confirmed ≥25% |
 | Sharpe < 0.5 over 30 live trades | Pause live trading, full strategy review |
 | Week 7 (complete) | A015 decision updated: primary path — ADX 19/9 + pct 8% trailing stop. Deployment at end of Week 6 backtesting. |
+| Week 16–18 (approx) | A022: Review post-ETF sample. If ≥ 80 trades and PF > 2.0, proceed to Monte Carlo Stage 1 and leverage deployment planning. If sample still insufficient or PF still below 2.0, defer further. |
 | Every 6 months | Full parameter re-evaluation on rolling window |
