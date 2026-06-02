@@ -529,6 +529,112 @@ The following assets are added to the research queue for multi-strategy discover
 
 ---
 
+## Closed / Set-Aside Research Directions
+
+Entries here have completed initial validation and were either closed (insufficient edge, not worth revisiting without a specific reopen condition) or set aside (edge exists but specific concern prevents walk-forward; reopen if concern is resolved).
+
+---
+
+### SI018 — AVAX Keltner Channel (Week 9 Discovery) — CLOSED
+
+| Field | Value |
+|---|---|
+| **ID** | SI018 |
+| **Name** | AVAX Keltner EMA=15 / Mult=2.0 |
+| **Type** | Trend Following |
+| **Source** | Week 9 altcoin discovery grid |
+| **Status** | **CLOSED — 2026-06-01** |
+| **Priority** | LOW |
+| **Date Added** | 2026-06-01 |
+
+**Summary of findings:**
+Sole passing combination from AVAX 148-combo discovery grid. Full-period: PF 7.441, Sortino 1.65, 34 trades, MtM MDD −45.3%.
+
+Regime break (Jan 2024 split): pre-break PF 15.217, win rate 52.6%, 19 trades — essentially the entire 2020–2021 AVAX bull run with too small a sample to generalise. Post-break PF 1.413, win rate declined 53% → 33%, annual return +2.1%. Decision: EDGE COMPRESSED.
+
+**Reason closed:** Pre-break sample of 19 trades is insufficient to establish a reliable baseline edge. The strong full-period PF is driven almost entirely by the 2020–2021 AVAX bull run. Post-break edge (PF 1.413) is marginal and not sufficient to justify walk-forward work. Bollinger mean reversion and Supertrend produced zero passing combinations on AVAX. ADX produced zero. AVAX is not a productive research direction at current market structure.
+
+**Reopen condition:** A wider parameter grid on Keltner (stop 8–18%, EMA 10–25) producing 3 or more combinations with post-break PF > 2.0 AND pre-break sample > 30 trades. Do not reopen on the basis of full-period metrics alone.
+
+---
+
+### SI019 — BNB ADX p=14 / thr=25 / stop=12% (Week 9 Discovery) — SET ASIDE
+
+| Field | Value |
+|---|---|
+| **ID** | SI019 |
+| **Name** | BNB ADX Period=14 / Threshold=25 / Stop=12% |
+| **Type** | Trend Following |
+| **Source** | Week 9 BNB hard-filter scan |
+| **Status** | **SET ASIDE — 2026-06-01** |
+| **Priority** | LOW |
+| **Date Added** | 2026-06-01 |
+
+**Summary of findings:**
+Best ADX result from BNB 148-combo discovery grid. Full-period: 43.3% annual, Sortino 0.90, 70 trades, MtM MDD −49.3%. Did not clear B&H 1.5× benchmark gate (BNB B&H 68.7%/yr). Identified via hard-filter scan (bnb_hardfilter_results.csv).
+
+Regime break (Jan 2024 split): pre-break PF 3.607, win rate 40.4%, annual return +61.7%. Post-break PF 1.640, win rate 38.9%, annual return +6.3%, 18 trades. Decision: EDGE COMPRESSED.
+
+**Reason set aside (not closed):** The post-break period has only 18 trades — insufficient statistical confidence to confirm or deny edge. A higher trade count over the same post-break period could shift this from EDGE COMPRESSED to VIABLE or confirm the compression. The strategy is not rejected; it lacks enough post-break evidence to proceed.
+
+**Reopen condition:** Post-break trade count reaches 30+ (through accumulation of new live data or extended backtest once more post-2024 data is available). Re-run regime break analysis at that point. If post-break PF remains > 1.5 with 30+ trades, promote to walk-forward queue. Do not proceed to walk-forward on 18 trades.
+
+---
+
+### SI020 — Volume as Regime Filter (Binance-native, BTC/ETH, binary)
+
+| Field | Value |
+|---|---|
+| **ID** | SI020 |
+| **Name** | Volume as Regime Filter (Binance-native, BTC/ETH, binary) |
+| **Type** | Methodology / Regime Filter |
+| **Source** | Week 10 (volume oversight review) |
+| **Priority** | MEDIUM |
+| **Target Week** | Week 11–12 — only after High-priority risk items (BTC SMA Phase 5, II-001, A010) are cleared |
+| **Date Added** | 2026-06-02 |
+
+**Background:**
+Volume has never been used in any strategy or filter to date. Review confirmed this is a
+deliberate deferral, not an oversight — volume is already logged under SB007 (multi-indicator
+stacking, Weeks 9–12, lists "Volume (conviction)"), Regime Detection Method 3 (volume-based
+filter, LEARNING_LOG), and SB008 (on-chain metrics, Weeks 13–16). This entry formalises the
+single most defensible near-term use.
+
+**Hypothesis:**
+A binary volume regime filter improves post-break profit factor on existing ETH/BTC trend
+strategies. Rule under test: momentum signals taken only when daily volume is above its N-day
+moving average (conviction confirmation); mean reversion favoured when volume is below average.
+Tested as an additional filter in the Phase 3C regime-filter slot, always against a no-filter
+baseline.
+
+**Hard constraints (data-quality driven):**
+- Source: Binance native kline volume ONLY, for both backtest and live. Do NOT use yfinance
+  volume — it is aggregated across venues, pools the most heavily wash-traded data, and would
+  break the live/backtest source-match principle (live bot sees Binance volume, not aggregate).
+- Assets: BTC and ETH only. Never thin altcoins (LINK/AVAX/DOT/MATIC) — wash trading is worst
+  on low-cap/less-established pairs and corrupts any volume feature.
+- Form: Binary filter (above/below N-day average), NOT a continuous predictive input. Raw
+  volume as a continuous feature is largely noise at daily resolution in crypto.
+- Justification before backtest: inclusion must be logically justified first, per SB007 — not
+  adopted on backtest improvement alone.
+
+**Evidence base:**
+- Wash trading: Cong et al. (NBER, "Crypto Wash Trading") — ~70%+ of reported volume on
+  unregulated exchanges is fake, up to ~53% even on some tier-1 exchanges; Bitwise (2019)
+  estimated ~95% fake on aggregator-listed exchanges. Binance found among the cleanest in peer
+  studies — supports using Binance-native data specifically.
+- Volume regime relationship: QuantifiedStrategies (2026) — Bitcoin mean reversion outperforms
+  momentum when volume is below historical averages.
+
+**Dependency:** All High-priority risk-register items for the target strategy resolved first
+(capital-discipline rule). Slots into Phase 3C of the standard pipeline; no new infrastructure
+required (Binance kline volume already available via existing API calls).
+
+**References:** SB007 (multi-indicator stacking), Regime Detection Method 3 (LEARNING_LOG),
+SI012 (regime-switching portfolio), SB008 (on-chain volume — higher-quality successor, Wk 13–16).
+
+---
+
 ## Infrastructure Improvements
 
 ### II-001 — Telegram Health Check Message Redesign

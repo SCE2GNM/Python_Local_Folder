@@ -218,6 +218,7 @@ Different indicators capture different dimensions of market behaviour. Combining
 **Curriculum target:** Weeks 9-12
 
 **Update log:**
+- 2026-06-02: Volume sub-component formalised as SI020 (Binance-native, BTC/ETH, binary regime filter) with data-quality rationale (wash-trading contamination).
 - 2026-03-21: Added. Natural extension of current single-indicator ADX strategy.
 
 ---
@@ -870,7 +871,7 @@ Introduced: Week 7. Source: WEEK_7_RESEARCH_BRIEF_FULL.md.
 
 *Method 2 — ADX Threshold (already implemented):* ADX > 20 = trending regime, activate momentum strategy. ADX < 20 = ranging regime, activate mean reversion strategy. Simple, fast, already computed as part of the entry signal. Multi-source empirical support confirmed in WEEK_7_RESEARCH_BRIEF_FULL.md. Limitation: measures trend strength of recent moves, not underlying market structure — can give false signals during volatile ranging markets.
 
-*Method 3 — Volume-Based Filter:* Mean reversion outperforms when volume is below its historical average. Momentum outperforms when volume is above average. Simple to implement — compare today's volume to its N-day moving average. Confirmed by QuantifiedStrategies (2026): "Bitcoin mean reversion outperforms momentum when volume below historical averages." Limitation: volume data quality varies on crypto; reliable on BTC/ETH, less so on altcoins.
+*Method 3 — Volume-Based Filter:* Mean reversion outperforms when volume is below its historical average. Momentum outperforms when volume is above average. Simple to implement — compare today's volume to its N-day moving average. Confirmed by QuantifiedStrategies (2026): "Bitcoin mean reversion outperforms momentum when volume below historical averages." Limitation: volume data quality varies on crypto; reliable on BTC/ETH, less so on altcoins. Formalised as SI020; constrained to Binance-native volume on BTC/ETH only due to wash-trading contamination of aggregated and altcoin volume data.
 
 *Method 4 — Bollinger Band Width:* Narrow bands (low volatility, price coiling) → breakout/trend move more likely → momentum. Wide bands (high volatility, price ranging) → mean reversion more likely. Already embedded in the Bollinger strategy itself. Limitation: reacts to recent volatility, not underlying market structure.
 
