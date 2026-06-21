@@ -64,10 +64,6 @@ RISK_CONFIG = {                          # [VARIABLE - dict] risk parameters
     # Per-trade stop loss
     'stop_loss_pct':     0.08,           # Trailing stop distance 8% (Stage 1b validated, was 5% fixed)
 
-    # Daily loss limit
-    'max_daily_loss_pct': 0.02,          # Stop trading if down 2% of account today
-                                         # e.g. $1,000 account → stop if down $20
-
     # Maximum drawdown from peak
     'max_drawdown_pct':  0.15,           # Stop trading if down 15% from peak
                                          # e.g. $1,000 peak → stop if below $850
@@ -110,7 +106,6 @@ class RiskManager:
         # ── Store configuration ────────────────────────────────────────────
         self.position_pct       = config['position_pct']        # [VARIABLE - float]
         self.stop_loss_pct      = config['stop_loss_pct']        # [VARIABLE - float]
-        self.max_daily_loss_pct = config['max_daily_loss_pct']   # [VARIABLE - float]
         self.max_drawdown_pct   = config['max_drawdown_pct']     # [VARIABLE - float]
         self.max_trades_per_day = config['max_trades_per_day']   # [VARIABLE - int]
 
@@ -126,7 +121,6 @@ class RiskManager:
         logger.info(f"  Initial balance:    ${initial_balance:,.2f}")
         logger.info(f"  Kelly fraction:     {self.position_pct:.2%} of capital to RISK per trade")
         logger.info(f"  Stop loss:          {self.stop_loss_pct:.0%} per trade")
-        logger.info(f"  Max daily loss:     {self.max_daily_loss_pct:.0%} of account")
         logger.info(f"  Max drawdown:       {self.max_drawdown_pct:.0%} from peak")
         logger.info(f"  Max trades/day:     {self.max_trades_per_day}")
 
@@ -240,18 +234,6 @@ class RiskManager:
             logger.warning(f"🛑 TRADE BLOCKED: {reason}")
             return False, reason
 
-        # ── Safety Layer 2: Daily loss limit ──────────────────────────────
-        # Calculate today's loss as a percentage of starting balance
-        daily_loss_pct = self.daily_pnl / self.session_start  # [VARIABLE - float]
-        max_loss_allowed = -self.max_daily_loss_pct            # [VARIABLE - float] negative
-
-        if daily_loss_pct <= max_loss_allowed:
-            reason = (f"Daily loss limit reached "
-                      f"({daily_loss_pct:.2%} loss vs "
-                      f"{self.max_daily_loss_pct:.2%} limit)")
-            logger.warning(f"🛑 TRADE BLOCKED: {reason}")
-            return False, reason
-
         # ── Safety Layer 3: Maximum drawdown ──────────────────────────────
         # Update peak balance if we've grown
         if current_balance > self.peak_balance:
@@ -270,8 +252,6 @@ class RiskManager:
 
         # ── All checks passed ──────────────────────────────────────────────
         logger.info(f"✅ Risk checks passed")
-        logger.info(f"   Daily P&L:   ${self.daily_pnl:+,.2f} "
-                    f"({daily_loss_pct:+.2%})")
         logger.info(f"   Drawdown:    {drawdown:.2%} from peak")
         logger.info(f"   Trades today: {self.trades_today}/{self.max_trades_per_day}")
 
@@ -355,21 +335,14 @@ if __name__ == '__main__':
     stop = rm.calculate_stop_loss(entry_price=2000.00)
     print(f"  Entry: $2,000.00 → Stop: ${stop:,.2f}")
 
-    # ── Test 4: Daily loss limit ───────────────────────────────────────────
-    print("\n[TEST 4] Daily loss limit breach — should BLOCK trade")
-    rm.daily_pnl = -25.00                # simulate losing $25 today (2.5% of $1k)
-    allowed, reason = rm.can_trade(current_balance=975.00)
-    print(f"  Result: {'✅ ALLOWED' if allowed else '🛑 BLOCKED'} — {reason}")
-    rm.daily_pnl = 0.0                   # reset for next test
-
-    # ── Test 5: Max drawdown breach ────────────────────────────────────────
-    print("\n[TEST 5] Max drawdown breach — should BLOCK trade")
+    # ── Test 4: Max drawdown breach ────────────────────────────────────────
+    print("\n[TEST 4] Max drawdown breach — should BLOCK trade")
     rm.peak_balance = 1000.00            # peak was $1,000
     allowed, reason = rm.can_trade(current_balance=840.00)  # now at $840 = 16% down
     print(f"  Result: {'✅ ALLOWED' if allowed else '🛑 BLOCKED'} — {reason}")
 
-    # ── Test 6: Trade recording ────────────────────────────────────────────
-    print("\n[TEST 6] Recording a winning trade")
+    # ── Test 5: Trade recording ────────────────────────────────────────────
+    print("\n[TEST 5] Recording a winning trade")
     rm.peak_balance = 1000.00
     rm.daily_pnl    = 0.0
     rm.record_trade(pnl=47.50)          # record a $47.50 win
