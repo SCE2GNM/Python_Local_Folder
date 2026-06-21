@@ -1,6 +1,6 @@
 # Strategy Risk Register — ETH RSI Mean Reversion
 
-**Purpose:** Tracks every known risk for the ETH RSI mean-reversion strategy. RR-RSI-002 (stop order monitoring absent) is the current most urgent item — must be resolved before capital increase beyond $150.
+**Purpose:** Tracks every known risk for the ETH RSI mean-reversion strategy. RR-RSI-001 (win rate sensitivity), RR-RSI-003 (Kelly sizing), and RR-RSI-010 (entry without confirmed stop) are the current open items requiring attention before capital scaling.
 **Who reads it:** Greg before any capital change. Claude Code when modifying the RSI bot.
 **When updated:** Whenever a new risk is identified, or an existing item's status changes.
 **Related documents:** RISK_REGISTER_ETH_ADX.md, LIVE_TRADING_CHECKLIST.md, ETH_RSI_Deployment_Card_v1.html.
@@ -11,7 +11,7 @@
 **Asset / Exchange:** ETHUSDT / Binance Spot
 **Version:** v1.0
 **Date created:** 2026-05-06
-**Last updated:** 2026-05-07
+**Last updated:** 2026-06-21
 **Updated by:** Greg + Claude
 
 ---
@@ -86,7 +86,7 @@ If live win rate degrades to 70–75% (plausible), capital is expected to erode.
 
 **Category:** Infrastructure
 
-**Status:** Open
+**Status:** Resolved
 
 **Priority:** High
 
@@ -114,6 +114,11 @@ If order is CANCELLED or not found: re-place immediately and Telegram alert.
 
 **Update log:**
 - 2026-05-06: Raised by independent review.
+- 2026-06-21: Resolved. verify_stop_order() confirmed present in
+rsi_production_bot.py (lines 282–377), called on every run at
+Step 2.5 when position is LONG. Handles all four cases: stop active,
+stop filled silently, stop cancelled, exception. Code ahead of
+register — closing now.
 
 ---
 
@@ -326,6 +331,48 @@ The combined grid automatically covers this variation. No separate analysis requ
 
 ---
 
+### RR-RSI-010 — Stop entry proceeds even if stop placement fails
+
+**Category:** Execution
+
+**Status:** Open
+
+**Priority:** Low — escalates to High before capital scaling beyond $150
+
+**Raised:** 2026-06-21
+
+**Description:**
+If the stop order fails to place at entry, the bot records the
+position as LONG with stop_loss_order_id = None and proceeds.
+The verify_stop_order() function catches this on the next run via
+the "no ID" branch and sends a Telegram alert. However, the entry
+itself does not block or reverse if the stop cannot be confirmed.
+This means there is a window between entry and the next cron run
+where the position is open with no stop protection and no
+automated exit.
+
+**Impact:**
+Low at $150 capital — maximum unprotected exposure approximately
+$22 ($150 × 15% stop). Accepted at current scale. Becomes
+material at $341+ where unprotected exposure rises to $51+.
+
+**Fix:**
+Before capital is scaled beyond $150, modify the entry logic so
+that if stop placement fails, the bot immediately sells back the
+ETH just purchased and sends a Telegram alert: "Trade aborted —
+stop placement failed. Position closed." No open position should
+exist without a confirmed stop order ID.
+
+**Target:** Before capital scaling beyond $150 (i.e. before
+RR-RSI-001 and RR-RSI-003 conditions are met)
+
+**Update log:**
+- 2026-06-21: Raised. Gap identified during Week 10 code audit.
+Option A accepted at $150 — entry proceeds with alert. Option B
+(abort entry) required before scale-up.
+
+---
+
 *(Add further items above this line, preserving the ID sequence)*
 
 ---
@@ -334,6 +381,7 @@ The combined grid automatically covers this variation. No separate analysis requ
 
 | ID | Description | Resolution summary | Resolved | Week / Date |
 |---|---|---|---|---|
+| RR-RSI-002 | Stop order monitoring absent | verify_stop_order() implemented in bot. Handles FILLED, CANCELLED, EXPIRED, REJECTED and exception cases. Called every run while LONG. | 2026-06-21 | 2026-06-21 |
 | RR-RSI-005 | 120MA regime filter: data-mining risk | Accepted — stability grid confirmed 120MA filter does not create fragility across SMA 90–150 range | 2026-05-27 | Week 9 |
 | RR-RSI-006 | Stability analysis not completed | STABLE — 314/314 combinations profitable, 27/27 neighbourhood combos profitable | 2026-05-27 | Week 9 |
 | RR-RSI-007 | EXIT_RSI threshold spec/live discrepancy | Documented as low-priority gap; EXIT_RSI=48 confirmed as canonical value; spec updated | 2026-05-27 | Week 9 |
@@ -370,3 +418,5 @@ The combined grid automatically covers this variation. No separate analysis requ
 
 *Register version: 1.0 — created 2026-05-07*
 *All items from 2026-05-06 independent review incorporated.*
+
+*Version 1.1 — 2026-06-21: RR-RSI-002 resolved (verify_stop_order confirmed in code). RR-RSI-010 added (entry proceeds without stop — low priority until capital scaling).*
