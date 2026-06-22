@@ -11,7 +11,7 @@
 **Asset / Exchange:** ETHUSDT / Binance Spot (unleveraged → leveraged planned)
 **Version:** v2.0 (trailing stop)
 **Date created:** 2026-03-20
-**Last updated:** 2026-05-18
+**Last updated:** 2026-06-22
 **Updated by:** Greg + Claude
 
 ---
@@ -55,9 +55,10 @@ Immaterial at current position sizes (~$124 per trade — extra slippage of ~$0.
 **Fix:**
 Monitor actual fill prices vs stop prices once live trading begins. If consistent slippage >0.3% observed, adjust cost model. Compare fixed-stop vs trailing-stop slippage in practice — trailing stop exits tend to be less market-stressed.
 
-**Target:** Week 7 (after 10+ live trades)
+**Target:** Week 10 — live bot maintenance batch (alongside A010 and II-001).
 
 **Update log:**
+- 2026-06-01: Target date passed without resolution. Week 7 has concluded with no slippage monitoring data logged. Live trade history now exists (trailing stop live since Week 6) but fill prices vs stop prices have not been systematically compared. Retargeted to Week 10 alongside A010 and II-001 Telegram health check redesign — all three are live bot maintenance items that should be addressed together.
 - 2026-05-01: Still open. Cost model updated from 0.175% to 0.15% (confirmed Binance fee, see A004). Slippage monitoring plan unchanged.
 - 2026-03-20: Raised. Immaterial at current scale, monitor post-live.
 
@@ -109,9 +110,10 @@ If the live bot fires the daily loss limit on a valid open position, it exits un
 **Fix:**
 Remove the daily loss limit from the live bot, or raise it to a threshold that only fires on genuinely extreme intraday losses (e.g. 8–10%). The per-trade trailing stop and max drawdown guardrail provide sufficient protection without a daily limit.
 
-**Target:** Before trailing stop deployment
+**Target:** Week 10 — live bot maintenance batch (alongside II-001).
 
 **Update log:**
+- 2026-06-01: Target date passed without resolution. Trailing stop deployed in Week 6 without resolving this item. Daily loss limit status in live bot unconfirmed. Retargeted to Week 10 alongside II-001 Telegram health check redesign — both are live bot maintenance items that should be addressed together.
 - 2026-05-01: Still open. Must be resolved before deploying new trailing stop logic (A011 resolved but bot update pending).
 - 2026-04-12: Raised. Daily loss limit removed from backtest after analysis.
 
@@ -185,7 +187,7 @@ After trailing stop deployment and 20+ live trades, run joint optimisation of AT
 **Raised:** Week 6 Stage 1d (2026-05-01)
 
 **Description:**
-Stage 1 optimisation (Weeks 6) found ADX threshold 19, period 9 consistently outperforms the live parameters (threshold 20, period 10) across all stop types and all grid configurations. The best overall combination (ADX 19/9, ATR 9/2.5x) produced Calmar 2.642 vs Calmar 2.013 for the live ADX 20/10 fixed-stop baseline. Stage 1c stability analysis confirmed ADX 19/9 is stable across 5/6 walk-forward test years.
+Stage 1 optimisation (Weeks 6) found ADX threshold 19, period 9 consistently outperforms the live parameters (threshold 20, period 10) across all stop types and all grid configurations. The best overall combination (ADX 19/9, ATR 9/2.5x) produced Calmar 2.642 vs Calmar 2.013 for the retired ADX 20/10 fixed-stop baseline (live 2026-04-04 to 2026-05-13). Stage 1c stability analysis confirmed ADX 19/9 is stable across 5/6 walk-forward test years.
 
 However, the ADX parameter change was identified through in-sample optimisation across 8.3 years of data. The improvement (+0.629 Calmar) is material but has not been validated through true out-of-sample testing. Changing both the ADX parameters AND the stop type simultaneously is two changes at once, which makes attribution harder if live performance deviates.
 
@@ -458,8 +460,8 @@ method comparison (A023). Complete before the leveraged deployment review. Post-
 
 | Strategy | Status | Capital | Position Size | Notes |
 |---|---|---|---|---|
-| ADX 20/10 ETH (fixed stop) | Live | $1,000 | 12.41% Kelly | Live since 2026-04-04; to be replaced by trailing stop version |
-| ADX 19/9 ETH (pct 8% trailing stop) | Planned | $1,000 | 12.41% Kelly (recalibrate post-deployment) | Replaces fixed-stop version — not additive |
+| ADX 20/10 ETH (fixed stop) | Retired | $1,000 | 12.41% Kelly | Live 2026-04-04 to 2026-05-13. Replaced by trailing stop version (ADX 19/9, 8% trail). Not additive. |
+| ADX 19/9 ETH (pct 8% trailing stop) | Live | $1,000 | 12.41% Kelly (recalibrate post-deployment) | Live since 2026-05-13 (Week 6). Replaces fixed-stop version. Kelly fraction to be recalibrated after 20 post-deployment live trades. |
 | ETH ADX (leveraged) | Planned | $1,500 | 100% own capital | Pending A013 (leverage optimisation) |
 
 **Capital scaling rules:**
@@ -483,3 +485,8 @@ method comparison (A023). Complete before the leveraged deployment review. Post-
 | Week 7 (complete) | A015 decision updated: primary path — ADX 19/9 + pct 8% trailing stop. Deployment at end of Week 6 backtesting. |
 | Week 16–18 (approx) | A022: Review post-ETF sample. If ≥ 80 trades and PF > 2.0, proceed to Monte Carlo Stage 1 and leverage deployment planning. If sample still insufficient or PF still below 2.0, defer further. |
 | Every 6 months | Full parameter re-evaluation on rolling window |
+
+---
+
+*Version 2.0 — trailing stop register baseline.*
+*Version 2.1 — 2026-06-22: Capital allocation table corrected — trailing stop (ADX 19/9, 8% trail) marked Live since 2026-05-13, fixed-stop (ADX 20/10) marked Retired. A015 stale reference updated. (Week 10 audit Action 4)*
