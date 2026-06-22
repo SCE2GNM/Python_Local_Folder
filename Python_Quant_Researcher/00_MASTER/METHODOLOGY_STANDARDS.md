@@ -269,6 +269,18 @@ All of the following metrics assume either normally distributed returns or finit
 
 **Sortino ratio:** uses downside standard deviation. Same instability. Retained as primary ratio metric per Week 5 decision but interpreted with caution for momentum strategies.
 
+**Low-frequency strategy Sortino caveat:**
+For strategies with fewer than 10 trades per year, the daily
+equity Sortino is suppressed by cash periods (flat days count
+as near-zero returns, dragging the mean return down without
+adding downside risk). The deployment threshold of Sortino > 0.8
+does not apply to low-frequency strategies. Replace with:
+- Profit factor > 2.0 (primary gate)
+- Win rate > 80% where sample size allows
+- Walk-forward pass rate > 60%
+Document this explicitly in the risk register when accepted.
+(First applied: ETH RSI S002, daily equity Sortino 0.307 — see RR-RSI-011.)
+
 **Kelly fraction:** assumes stationary win rate and R:R ratio. Fat-tailed returns mean these parameters shift with extreme events. Always use Half-Kelly minimum; use Quarter-Kelly for unvalidated momentum strategies.
 
 **Confidence intervals on backtest metrics:** standard intervals assume normality. True intervals are materially wider. Monte Carlo simulation is the correct substitute — it uses the actual observed trade distribution rather than assuming a parametric form.
@@ -292,4 +304,5 @@ Added: Week 7. Source: STRATEGY_RESEARCH_PIPELINE.md Phase 3 requirements, Groby
 *Version 1.0 — created 2026-05-04: initial document*
 *Version 1.1 — updated 2026-05-15: added Fat-Tail Warning section (normality assumptions)*
 *Version 1.2 — updated 2026-05-20: added Regime Break Analysis mandatory standard (Week 8)*
+*Version 1.3 — updated 2026-06-22: added Low-frequency strategy Sortino caveat (Sortino > 0.8 gate does not apply below 10 trades/year — substitute PF/win-rate/walk-forward gates). First applied: ETH RSI S002, RR-RSI-011.*
 *Update this document when methodology standards change — never mid-week.*

@@ -91,7 +91,7 @@ Strategy is live. Next scheduled review: after 80 post-ETF live trades — lever
 |---|---|
 | Annual return (Monte Carlo median at 93.5% WR) | +22.3% |
 | Max drawdown | ~−21% (implied from Calmar 1.054 and annual ~22.3%) |
-| Sortino | 1.205 (note: pre-Week 6 Sortino correction — daily equity method not applied) |
+| Sortino | 0.307 (daily equity curve method — authoritative figure from stage5_final_comparison.py. Below 0.8 deployment threshold. Accepted at $150 validation capital — see RR-RSI-011 for rationale.) |
 | Calmar | 1.054 |
 | Profit factor | 5.593 |
 | Win rate | 93.5% (29/31 trades) |
@@ -652,4 +652,5 @@ The following strategies have been formally proposed and prioritised but do not 
 
 *Archive version 1.0 — created 2026-05-20*
 *Archive version 1.1 — updated 2026-06-01: S011–S016 added (Week 9 BNB and altcoin results)*
+*Archive version 1.2 — updated 2026-06-22: S002 Sortino corrected from stale 1.205 to authoritative 0.307 (daily equity curve method, stage5_final_comparison.py). See RR-RSI-011.*
 *Update at each GO/NO-GO decision and at end of each week.*
