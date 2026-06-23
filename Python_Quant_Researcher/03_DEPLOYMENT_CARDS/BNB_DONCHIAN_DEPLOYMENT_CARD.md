@@ -257,6 +257,8 @@ Phase gate status: Phases 0–5 signed off. Phase 6 in progress — requires ind
 
 **Regime verdict: POST-2024 VIABLE** — PF 2.961 post-break exceeds the 2.0 threshold for deployment. Per METHODOLOGY_STANDARDS.md, post-break PF > 2.0 means deployment case may proceed to walk-forward (already complete). Full data in bnb_exit_regime_results.csv.
 
+**Note:** The January 2024 regime break date was identified by inspecting the full-period backtest performance, not pre-specified before the backtest was run. Post-break metrics (PF 2.961) are informative estimates, not validated out-of-sample statistics. See METHODOLOGY_STANDARDS.md for the full regime break date classification policy.
+
 ### 2022 Bear Market Performance
 
 During the 2022 BNB bear market (BNB peak ~$715 in 2021, trough ~$211 in 2022 = −70% drawdown):
@@ -415,6 +417,7 @@ Minor findings documented in register: — (review not yet conducted)
 ---
 
 *Deployment Card version: 1.0 — created 2026-06-01 (Phase 6 Week 9 close-out)*
+*Deployment Card version: 1.1 — updated 2026-06-23: added regime break date classification note — Jan 2024 break is empirically-discovered (not pre-specified), so post-break PF 2.961 is an informative estimate, not a validated out-of-sample statistic. Week 10 audit Action 7.*
 *Status: PHASE 6 IN PROGRESS — independent review and bot build required before live capital*
 *Risk register: 01_RISK_REGISTERS/RISK_REGISTER_BNB_DONCHIAN.md*
 *Chart package: 06_BACKTESTS/Week_9_Notebooks/charts/ (seven interactive HTML charts)*

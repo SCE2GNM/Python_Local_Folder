@@ -158,6 +158,16 @@ are the correct forward-looking inputs for deployment decisions.
 
 **Week added:** Week 8 — 2026-05-20
 
+**Regime break date classification:**
+All regime break dates in this curriculum are empirically-discovered — identified by inspecting backtest performance trajectories and matching them to known structural events (e.g. ETH spot ETF approval January 2024, SOL ATH August 2025). They were not pre-specified before the backtest was run.
+
+This means post-break metrics carry less evidential weight than truly out-of-sample results. Specifically:
+- Post-break profit factors and win rates should be treated as informative estimates, not validated out-of-sample statistics
+- The confidence interval on post-break metrics is wider than the sample size alone would suggest, because the break date was selected to maximise the distinction between regimes
+- For future strategies, pre-specify the regime break date in the Phase 0 research brief BEFORE running the backtest, based on known structural events. This converts the post-break period into a genuine out-of-sample test
+
+**Note added:** Week 10 — 2026-06-23 (audit Action 7)
+
 ---
 
 ## B&H Benchmark Filter Standard
@@ -305,4 +315,5 @@ Added: Week 7. Source: STRATEGY_RESEARCH_PIPELINE.md Phase 3 requirements, Groby
 *Version 1.1 — updated 2026-05-15: added Fat-Tail Warning section (normality assumptions)*
 *Version 1.2 — updated 2026-05-20: added Regime Break Analysis mandatory standard (Week 8)*
 *Version 1.3 — updated 2026-06-22: added Low-frequency strategy Sortino caveat (Sortino > 0.8 gate does not apply below 10 trades/year — substitute PF/win-rate/walk-forward gates). First applied: ETH RSI S002, RR-RSI-011.*
+*Version 1.4 — updated 2026-06-23: added Regime break date classification note — break dates are empirically-discovered (not pre-specified), so post-break metrics are informative estimates, not validated out-of-sample statistics; future strategies to pre-specify break date in Phase 0 brief. Week 10 audit Action 7.*
 *Update this document when methodology standards change — never mid-week.*
