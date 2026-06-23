@@ -11,7 +11,7 @@
 **Asset / Exchange:** ETHUSDT / Binance Spot (unleveraged → leveraged planned)
 **Version:** v2.0 (trailing stop)
 **Date created:** 2026-03-20
-**Last updated:** 2026-06-22
+**Last updated:** 2026-06-23
 **Updated by:** Greg + Claude
 
 ---
@@ -58,6 +58,7 @@ Monitor actual fill prices vs stop prices once live trading begins. If consisten
 **Target:** Week 10 — live bot maintenance batch (alongside A010 and II-001).
 
 **Update log:**
+- 2026-06-23: OHLC H/L ambiguity investigated (Week 10 audit Action 5). The trailing stop backtest uses a close-based peak with lagged stop check — the low is tested against yesterday's stop level, and the peak is updated from the close (not the high). This design makes the intrabar H/L sequencing ambiguity moot by construction. No code change required. Note: the live bot trails more tightly (4x daily price checks, intraday peak updates) than the backtest assumes — this is a conservative backtest-vs-live divergence, not a bug. To be monitored as live trade data accumulates.
 - 2026-06-01: Target date passed without resolution. Week 7 has concluded with no slippage monitoring data logged. Live trade history now exists (trailing stop live since Week 6) but fill prices vs stop prices have not been systematically compared. Retargeted to Week 10 alongside A010 and II-001 Telegram health check redesign — all three are live bot maintenance items that should be addressed together.
 - 2026-05-01: Still open. Cost model updated from 0.175% to 0.15% (confirmed Binance fee, see A004). Slippage monitoring plan unchanged.
 - 2026-03-20: Raised. Immaterial at current scale, monitor post-live.
@@ -490,3 +491,4 @@ method comparison (A023). Complete before the leveraged deployment review. Post-
 
 *Version 2.0 — trailing stop register baseline.*
 *Version 2.1 — 2026-06-22: Capital allocation table corrected — trailing stop (ADX 19/9, 8% trail) marked Live since 2026-05-13, fixed-stop (ADX 20/10) marked Retired. A015 stale reference updated. (Week 10 audit Action 4)*
+*Version 2.2 — 2026-06-23: OHLC H/L ambiguity investigated (Week 10 audit Action 5) — backtest uses close-based peak with lagged stop check, making intrabar H/L sequencing moot; no code change required. Logged in A003. Live-vs-backtest trail divergence to be monitored as live data accumulates.*
