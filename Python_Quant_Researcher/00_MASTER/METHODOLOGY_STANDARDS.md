@@ -159,7 +159,7 @@ are the correct forward-looking inputs for deployment decisions.
 **Week added:** Week 8 — 2026-05-20
 
 **Regime break date classification:**
-All regime break dates in this curriculum are empirically-discovered — identified by inspecting backtest performance trajectories and matching them to known structural events (e.g. ETH spot ETF approval January 2024, SOL ATH August 2025). They were not pre-specified before the backtest was run.
+All regime break dates in this curriculum are empirically-discovered — identified by inspecting backtest performance trajectories and matching them to known structural events (e.g. BTC spot ETF approval January 2024, ETH spot ETF approval May 2024, SOL ATH August 2025). They were not pre-specified before the backtest was run.
 
 This means post-break metrics carry less evidential weight than truly out-of-sample results. Specifically:
 - Post-break profit factors and win rates should be treated as informative estimates, not validated out-of-sample statistics
