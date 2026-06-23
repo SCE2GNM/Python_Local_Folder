@@ -263,6 +263,19 @@ Deployment position size based on: ____% win rate scenario = $____
 
 ---
 
+### P(Negative Year) Disclosure — MANDATORY
+
+**P(negative year) at 100% magnitude:** [X%]
+**P(negative year) at 80% magnitude:** [X%]
+**P(negative year) at 60% magnitude:** [X%]
+
+Acceptance statement (required if P(neg year) > 25% at 100% magnitude):
+"This strategy is expected to lose money in approximately [X]% of calendar years even at full backtest performance levels. This is accepted because [rationale — e.g. right-skewed return distribution, large median upside, acceptable worst-case loss]."
+
+Note: P(neg year) > 25% at 100% magnitude does not automatically block deployment. It requires explicit written acknowledgement in this section.
+
+---
+
 ### Equity Fan — Year-End Portfolio Values
 
 Resampled from backtest trade distribution. Portfolio value relative to start = 1.0.
@@ -352,6 +365,7 @@ Minor findings documented in register: YES / NO
 
 ---
 
+*Template version: 2.1 — updated 2026-06-24: added mandatory P(Negative Year) Disclosure field to Section 8 (Monte Carlo Results) — P(neg year) at 100%/80%/60% magnitude with a required written acceptance statement when P(neg year) > 25% at full magnitude. Week 10 audit Action 8.*
 *Template version: 2.0 — updated 2026-05-16: added Section 6 (equity curve comparative log scale), Section 7 (pre/post-2022 regime split), Section 8 (Monte Carlo with methodology split — Option A for momentum, win rate for mean reversion); renumbered prior Sections 6/7/8 to 9/10/11; added Section 12 (future improvement ideas). Colour coding standard added to Section 6.*
 *Template version: 1.0 — created 2026-05-07*
 *Derived from LIVE_TRADING_CHECKLIST.md v1.9 and STRATEGY_RESEARCH_PIPELINE.md v1.5*
