@@ -86,5 +86,66 @@ event does not liquidate the position even before the stop fires.
 
 ---
 
+## Cross-Strategy Correlation and Concurrent Drawdown Risk
+
+**Added:** 2026-06-23 (Week 10 audit Action 6)
+**Trigger:** Independent audit identified that no portfolio-level correlation analysis exists despite multiple strategies sharing the same underlying asset.
+
+---
+
+### Current Concurrent Exposure
+
+As of Week 10, two live strategies hold long ETH positions simultaneously:
+
+| Strategy | Capital | Stop Distance | Max Single-Trade Loss |
+|---|---|---|---|
+| ETH ADX (19/9, 8% trail) | $1,000 | 8% trailing | $80 |
+| ETH RSI (14/43/48, SMA-120) | $150 | 15% fixed | $22.50 |
+| **Combined worst case** | **$1,150** | **Both stops hit same day** | **$102.50 (8.9% of combined)** |
+
+BTC SMA ($500 reserved) and BNB Donchian ($150 reserved) are on different assets and do not create direct correlation with the ETH positions. However, all crypto assets are correlated during market-wide crashes (e.g. March 2020, November 2022). In a systemic event, all four strategies could experience simultaneous losses.
+
+**Systemic worst case (all four strategies, all stops triggered simultaneously):**
+- ETH ADX: $80 loss (8% of $1,000)
+- ETH RSI: $22.50 loss (15% of $150)
+- BTC SMA: $150 loss (30% of $500)
+- BNB Donchian: $7.50 loss (5% of $150)
+- **Combined: $260 loss from $1,800 total = 14.4% portfolio drawdown in one day**
+
+This is survivable but must be acknowledged explicitly in the capital allocation decision.
+
+---
+
+### Correlation Rules for New Strategy Deployment
+
+Before deploying any new strategy with real capital, calculate the daily return correlation between the new strategy's backtest equity curve and every existing live strategy's backtest equity curve.
+
+| Correlation | Action Required |
+|---|---|
+| Below 0.3 | Deploy normally — genuine diversification |
+| 0.3 to 0.7 | Deploy but document the overlap in the risk register |
+| Above 0.7 | Reduce the new strategy's Kelly fraction by 30% to account for correlation. Document the reduction and rationale in the deployment card |
+
+**Hard rule:** The combined portfolio must never have more than 60% of total capital exposed to a single underlying asset. Currently ETH exposure is $1,150 out of $1,800 = 63.9%. This is above the threshold and is accepted at current scale because:
+(a) BTC SMA and BNB Donchian are not yet deployed
+(b) Once deployed, ETH share drops to approximately 48% ($1,150 / $2,400)
+
+If BTC SMA and BNB Donchian are not deployed by Week 13, reassess the ETH concentration explicitly.
+
+---
+
+### Portfolio-Level Circuit Breaker
+
+If combined portfolio value drops more than 15% from its all-time peak in a single calendar week:
+1. Pause all strategy entries (existing positions held)
+2. Send consolidated Telegram alert
+3. Review all strategies before resuming entries
+4. Document the event and review outcome in the weekly summary
+
+This is a manual process until the portfolio_monitor.py is built in Week 11.
+
+---
+
 *Version 1.0 — created 2026-05-04: initial document, Safety Buffer evidence-based framework*
+*Version 2.0 — 2026-06-23: Cross-strategy correlation and concurrent drawdown framework added (Week 10 audit Action 6). Correlation rules, concentration limits, and portfolio circuit breaker defined.*
 *Update this document when cross-strategy rules change — never mid-week.*
