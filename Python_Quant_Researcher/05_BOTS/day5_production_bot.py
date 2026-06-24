@@ -153,8 +153,10 @@ def load_state():
         logger.info(f"State loaded: position={state['position']}")
         if state['entry_price']:
             peak = state.get('peak_price_since_entry') or state['entry_price']
+            stop_disp = (f"${state['stop_loss_price']:,.2f}"
+                         if state.get('stop_loss_price') is not None else "NONE")
             logger.info(f"  Entry: ${state['entry_price']:,.2f} on {state['entry_date']}")
-            logger.info(f"  Peak:  ${peak:,.2f} | Stop: ${state['stop_loss_price']:,.2f}")
+            logger.info(f"  Peak:  ${peak:,.2f} | Stop: {stop_disp}")
         return state
     else:
         logger.info("No state file found — starting fresh (FLAT)")
@@ -268,13 +270,23 @@ def place_stop_loss(executor, quantity, stop_price):
     Returns:
         dict: {order_id, stop_price, quantity} or None if failed
     """
-    quantity = math.floor(quantity * 1000) / 1000
-    logger.info(f"Placing stop-loss: {quantity} ETH @ ${stop_price:,.2f}")
+    intended = math.floor(quantity * 1000) / 1000
 
     if executor.dry_run:
+        logger.info(f"Placing stop-loss: {intended} ETH @ ${stop_price:,.2f}")
         logger.info("DRY RUN — stop-loss simulated, not placed on Binance")
         return {'dry_run': True, 'order_id': 'DRY_RUN_STOP',
-                'stop_price': stop_price, 'quantity': quantity}
+                'stop_price': stop_price, 'quantity': intended}
+
+    # Size the sell to the actual FREE ETH balance (floored to 3dp), capped at
+    # the intended quantity. The taker fee on the entry buy is taken in ETH, so
+    # free balance sits fractionally below the bought quantity — placing the stop
+    # for the nominal quantity triggers APIError -2010 (insufficient balance).
+    # Capping at `intended` prevents selling ETH reserved for another strategy.
+    free_eth = executor.get_balance('ETH')
+    quantity = math.floor(min(intended, free_eth) * 1000) / 1000
+    logger.info(f"Placing stop-loss: {quantity} ETH @ ${stop_price:,.2f} "
+                f"(intended {intended}, free ETH {free_eth:.8f})")
 
     try:
         order = executor.client.create_order(

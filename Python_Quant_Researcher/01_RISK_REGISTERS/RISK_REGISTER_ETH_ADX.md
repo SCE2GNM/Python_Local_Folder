@@ -11,7 +11,7 @@
 **Asset / Exchange:** ETHUSDT / Binance Spot (unleveraged → leveraged planned)
 **Version:** v2.0 (trailing stop)
 **Date created:** 2026-03-20
-**Last updated:** 2026-06-23
+**Last updated:** 2026-06-24
 **Updated by:** Greg + Claude
 
 ---
@@ -439,6 +439,75 @@ method comparison (A023). Complete before the leveraged deployment review. Post-
 
 ---
 
+### A025 — Position left unprotected for 36h: stop-placement −2010 recurrence + load_state crash loop
+
+**Category:** Execution / Infrastructure
+
+**Status:** Open — live position protected manually 2026-06-24; code fix deployed; monitoring
+
+**Priority:** High
+
+**Raised:** 2026-06-24
+
+**Description:**
+On 2026-06-23 00:05 UTC the ADX bot entered LONG 0.576 ETH @ $1,727.60 ($995). The
+automatic stop-loss placement failed with **APIError(code=-2010) "Account has
+insufficient balance for requested action"**, leaving the position with no stop. The
+position then remained completely unprotected for ~36 hours (through the 06:05, 12:05,
+18:05 runs on 23 Jun and the 00:05, 06:05 runs on 24 Jun) until discovered and a stop
+placed manually.
+
+**Two compounding bugs:**
+
+1. **Stop-sizing −2010 (root cause — recurrence of the A019/A020 −2010, never actually
+   fixed).** `place_stop_loss()` was called with the nominal bought quantity
+   (`eth_bought` = 0.576) and floored to 3dp (still 0.576). The taker fee on the entry
+   buy is taken in ETH, so free ETH balance was 0.57549832 — fractionally below 0.576.
+   Binance rejected the SELL stop for insufficient balance. The code never queried the
+   actual free balance. Confirmed live: free ETH 0.57549832 < requested 0.576.
+
+2. **`load_state()` crash loop (new bug — made #1 unrecoverable).** `load_state()`
+   (line 157) unconditionally formatted `state['stop_loss_price']` with `:,.2f`. After
+   bug #1 left `stop_loss_price = None`, **every subsequent run crashed with
+   `TypeError: unsupported format string passed to NoneType.__format__` at the very
+   first step (load_state)** — before reaching `verify_stop_order()` (whose "no stop
+   order ID" CRITICAL alert therefore never fired) or `update_trailing_stop()`. The bot
+   could not self-heal, re-place the stop, trail, or exit. The only alert sent was the
+   single "STOP-LOSS FAILED" Telegram at entry; the 24 Jun daily health-check never sent
+   (run crashed) — the missing health-check was the only remaining signal.
+
+**Impact:**
+$995 position fully exposed for ~36h with no automated protection and a dead bot. ETH
+fell from $1,727.60 entry toward ~$1,667 during the window (uPnL ≈ −$35 at discovery).
+In a sharper decline the loss would have been uncapped.
+
+**Resolution (2026-06-24):**
+1. Manual protection placed: cancelled an interim STOP_LOSS_LIMIT (47836813668, gap risk
+   per A017), placed market STOP_LOSS order **47836866915** (SELL 0.575 ETH @ stopPrice
+   $1,589.39); confirmed resting via get_open_orders, ETH locked 0.575.
+2. `bot_state.json` updated with the new order ID and `stop_loss_price` 1589.39 to stop
+   the crash loop on the next run.
+3. Code fixes deployed (`day5_production_bot.py`): (a) `load_state` now prints "NONE" for
+   a null stop instead of crashing; (b) `place_stop_loss` now sizes the order to live
+   `get_balance('ETH')` floored to 3dp, capped at the intended quantity, eliminating the
+   −2010 fee-shortfall rejection.
+
+**Follow-ups:**
+- Add an explicit entry-time guard: if the stop fails to place at entry, the bot should
+  abort/flatten or escalate, not record LONG with a null stop (parallels RR-RSI-010).
+- Consider a "position LONG but no resting stop on Binance" watchdog independent of
+  load_state.
+
+**Target:** Entry-time guard before next leverage review; watchdog Week 11.
+
+**Update log:**
+- 2026-06-24: Raised. Incident investigated; both bugs root-caused from EC2 state +
+  logs. Position protected manually (order 47836866915). Both code bugs fixed and
+  deployed. A020 reclassified — the −2010 root cause it referenced was never fixed
+  (worked around manually on 2026-05-05), and it recurred here.
+
+---
+
 ## Resolved Items
 
 | ID | Description | Resolution summary | Resolved | Week / Date |
@@ -453,7 +522,7 @@ method comparison (A023). Complete before the leveraged deployment review. Post-
 | A017 | Live bot used STOP_LOSS_LIMIT since deployment 2026-04-04 | STOP_LOSS_LIMIT creates gap risk: if ETH price gaps below the limit price during a crash, the stop order does not fill and the position remains open with no protection. Fixed 2026-05-04: changed to STOP_LOSS (market execution on trigger) — guaranteed exit at best available price. Also fixed fill price read in check_stop_loss_triggered (market orders return price=0; actual fill = cummulativeQuoteQty / executedQty). Deployed to EC2 and confirmed live. | Week 6 / 2026-05-04 |
 | A018 | No Telegram alert on failed order execution — silent failures unreported | Bot deployed 2026-04-04 with no Telegram alert on failed buy/sell/stop orders. Silent failure discovered 2026-05-04: 23 consecutive failed buy attempts (Apr 12 – May 4) went unreported. ADX signal was LONG from Apr 10 at ~$2,245; current price $2,355 (+4.9% missed). Root cause: Binance API key missing "Enable Spot & Margin Trading" permission. Secondary cause: no order-failure alert in bot. Fixed 2026-05-04: (1) Telegram alerts added for all failed orders and all successful trades; (2) daily health check message sent every run; (3) startup API permission check added using create_test_order; (4) API key recreated with trading permission enabled. | Week 6 / 2026-05-04 |
 | A019 | Kelly position sizing implemented incorrectly since Week 4 — 20× undersizing | Kelly fraction (12.41%) was applied as position size (deploy 12.41% of capital = $124) rather than as risk fraction (maximum loss = 12.41% of capital). Correct formula: position = (Kelly% × capital) / stop%. With 5% stop this gives $2,482 — capped at $1,000 unleveraged. Actual risk per trade was 0.62% vs intended 12.41% — 20× undersizing. Discovered 2026-05-05 after first live trade deployed $124 instead of $1,000. Fixed 2026-05-05: `risk_manager.py` `calculate_position_size` corrected to `min(balance − $5, risk / stop_pct)`. Deployed to EC2. Position manually topped up via emergency buy (0.367 ETH @ $2,370.97). Blended entry $2,368.52, stop $2,250.09 (order 46346312221), 0.419 ETH total. All future bots must use correct formula. | Week 6 / 2026-05-05 | RESOLVED |
-| A020 | Trade 1 stop placed at 5% from entry ($2,250.09) instead of 8% trailing ($2,179.04) — trailing logic started from wrong base | Root cause: when the automatic stop placement failed on 2026-05-05 (-2010 error), Claude Code placed a manual replacement using old TRAIL_PCT=0.05 rather than the updated 0.08. The trailing stop code itself was not broken — 4× daily checks ran correctly using live price, peak $2,399.50 was correctly recorded, and the code correctly refused to lower the stop. But the 8% trailing formula (peak × 0.92) only exceeds $2,250.09 when price reaches $2,445.75. ETH peaked at $2,408.00 and never got there, so the stop never moved. On this losing trade the tighter stop reduced the loss by ~$28-40 vs intended. On a winning trade it would have capped gains prematurely. Secondary bug: `peak_price_since_entry` was not saved to state when a new high was reached but calculated stop was below current stop — peak tracking was stale on subsequent runs. Both fixed 2026-05-13. Process fix: any manual stop replacement must use TRAIL_PCT (8%) from actual fill price. | 2026-05-13 | RESOLVED |
+| A020 | Trade 1 stop placed at 5% from entry ($2,250.09) instead of 8% trailing ($2,179.04) — trailing logic started from wrong base | Root cause: when the automatic stop placement failed on 2026-05-05 (-2010 error), Claude Code placed a manual replacement using old TRAIL_PCT=0.05 rather than the updated 0.08. The trailing stop code itself was not broken — 4× daily checks ran correctly using live price, peak $2,399.50 was correctly recorded, and the code correctly refused to lower the stop. But the 8% trailing formula (peak × 0.92) only exceeds $2,250.09 when price reaches $2,445.75. ETH peaked at $2,408.00 and never got there, so the stop never moved. On this losing trade the tighter stop reduced the loss by ~$28-40 vs intended. On a winning trade it would have capped gains prematurely. Secondary bug: `peak_price_since_entry` was not saved to state when a new high was reached but calculated stop was below current stop — peak tracking was stale on subsequent runs. Both fixed 2026-05-13. Process fix: any manual stop replacement must use TRAIL_PCT (8%) from actual fill price. **⚠️ INCORRECTLY RESOLVED (re-flagged 2026-06-24, see A025):** this item's resolution addressed only the wrong-TRAIL_PCT and peak-tracking sub-bugs. The −2010 stop-placement failure noted in its own root cause was merely worked around manually on 2026-05-05 and was NEVER code-fixed — it recurred on 2026-06-23 (A025), leaving the position unprotected for ~36h. The −2010 root cause is now fixed under A025. | 2026-05-13 (partial; −2010 unresolved until 2026-06-24) | RESOLVED (PARTIAL — see A025) |
 
 ---
 
@@ -492,3 +561,4 @@ method comparison (A023). Complete before the leveraged deployment review. Post-
 *Version 2.0 — trailing stop register baseline.*
 *Version 2.1 — 2026-06-22: Capital allocation table corrected — trailing stop (ADX 19/9, 8% trail) marked Live since 2026-05-13, fixed-stop (ADX 20/10) marked Retired. A015 stale reference updated. (Week 10 audit Action 4)*
 *Version 2.2 — 2026-06-23: OHLC H/L ambiguity investigated (Week 10 audit Action 5) — backtest uses close-based peak with lagged stop check, making intrabar H/L sequencing moot; no code change required. Logged in A003. Live-vs-backtest trail divergence to be monitored as live data accumulates.*
+*Version 2.3 — 2026-06-24: A025 added — 2026-06-23 incident: stop-placement −2010 recurrence + load_state crash loop left LONG 0.576 ETH unprotected ~36h. Position protected manually (order 47836866915); both bugs fixed in day5_production_bot.py and deployed. A020 re-flagged as partially/incorrectly resolved (−2010 root cause never code-fixed until now).*
