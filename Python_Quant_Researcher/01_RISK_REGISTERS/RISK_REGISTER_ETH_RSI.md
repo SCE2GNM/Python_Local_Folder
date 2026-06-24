@@ -9,9 +9,9 @@
 
 **Strategy:** ETH RSI Mean Reversion (RSI-14, oversold bounce)
 **Asset / Exchange:** ETHUSDT / Binance Spot
-**Version:** v1.2
+**Version:** v1.3
 **Date created:** 2026-05-06
-**Last updated:** 2026-06-22
+**Last updated:** 2026-06-24
 **Updated by:** Greg + Claude
 
 ---
@@ -426,6 +426,57 @@ These replace the Sortino gate for this strategy type.
 
 ---
 
+### RR-RSI-012 — Multiple Testing Assessment (Deflated Sharpe Ratio)
+
+**Category:** Statistical Validity
+
+**Status:** Open
+
+**Priority:** High — governs capital scaling decision
+
+**Raised:** 2026-06-24
+
+**Description:**
+ETH RSI was selected from a grid search of 13,475 backtested combinations (5,452 ranked). The Deflated Sharpe Ratio (DSR) adjusts the observed performance for this search-space penalty.
+
+**Inputs (all from actual data files):**
+- Per-trade Sharpe: 0.7224 (mean/std of 31 trade returns)
+- Number of trades: 31
+- Return skewness: -1.9468 (negative — left tail, fat wins)
+- Excess kurtosis: 5.2352 (fat tails)
+- SE inflation factor: 1.83x (non-normal distribution penalty)
+- Effective independent trials: ~78 (conservative estimate accounting for correlated grid combinations)
+
+**DSR Results:**
+- PSR with no penalty (SR0=0): 0.9847
+- DSR at N=78 (realistic): 0.9240 — MARGINAL
+- DSR at N=320 (includes Bollinger search): 0.9016 — MARGINAL
+- DSR at N=5,452 (worst case): 0.8540 — MARGINAL
+- Standard bar for credible edge: DSR > 0.95
+
+**Conclusion:**
+The edge is probably real but not conclusively proven. DSR range 0.85-0.92 across all realistic trial assumptions — consistently marginal, consistently short of the 0.95 bar.
+
+**Two additional fragilities:**
+1. The result rests on only 2 losing trades. The 95% confidence interval on the true win rate is [0.793, 0.982]. At the lower bound, PF drops to 1.48 — barely above break-even.
+2. Approximately 7 post-ETF (post-May 2024) trades exist. The strategy is effectively unvalidated in the current market regime.
+
+**Scaling conditions (hard blocks):**
+- Minimum 20 live trades before any scaling decision
+- Live win rate must hold >= 80% across those 20 trades
+- Live profit factor must hold >= 2.0 across those 20 trades
+- No consecutive loss streak of 4 or more
+
+**Capital decision:**
+Hold at $150 validation capital until all four scaling conditions are met. At ~4.8 trades/year this represents approximately 4 years of live data — correctly reflecting that low-frequency strategies cannot be validated faster.
+
+**Reference:** ETH_RSI_DSR_Assessment.pdf (full working including all calculations and fragility checks)
+
+**Update log:**
+- 2026-06-24: Raised. DSR assessment completed using Bailey & Lopez de Prado (2014) methodology. All inputs from actual data files. PDF report produced. Conclusion: probably real edge, insufficient evidence to scale. Hold at $150.
+
+---
+
 *(Add further items above this line, preserving the ID sequence)*
 
 ---
@@ -474,3 +525,4 @@ These replace the Sortino gate for this strategy type.
 
 *Version 1.1 — 2026-06-21: RR-RSI-002 resolved, RR-RSI-010 added (Week 10 code audit)*
 *Version 1.2 — 2026-06-22: RR-RSI-011 added (Sortino below threshold — accepted at $150). S002 archive corrected from 1.205 to 0.307.*
+*Version 1.3 — 2026-06-24: RR-RSI-012 added (Deflated Sharpe Ratio multiple-testing assessment — DSR range 0.85–0.92 across realistic trial counts, marginal; hold at $150 until 20 live trades meet scaling conditions). Week 10 audit Action 9.*

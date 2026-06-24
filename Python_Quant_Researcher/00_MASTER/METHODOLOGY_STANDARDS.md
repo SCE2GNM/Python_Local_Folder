@@ -311,9 +311,34 @@ Added: Week 7. Source: STRATEGY_RESEARCH_PIPELINE.md Phase 3 requirements, Groby
 
 ---
 
+## Deflated Sharpe Ratio — Mandatory for Grid-Search Strategies
+
+**Standard:** Any strategy selected from a grid search of more than 50 combinations must have a Deflated Sharpe Ratio (DSR) calculated before capital scaling beyond the initial validation amount.
+
+**Method:** Bailey & Lopez de Prado (2014).
+Formula: DSR = Phi[ (SR_hat - SR0) * sqrt(n-1) / sqrt(1 - gamma1*SR_hat + (kappa-1)/4 * SR_hat^2) ]
+
+**Inputs required:**
+- Per-trade Sharpe (mean/std of individual trade returns)
+- Number of trades (n)
+- Skewness and excess kurtosis of trade returns
+- Number of effective independent trials (accounting for correlation within grid searches)
+- Cross-sectional variance of Sharpe across all trials tested
+
+**Threshold:** DSR > 0.95 to treat edge as statistically credible. DSR 0.80-0.95 = marginal (probably real, hold at validation capital). DSR < 0.80 = fail (do not scale).
+
+**Independent trial count:** Do not treat correlated grid combinations as independent. Estimate effective independent trials by counting distinct parameter regimes, not individual gridpoints. A broad profitable island significantly reduces the effective trial count.
+
+**First applied:** ETH RSI (June 2026). DSR range 0.85-0.92. Conclusion: marginal. See RR-RSI-012 and ETH_RSI_DSR_Assessment.pdf.
+
+**Week added:** Week 10 — 2026-06-24 (audit Action 9)
+
+---
+
 *Version 1.0 — created 2026-05-04: initial document*
 *Version 1.1 — updated 2026-05-15: added Fat-Tail Warning section (normality assumptions)*
 *Version 1.2 — updated 2026-05-20: added Regime Break Analysis mandatory standard (Week 8)*
 *Version 1.3 — updated 2026-06-22: added Low-frequency strategy Sortino caveat (Sortino > 0.8 gate does not apply below 10 trades/year — substitute PF/win-rate/walk-forward gates). First applied: ETH RSI S002, RR-RSI-011.*
 *Version 1.4 — updated 2026-06-23: added Regime break date classification note — break dates are empirically-discovered (not pre-specified), so post-break metrics are informative estimates, not validated out-of-sample statistics; future strategies to pre-specify break date in Phase 0 brief. Week 10 audit Action 7.*
+*Version 1.5 — updated 2026-06-24: added Deflated Sharpe Ratio mandatory standard (DSR required for strategies selected from grid searches > 50 combinations before scaling; DSR > 0.95 credible, 0.80–0.95 marginal, < 0.80 fail). First applied: ETH RSI, RR-RSI-012. Week 10 audit Action 9.*
 *Update this document when methodology standards change — never mid-week.*
