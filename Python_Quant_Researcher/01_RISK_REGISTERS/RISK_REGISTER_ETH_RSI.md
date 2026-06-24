@@ -459,7 +459,7 @@ The edge is probably real but not conclusively proven. DSR range 0.85-0.92 acros
 
 **Two additional fragilities:**
 1. The result rests on only 2 losing trades. The 95% confidence interval on the true win rate is [0.793, 0.982]. At the lower bound, PF drops to 1.48 — barely above break-even.
-2. Approximately 7 post-ETF (post-May 2024) trades exist. The strategy is effectively unvalidated in the current market regime.
+2. Approximately 8 post-ETF (post-May 2024) trades exist (entries #24-#31 in trade_log_rsi_final.csv). The strategy is effectively unvalidated in the current market regime.
 
 **Scaling conditions (hard blocks):**
 - Minimum 20 live trades before any scaling decision
