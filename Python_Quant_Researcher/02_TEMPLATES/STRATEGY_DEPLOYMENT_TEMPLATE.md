@@ -310,6 +310,26 @@ P5/P95 ratio at end of period: ____× — note this for interpreting outcome dis
 [paste crontab -l output]
 ```
 
+### Stop Placement Retry Loop — MANDATORY (deployment gate)
+
+Per METHODOLOGY_STANDARDS.md ("Stop Placement Retry Loop — Mandatory for All Live Bots"),
+deployment is **blocked** until every box below is confirmed in the bot code. Reference
+implementation: `day5_production_bot.py` / `rsi_production_bot.py` (`place_stop_loss` +
+`retry_stop_if_failed` + `stop_failed` state flag).
+
+- [ ] `place_stop_loss` retries ≥3 times, ~5s apart, on any failure
+- [ ] Each attempt re-queries live free balance and sizes the order to it (floored to lot
+      step, capped at intended qty) — prevents −2010 fee-shortfall rejection
+- [ ] On total failure: Telegram "STOP PLACEMENT FAILED — INTERVENE IMMEDIATELY"
+- [ ] `stop_failed` flag persisted to the state file on any failure
+- [ ] At the start of every run, before any other logic, the bot re-attempts placement
+      while `stop_failed` is set (self-healing), then clears it on success
+- [ ] `stop_failed` also set by trailing-stop / stop-replacement paths that leave the
+      position unprotected
+- [ ] State load + logging tolerate a null stop price without crashing
+
+**Confirmed by:** [name] on [YYYY-MM-DD]
+
 ---
 
 ## Section 10 — Independent Review
@@ -366,6 +386,7 @@ Minor findings documented in register: YES / NO
 ---
 
 *Template version: 2.1 — updated 2026-06-24: added mandatory P(Negative Year) Disclosure field to Section 8 (Monte Carlo Results) — P(neg year) at 100%/80%/60% magnitude with a required written acceptance statement when P(neg year) > 25% at full magnitude. Week 10 audit Action 8.*
+*Template version: 2.2 — updated 2026-06-24: added mandatory Stop Placement Retry Loop checklist to Section 9 (Bot Architecture) — deployment gate requiring retry loop, free-balance re-sizing, INTERVENE alert, and persistent stop_failed self-healing. Ref A025/A026, METHODOLOGY_STANDARDS v1.6. Week 10 audit Action 10.*
 *Template version: 2.0 — updated 2026-05-16: added Section 6 (equity curve comparative log scale), Section 7 (pre/post-2022 regime split), Section 8 (Monte Carlo with methodology split — Option A for momentum, win rate for mean reversion); renumbered prior Sections 6/7/8 to 9/10/11; added Section 12 (future improvement ideas). Colour coding standard added to Section 6.*
 *Template version: 1.0 — created 2026-05-07*
 *Derived from LIVE_TRADING_CHECKLIST.md v1.9 and STRATEGY_RESEARCH_PIPELINE.md v1.5*

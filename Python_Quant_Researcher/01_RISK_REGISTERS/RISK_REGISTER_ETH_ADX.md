@@ -508,6 +508,58 @@ In a sharper decline the loss would have been uncapped.
 
 ---
 
+### A026 — Stop placement had no retry/backoff and no self-healing
+
+**Category:** Infrastructure
+
+**Status:** Resolved — retry loop + self-healing deployed 2026-06-24
+
+**Priority:** High
+
+**Raised:** 2026-06-24
+
+**Description:**
+`place_stop_loss()` made a **single** attempt to place the protective stop. Any
+transient failure (the −2010 fee-shortfall of A025, a momentary API error, rate limit,
+or network blip) left the position permanently unprotected — there was no retry, no
+backoff, and no mechanism to re-attempt placement on later runs. Combined with the
+load_state crash (A025), a single failed placement became an unrecoverable, silently
+unprotected position. This single-attempt design was a latent infrastructure weakness
+across both live ETH bots (ADX and RSI), independent of the specific A025 trigger.
+
+**Impact:**
+Any one-off failure at the critical moment of stop placement = an uncapped-downside
+position until a human noticed. For a leveraged future deployment this is a
+catastrophic-loss exposure.
+
+**Resolution (fix — deployed 2026-06-24, `day5_production_bot.py` and
+`rsi_production_bot.py`):**
+1. **Retry loop in `place_stop_loss`** — up to `STOP_MAX_RETRIES` (3) attempts,
+   `STOP_RETRY_GAP_S` (5s) apart. Each attempt re-queries the live free ETH balance and
+   sizes the order to it (floored to 3dp, capped at the intended quantity), so the −2010
+   fee-shortfall self-corrects across attempts.
+2. **Loud final alert** — if all retries fail, Telegram "STOP PLACEMENT FAILED —
+   INTERVENE IMMEDIATELY" is sent.
+3. **Persistent self-healing** — a `stop_failed` flag is written to the bot state file on
+   any failure; at the **start of every subsequent run** (`retry_stop_if_failed`, before
+   any other logic) the bot re-attempts placement until a stop is resting, then clears
+   the flag and sends a "RECOVERED" alert. The flag is also set by the trailing-stop and
+   verify-stop replacement paths whenever a placement leaves the position unprotected.
+
+Applied identically to both ETH bots; parity verified. The companion RSI bot also had the
+identical single-attempt and load_state-crash weaknesses (no separate RSI register item —
+fix is shared and tracked here).
+
+**Follow-ups:** entry-time abort/flatten if no stop can be placed at all (parallels
+RR-RSI-010); independent "LONG but no resting stop on Binance" watchdog (Week 11).
+
+**Update log:**
+- 2026-06-24: Raised and resolved same day. Retry loop, free-balance sizing, persistent
+  stop_failed self-healing, and INTERVENE alert implemented in both ETH bots and deployed
+  to EC2. Surfaced by the A025 incident but logged separately as the systemic design gap.
+
+---
+
 ## Resolved Items
 
 | ID | Description | Resolution summary | Resolved | Week / Date |
@@ -562,3 +614,4 @@ In a sharper decline the loss would have been uncapped.
 *Version 2.1 — 2026-06-22: Capital allocation table corrected — trailing stop (ADX 19/9, 8% trail) marked Live since 2026-05-13, fixed-stop (ADX 20/10) marked Retired. A015 stale reference updated. (Week 10 audit Action 4)*
 *Version 2.2 — 2026-06-23: OHLC H/L ambiguity investigated (Week 10 audit Action 5) — backtest uses close-based peak with lagged stop check, making intrabar H/L sequencing moot; no code change required. Logged in A003. Live-vs-backtest trail divergence to be monitored as live data accumulates.*
 *Version 2.3 — 2026-06-24: A025 added — 2026-06-23 incident: stop-placement −2010 recurrence + load_state crash loop left LONG 0.576 ETH unprotected ~36h. Position protected manually (order 47836866915); both bugs fixed in day5_production_bot.py and deployed. A020 re-flagged as partially/incorrectly resolved (−2010 root cause never code-fixed until now).*
+*Version 2.4 — 2026-06-24: A026 added — stop placement had no retry/backoff or self-healing. Resolved: 3× retry loop with live free-balance re-sizing, INTERVENE alert, and persistent stop_failed self-healing added to both ETH bots (day5_production_bot.py + rsi_production_bot.py) and deployed.*

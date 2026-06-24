@@ -29,6 +29,7 @@ import sys
 import os
 import json
 import math
+import time
 import logging
 from datetime import datetime
 from dotenv import load_dotenv
@@ -79,6 +80,9 @@ SMA_PERIOD  = 120                   # Regime filter: only trade above 120-day SM
 STOP_PCT    = 0.15                  # 15% fixed stop from entry price
 HALF_KELLY  = 0.384                 # 38.4% = half of 76.7% backtest Kelly fraction
 CANDLES_NEEDED = SMA_PERIOD + RSI_PERIOD + 30  # ~164 days
+
+STOP_MAX_RETRIES = 3                # stop-placement attempts before alerting (A026)
+STOP_RETRY_GAP_S = 5                # seconds between stop-placement attempts (A026)
 
 STATE_FILE = os.path.join(BASE_DIR, '07_DATA', 'rsi_bot_state.json')
 
@@ -135,6 +139,7 @@ DEFAULT_STATE = {
     'stop_loss_order_id': None,
     'position_size_usdt': None,
     'position_size_eth':  None,
+    'stop_failed':        False,    # True if stop placement failed — retry before anything else (A026)
     'last_updated':       None,
 }
 
@@ -142,10 +147,15 @@ def load_state():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, 'r') as f:
             state = json.load(f)
+        # Migration: stop_failed flag added 2026-06-24 (A026)
+        if 'stop_failed' not in state:
+            state['stop_failed'] = False
         logger.info(f"State loaded: position={state['position']}")
         if state['entry_price']:
+            stop_disp = (f"${state['stop_loss_price']:,.2f}"
+                         if state.get('stop_loss_price') is not None else "NONE")
             logger.info(f"  Entry: ${state['entry_price']:,.2f} on {state['entry_date']}")
-            logger.info(f"  Stop:  ${state['stop_loss_price']:,.2f}")
+            logger.info(f"  Stop:  {stop_disp}")
         return state
     logger.info("No state file — starting fresh (FLAT)")
     return DEFAULT_STATE.copy()
@@ -233,34 +243,97 @@ def calculate_signal(df):
 
 def place_stop_loss(executor, quantity, stop_price):
     """
-    Place STOP_LOSS (market) sell order. Floors quantity to 3dp to avoid -2010.
+    Place STOP_LOSS (market) sell order, sized to live free ETH balance.
+
+    Retry loop (A026): up to STOP_MAX_RETRIES attempts, STOP_RETRY_GAP_S apart.
+    Each attempt RE-QUERIES the free ETH balance and sizes the sell to it
+    (floored to 3dp, capped at the intended quantity) — the taker fee on the
+    entry buy is taken in ETH, leaving free balance fractionally below the bought
+    quantity, which triggers APIError -2010. On total failure, sends a
+    'STOP PLACEMENT FAILED — INTERVENE IMMEDIATELY' alert and returns None.
+
     Returns {order_id, stop_price, quantity} or None on failure.
     """
-    quantity = math.floor(quantity * 1000) / 1000
-    logger.info(f"Placing stop-loss: {quantity} ETH @ ${stop_price:,.2f}")
+    intended = math.floor(quantity * 1000) / 1000
 
     if executor.dry_run:
+        logger.info(f"Placing stop-loss: {intended} ETH @ ${stop_price:,.2f}")
         logger.info("DRY RUN — stop-loss simulated")
         return {'dry_run': True, 'order_id': 'DRY_RUN_STOP',
-                'stop_price': stop_price, 'quantity': quantity}
-    try:
-        order = executor.client.create_order(
-            symbol    = executor.symbol,
-            side      = 'SELL',
-            type      = 'STOP_LOSS',
-            quantity  = quantity,
-            stopPrice = str(stop_price)
-        )
-        logger.info(f"✅ Stop placed: ID {order['orderId']} @ ${stop_price:,.2f}")
-        return {'order_id': order['orderId'], 'stop_price': stop_price, 'quantity': quantity}
-    except Exception as e:
-        logger.error(f"❌ Stop placement failed: {e}")
+                'stop_price': stop_price, 'quantity': intended}
+
+    last_error = None
+    for attempt in range(1, STOP_MAX_RETRIES + 1):
+        free_eth = executor.get_balance('ETH')
+        qty      = math.floor(min(intended, free_eth) * 1000) / 1000
+        logger.info(f"Stop-loss attempt {attempt}/{STOP_MAX_RETRIES}: "
+                    f"{qty} ETH @ ${stop_price:,.2f} "
+                    f"(intended {intended}, free ETH {free_eth:.8f})")
+        try:
+            order = executor.client.create_order(
+                symbol    = executor.symbol,
+                side      = 'SELL',
+                type      = 'STOP_LOSS',
+                quantity  = qty,
+                stopPrice = str(stop_price)
+            )
+            logger.info(f"✅ Stop placed: ID {order['orderId']} @ ${stop_price:,.2f}")
+            return {'order_id': order['orderId'], 'stop_price': stop_price, 'quantity': qty}
+        except Exception as e:
+            last_error = e
+            logger.error(f"❌ Stop-loss attempt {attempt}/{STOP_MAX_RETRIES} failed: {e}")
+            if attempt < STOP_MAX_RETRIES:
+                time.sleep(STOP_RETRY_GAP_S)
+
+    logger.error(f"❌ Stop placement failed after {STOP_MAX_RETRIES} attempts: {last_error}")
+    send_telegram(
+        f"🚨 RSI BOT — STOP PLACEMENT FAILED — INTERVENE IMMEDIATELY on "
+        f"{datetime.now().strftime('%Y-%m-%d %H:%M')}: {last_error}. "
+        f"Position OPEN with NO STOP PROTECTION after {STOP_MAX_RETRIES} retries. "
+        f"Place a stop on Binance manually now."
+    )
+    return None
+
+
+def retry_stop_if_failed(executor, state):
+    """
+    Self-healing hook (A026): if a previous stop placement failed (stop_failed
+    flag set) and the position is still LONG, re-attempt placing the stop BEFORE
+    any other logic runs. RSI uses a fixed stop at STOP_PCT below entry.
+    Clears stop_failed and records the order on success; place_stop_loss has
+    already alerted on failure, so the flag is left set for the next run.
+
+    Mutates state in-place and saves it. Safe to call every run.
+    """
+    if not state.get('stop_failed'):
+        return
+    if state.get('position') != 'LONG':
+        state['stop_failed'] = False
+        save_state(state)
+        return
+    if executor.dry_run:
+        return
+    if not state.get('entry_price'):
+        return
+
+    stop_price = round(state['entry_price'] * (1 - STOP_PCT), 2)
+    logger.warning(f"⚠️ stop_failed flag set — re-attempting stop placement at "
+                   f"${stop_price:,.2f} before any other logic")
+
+    sl_result = place_stop_loss(executor, state.get('position_size_eth') or 0, stop_price)
+    if sl_result:
+        state['stop_loss_order_id'] = sl_result['order_id']
+        state['stop_loss_price']    = sl_result['stop_price']
+        state['stop_failed']        = False
+        save_state(state)
         send_telegram(
-            f"🚨 RSI BOT — STOP-LOSS FAILED on "
-            f"{datetime.now().strftime('%Y-%m-%d %H:%M')}: {e}. "
-            f"Position OPEN with NO STOP PROTECTION. Intervene immediately."
+            f"✅ RSI BOT — Stop placement RECOVERED on "
+            f"{datetime.now().strftime('%Y-%m-%d %H:%M')}: stop now resting at "
+            f"${stop_price:,.2f} (order {sl_result['order_id']}). Position protected again."
         )
-        return None
+    else:
+        # place_stop_loss already sent the INTERVENE alert; keep the flag set.
+        save_state(state)
 
 
 def cancel_stop_loss(executor, order_id):
@@ -302,9 +375,12 @@ def verify_stop_order(executor, state):
 
     order_id = state.get('stop_loss_order_id')
     if not order_id:
+        # No resting stop — flag for self-healing so the next run re-attempts.
+        state['stop_failed'] = True
+        save_state(state)
         msg = (f"🚨 RSI BOT CRITICAL on {datetime.now().strftime('%Y-%m-%d %H:%M')}: "
                f"Position LONG but no stop order ID in state file. "
-               f"Place stop manually on Binance immediately.")
+               f"Self-heal will retry next run; place stop manually if it persists.")
         logger.error(msg)
         send_telegram(msg)
         return False
@@ -353,6 +429,8 @@ def verify_stop_order(executor, state):
             sl_result = place_stop_loss(executor, state['position_size_eth'], stop_price)
             if sl_result:
                 state['stop_loss_order_id'] = sl_result['order_id']
+                state['stop_loss_price']    = sl_result['stop_price']
+                state['stop_failed']        = False
                 save_state(state)
                 send_telegram(
                     f"🚨 RSI BOT — Stop order {order_id} was {status} by Binance on "
@@ -360,6 +438,11 @@ def verify_stop_order(executor, state):
                     f"Replacement placed at ${stop_price:,.2f}."
                 )
             else:
+                # Replacement failed all retries — flag for self-healing next run.
+                state['stop_loss_order_id'] = None
+                state['stop_loss_price']    = None
+                state['stop_failed']        = True
+                save_state(state)
                 send_telegram(
                     f"🚨 RSI BOT CRITICAL on {datetime.now().strftime('%Y-%m-%d %H:%M')}: "
                     f"Stop {order_id} was {status} AND replacement failed. "
@@ -440,6 +523,10 @@ def run_signal():
     )
     check_api_trading_permission(executor)
 
+    # ── Step 2.4: Self-heal a previously failed stop BEFORE anything else ──────
+    # If stop_failed is set, re-attempt placement (3 retries) before verify/signal.
+    retry_stop_if_failed(executor, state)
+
     # ── Step 2.5: Verify stop order is still active ───────────────────────────
     # Catches silent Binance cancellations. Handles FILLED (offline stop trigger)
     # and CANCELLED (re-places immediately). See RR-RSI-002.
@@ -490,6 +577,7 @@ def run_signal():
             state['entry_date']         = datetime.now().strftime('%Y-%m-%d')
             state['stop_loss_price']    = sl_result['stop_price'] if sl_result else None
             state['stop_loss_order_id'] = sl_result['order_id'] if sl_result else None
+            state['stop_failed']        = sl_result is None
             state['position_size_usdt'] = position_usdt
             state['position_size_eth']  = eth_bought
 

@@ -25,6 +25,7 @@ import sys
 import os
 import json
 import math
+import time
 import logging
 import argparse
 from datetime import datetime
@@ -69,6 +70,9 @@ ADX_THRESHOLD  = 19             # Stage 1d validated (was 20)
 ADX_PERIOD     = 9              # Stage 1d validated (was 10)
 TRAIL_PCT      = 0.08           # 8% trailing stop — Stage 1b validated
 CANDLES_NEEDED = 50
+
+STOP_MAX_RETRIES = 3            # stop-placement attempts before alerting (A026)
+STOP_RETRY_GAP_S = 5           # seconds between stop-placement attempts (A026)
 
 STATE_FILE = os.path.join(BASE_DIR, '07_DATA', 'bot_state.json')
 
@@ -136,6 +140,7 @@ DEFAULT_STATE = {
     'position_size_usdt':     None,     # USDT deployed at entry
     'position_size_eth':      None,     # ETH held
     'peak_price_since_entry': None,     # trailing stop high-water mark
+    'stop_failed':            False,    # True if stop placement failed — retry before anything else
     'last_updated':           None
 }
 
@@ -150,6 +155,9 @@ def load_state():
         # Migration: old state files don't have peak_price_since_entry
         if 'peak_price_since_entry' not in state:
             state['peak_price_since_entry'] = state.get('entry_price')
+        # Migration: stop_failed flag added 2026-06-24 (A026)
+        if 'stop_failed' not in state:
+            state['stop_failed'] = False
         logger.info(f"State loaded: position={state['position']}")
         if state['entry_price']:
             peak = state.get('peak_price_since_entry') or state['entry_price']
@@ -278,33 +286,87 @@ def place_stop_loss(executor, quantity, stop_price):
         return {'dry_run': True, 'order_id': 'DRY_RUN_STOP',
                 'stop_price': stop_price, 'quantity': intended}
 
-    # Size the sell to the actual FREE ETH balance (floored to 3dp), capped at
-    # the intended quantity. The taker fee on the entry buy is taken in ETH, so
-    # free balance sits fractionally below the bought quantity — placing the stop
-    # for the nominal quantity triggers APIError -2010 (insufficient balance).
-    # Capping at `intended` prevents selling ETH reserved for another strategy.
-    free_eth = executor.get_balance('ETH')
-    quantity = math.floor(min(intended, free_eth) * 1000) / 1000
-    logger.info(f"Placing stop-loss: {quantity} ETH @ ${stop_price:,.2f} "
-                f"(intended {intended}, free ETH {free_eth:.8f})")
+    # Retry loop (A026): up to STOP_MAX_RETRIES attempts, STOP_RETRY_GAP_S apart.
+    # Each attempt RE-QUERIES the free ETH balance and sizes the sell to it
+    # (floored to 3dp, capped at the intended quantity). The taker fee on the
+    # entry buy is taken in ETH, so free balance settles fractionally below the
+    # bought quantity — placing the stop for the nominal quantity triggers
+    # APIError -2010 (insufficient balance). Capping at `intended` prevents
+    # selling ETH reserved for another strategy.
+    last_error = None
+    for attempt in range(1, STOP_MAX_RETRIES + 1):
+        free_eth = executor.get_balance('ETH')
+        qty      = math.floor(min(intended, free_eth) * 1000) / 1000
+        logger.info(f"Stop-loss attempt {attempt}/{STOP_MAX_RETRIES}: "
+                    f"{qty} ETH @ ${stop_price:,.2f} "
+                    f"(intended {intended}, free ETH {free_eth:.8f})")
+        try:
+            order = executor.client.create_order(
+                symbol    = executor.symbol,
+                side      = 'SELL',
+                type      = 'STOP_LOSS',
+                quantity  = qty,
+                stopPrice = str(stop_price)
+            )
+            logger.info(f"✅ Stop-loss placed: ID {order['orderId']} @ ${stop_price:,.2f}")
+            return {'order_id': order['orderId'], 'stop_price': stop_price, 'quantity': qty}
+        except Exception as e:
+            last_error = e
+            logger.error(f"❌ Stop-loss attempt {attempt}/{STOP_MAX_RETRIES} failed: {e}")
+            if attempt < STOP_MAX_RETRIES:
+                time.sleep(STOP_RETRY_GAP_S)
 
-    try:
-        order = executor.client.create_order(
-            symbol    = executor.symbol,
-            side      = 'SELL',
-            type      = 'STOP_LOSS',
-            quantity  = quantity,
-            stopPrice = str(stop_price)
-        )
-        logger.info(f"✅ Stop-loss placed: ID {order['orderId']} @ ${stop_price:,.2f}")
-        return {'order_id': order['orderId'], 'stop_price': stop_price, 'quantity': quantity}
-    except Exception as e:
-        logger.error(f"❌ Stop-loss placement failed: {e}")
+    # All attempts exhausted — position is unprotected. Alert loudly.
+    logger.error(f"❌ Stop-loss placement failed after {STOP_MAX_RETRIES} attempts: {last_error}")
+    send_telegram(
+        f"🚨 STOP PLACEMENT FAILED — INTERVENE IMMEDIATELY on "
+        f"{datetime.now().strftime('%Y-%m-%d %H:%M')}: {last_error}. "
+        f"Position OPEN with NO STOP PROTECTION after {STOP_MAX_RETRIES} retries. "
+        f"Place a stop on Binance manually now."
+    )
+    return None
+
+
+def retry_stop_if_failed(executor, state):
+    """
+    Self-healing hook (A026): if a previous stop placement failed (stop_failed
+    flag set) and the position is still LONG, re-attempt placing the stop BEFORE
+    any other logic runs. Recomputes the stop from the current peak/entry and the
+    trail %. Clears stop_failed and records the order on success; place_stop_loss
+    has already alerted on failure, so the flag is left set for the next run.
+
+    Mutates state in-place and saves it. Safe to call every run.
+    """
+    if not state.get('stop_failed'):
+        return
+    if state.get('position') != 'LONG':
+        state['stop_failed'] = False
+        save_state(state)
+        return
+    if executor.dry_run:
+        return
+
+    basis      = state.get('peak_price_since_entry') or state.get('entry_price')
+    if not basis:
+        return
+    stop_price = round(basis * (1 - TRAIL_PCT), 2)
+    logger.warning(f"⚠️ stop_failed flag set — re-attempting stop placement at "
+                   f"${stop_price:,.2f} before any other logic")
+
+    sl_result = place_stop_loss(executor, state.get('position_size_eth') or 0, stop_price)
+    if sl_result:
+        state['stop_loss_order_id'] = sl_result['order_id']
+        state['stop_loss_price']    = sl_result['stop_price']
+        state['stop_failed']        = False
+        save_state(state)
         send_telegram(
-            f"🚨 STOP-LOSS FAILED on {datetime.now().strftime('%Y-%m-%d %H:%M')}: {e}. "
-            f"Position OPEN with NO STOP PROTECTION. Intervene immediately."
+            f"✅ Stop placement RECOVERED on {datetime.now().strftime('%Y-%m-%d %H:%M')}: "
+            f"stop now resting at ${stop_price:,.2f} (order {sl_result['order_id']}). "
+            f"Position protected again."
         )
-        return None
+    else:
+        # place_stop_loss already sent the INTERVENE alert; keep the flag set.
+        save_state(state)
 
 
 def cancel_stop_loss(executor, order_id):
@@ -398,12 +460,19 @@ def update_trailing_stop(executor, state):
                 state['peak_price_since_entry'] = current_price
                 state['stop_loss_price']        = new_stop
                 state['stop_loss_order_id']     = sl_result['order_id']
+                state['stop_failed']            = False
                 save_state(state)
                 send_telegram(
                     f"📈 Trailing stop updated: New peak ${current_price:,.2f}, "
                     f"Stop raised to ${new_stop:,.2f}"
                 )
             else:
+                # Old stop was cancelled and the new one failed all retries —
+                # position unprotected. Flag for self-healing on the next run.
+                state['stop_loss_order_id'] = None
+                state['stop_loss_price']    = None
+                state['stop_failed']        = True
+                save_state(state)
                 send_telegram(
                     f"🚨 TRAILING STOP UPDATE FAILED on "
                     f"{datetime.now().strftime('%Y-%m-%d %H:%M')}: "
@@ -458,9 +527,12 @@ def verify_stop_order(executor, state):
 
     order_id = state.get('stop_loss_order_id')
     if not order_id:
+        # No resting stop — flag for self-healing so the next run re-attempts.
+        state['stop_failed'] = True
+        save_state(state)
         msg = (f"🚨 CRITICAL on {datetime.now().strftime('%Y-%m-%d %H:%M')}: "
                f"Position LONG but no stop order ID in state file. "
-               f"Place stop manually on Binance immediately.")
+               f"Self-heal will retry next run; place stop manually if it persists.")
         logger.error(msg)
         send_telegram(msg)
         return False
@@ -503,6 +575,8 @@ def verify_stop_order(executor, state):
             sl_result = place_stop_loss(executor, state['position_size_eth'], stop_price)
             if sl_result:
                 state['stop_loss_order_id'] = sl_result['order_id']
+                state['stop_loss_price']    = sl_result['stop_price']
+                state['stop_failed']        = False
                 save_state(state)
                 send_telegram(
                     f"🚨 Stop order {order_id} was {status} by Binance on "
@@ -510,6 +584,11 @@ def verify_stop_order(executor, state):
                     f"Replacement placed at ${stop_price:,.2f}."
                 )
             else:
+                # Replacement failed all retries — flag for self-healing next run.
+                state['stop_loss_order_id'] = None
+                state['stop_loss_price']    = None
+                state['stop_failed']        = True
+                save_state(state)
                 send_telegram(
                     f"🚨 CRITICAL on {datetime.now().strftime('%Y-%m-%d %H:%M')}: "
                     f"Stop order {order_id} was {status} AND replacement failed. "
@@ -553,6 +632,9 @@ def run_stop_update():
     executor = TradingExecutor(symbol=SYMBOL, dry_run=DRY_RUN, use_testnet=USE_TESTNET)
     check_api_trading_permission(executor)
 
+    # Self-heal FIRST: if a prior stop placement failed, re-attempt before anything else.
+    retry_stop_if_failed(executor, state)
+
     still_open = verify_stop_order(executor, state)
     if not still_open:
         logger.info("Stop order was filled — position now FLAT. Nothing to update.")
@@ -592,6 +674,10 @@ def run_signal():
         use_testnet = USE_TESTNET
     )
     check_api_trading_permission(executor)
+
+    # ── Step 2.4: Self-heal a previously failed stop BEFORE anything else ──────
+    # If stop_failed is set, re-attempt placement (3 retries) before verify/signal.
+    retry_stop_if_failed(executor, state)
 
     # ── Step 2.5: Verify stop order is still active ───────────────────────────
     # Binance can silently cancel resting stops. This catches CANCELLED orders
@@ -663,6 +749,7 @@ def run_signal():
                 state['entry_date']             = datetime.now().strftime('%Y-%m-%d')
                 state['stop_loss_price']        = sl_result['stop_price'] if sl_result else None
                 state['stop_loss_order_id']     = sl_result['order_id'] if sl_result else None
+                state['stop_failed']            = sl_result is None
                 state['position_size_usdt']     = position_usdt
                 state['position_size_eth']      = eth_bought
                 state['peak_price_since_entry'] = entry_price

@@ -335,10 +335,48 @@ Formula: DSR = Phi[ (SR_hat - SR0) * sqrt(n-1) / sqrt(1 - gamma1*SR_hat + (kappa
 
 ---
 
+## Stop Placement Retry Loop — Mandatory for All Live Bots
+
+**Standard:** Every strategy bot that places a protective stop order MUST implement a
+stop-placement retry loop with persistent self-healing **before deployment is approved**.
+A single failed stop placement must never be able to leave a position silently
+unprotected. This is a hard deployment gate — no live capital without it.
+
+**Required behaviour (minimum):**
+1. **Retry loop** — on any stop-placement failure, retry at least 3 times with a short
+   gap (≈5s) between attempts.
+2. **Re-query balance each attempt** — re-read the live free balance of the asset being
+   protected and size the sell order to it (floored to the lot step), capped at the
+   intended quantity. This self-corrects the most common failure: APIError −2010
+   (insufficient balance) caused by the entry taker fee being taken in the base asset,
+   leaving free balance fractionally below the bought quantity.
+3. **Loud alert on total failure** — if all retries fail, send an unmistakable Telegram
+   alert ("STOP PLACEMENT FAILED — INTERVENE IMMEDIATELY").
+4. **Persistent self-healing** — write a `stop_failed` flag to the bot's state file on
+   failure. At the **start of every subsequent run, before any other logic**, the bot
+   must re-attempt placement until a stop is resting, then clear the flag. Set the same
+   flag from any trailing-stop / stop-replacement path that leaves the position
+   unprotected.
+5. **Never crash on a null stop** — state-loading and logging must tolerate a null stop
+   price (a failed placement) without throwing; a crash here disables the self-healing.
+
+**Rationale:** A025/A026 (2026-06-23). A single −2010 failure plus an unguarded
+`load_state` left a live ETH ADX position unprotected for ~36 hours while the bot
+crash-looped. The retry loop + self-healing converts a one-off placement failure from a
+silent catastrophic exposure into a self-correcting, loudly-alerted transient.
+
+**First applied:** ETH ADX (`day5_production_bot.py`) and ETH RSI
+(`rsi_production_bot.py`), 2026-06-24. Reference implementation: `place_stop_loss` +
+`retry_stop_if_failed` + `stop_failed` state flag.
+
+**Week added:** Week 10 — 2026-06-24 (audit Action 10)
+
+---
+
 *Version 1.0 — created 2026-05-04: initial document*
 *Version 1.1 — updated 2026-05-15: added Fat-Tail Warning section (normality assumptions)*
 *Version 1.2 — updated 2026-05-20: added Regime Break Analysis mandatory standard (Week 8)*
 *Version 1.3 — updated 2026-06-22: added Low-frequency strategy Sortino caveat (Sortino > 0.8 gate does not apply below 10 trades/year — substitute PF/win-rate/walk-forward gates). First applied: ETH RSI S002, RR-RSI-011.*
 *Version 1.4 — updated 2026-06-23: added Regime break date classification note — break dates are empirically-discovered (not pre-specified), so post-break metrics are informative estimates, not validated out-of-sample statistics; future strategies to pre-specify break date in Phase 0 brief. Week 10 audit Action 7.*
 *Version 1.5 — updated 2026-06-24: added Deflated Sharpe Ratio mandatory standard (DSR required for strategies selected from grid searches > 50 combinations before scaling; DSR > 0.95 credible, 0.80–0.95 marginal, < 0.80 fail). First applied: ETH RSI, RR-RSI-012. Week 10 audit Action 9.*
-*Update this document when methodology standards change — never mid-week.*
+*Version 1.6 — updated 2026-06-24: added Stop Placement Retry Loop mandatory standard (every live bot must implement 3× retry with free-balance re-sizing, INTERVENE alert, and persistent stop_failed self-healing before deployment). First applied: ETH ADX + ETH RSI bots. Ref A025/A026. Week 10 audit Action 10.*
