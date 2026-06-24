@@ -45,7 +45,9 @@ sys.path.insert(0, BASE_DIR)
 
 from trading_executor import TradingExecutor
 from risk_manager import RiskManager, RISK_CONFIG
-from portfolio_manager import get_my_capital, update_position, get_portfolio_summary
+from portfolio_manager import (
+    get_my_capital, update_position, get_portfolio_summary, record_trade_result
+)
 
 # ── Load credentials ──────────────────────────────────────────────────────────
 load_dotenv(os.path.join(BASE_DIR, '.env'))
@@ -558,6 +560,13 @@ def verify_stop_order(executor, state):
                 f"Entry ${state['entry_price']:,.2f} → Fill ${fill_price:,.2f} "
                 f"({pnl_pct:+.2%}). Position closed. Now FLAT."
             )
+            # Record the closed trade BEFORE resetting state (needs entry_date).
+            stats = record_trade_result(
+                'eth_adx', state['entry_date'],
+                datetime.now().strftime('%Y-%m-%d'), pnl_pct, 'STOP_LOSS'
+            )
+            logger.info(f"Trade recorded: {stats['n_trades']} live trades, "
+                        f"win rate {stats['win_rate']:.1%}")
             for k, v in DEFAULT_STATE.items():
                 state[k] = v
             state['position'] = 'FLAT'
@@ -704,6 +713,12 @@ def run_signal():
             pnl_pct = (state['stop_loss_price'] - state['entry_price']) / state['entry_price']
             pnl_usd = (state['position_size_usdt'] or 0) * pnl_pct
             rm.record_trade(pnl=pnl_usd)
+            stats = record_trade_result(
+                'eth_adx', state['entry_date'],
+                datetime.now().strftime('%Y-%m-%d'), pnl_pct, 'STOP_LOSS'
+            )
+            logger.info(f"Trade recorded: {stats['n_trades']} live trades, "
+                        f"win rate {stats['win_rate']:.1%}")
             state = DEFAULT_STATE.copy()
             state['position'] = 'FLAT'
             save_state(state)
@@ -787,8 +802,14 @@ def run_signal():
             pnl_usd    = (state['position_size_usdt'] or 0) * pnl_pct
 
             rm.record_trade(pnl=pnl_usd)
+            stats = record_trade_result(
+                'eth_adx', state['entry_date'],
+                datetime.now().strftime('%Y-%m-%d'), pnl_pct, 'ADX_EXIT'
+            )
             logger.info(f"✅ LONG closed: @ ${exit_price:,.2f} | "
-                        f"P&L: {pnl_pct:.2%} (${pnl_usd:+,.2f})")
+                        f"P&L: {pnl_pct:.2%} (${pnl_usd:+,.2f}) | "
+                        f"Trade recorded: {stats['n_trades']} live trades, "
+                        f"win rate {stats['win_rate']:.1%}")
 
             state = DEFAULT_STATE.copy()
             state['position'] = 'FLAT'

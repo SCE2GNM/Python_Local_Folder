@@ -330,6 +330,27 @@ implementation: `day5_production_bot.py` / `rsi_production_bot.py` (`place_stop_
 
 **Confirmed by:** [name] on [YYYY-MM-DD]
 
+### Trade Recording — MANDATORY (deployment gate)
+
+A bot **cannot be deployed** until trade recording is confirmed on **every** exit path.
+Every closed trade must append a complete record to
+`07_DATA/{strategy}_live_performance_log.csv` via `record_trade_result(strategy, entry_date,
+exit_date, return_pct, exit_reason)` (schema: `entry_date, exit_date, return_pct,
+exit_reason, win`). A bot that closes positions without recording them produces silent gaps
+in live performance data and breaks scale-up/Kelly decisions. Origin: the ETH ADX bot
+(2026-06-24) closed trades recording nothing because no exit path called
+`record_trade_result` — the June 23–24 stop-out had to be backfilled by hand.
+
+- [ ] Every exit path calls `record_trade_result(...)`: signal/indicator exit, hard/trailing
+      stop exit, AND the offline stop-fill detection path (e.g. verify_stop_order FILLED)
+- [ ] The record is written BEFORE state is reset to FLAT (so `entry_date` is still available)
+- [ ] `exit_reason` is accurate per path (e.g. ADX_EXIT vs STOP_LOSS)
+- [ ] No double-recording when two paths could detect the same fill (guarded by position state)
+- [ ] Verified end-to-end on EC2: closing a trade writes a row to the live performance CSV
+      (or proven via a throwaway `record_trade_result` call in the deploy environment)
+
+**Confirmed by:** [name] on [YYYY-MM-DD]
+
 ---
 
 ## Section 10 — Independent Review
@@ -387,6 +408,7 @@ Minor findings documented in register: YES / NO
 
 *Template version: 2.1 — updated 2026-06-24: added mandatory P(Negative Year) Disclosure field to Section 8 (Monte Carlo Results) — P(neg year) at 100%/80%/60% magnitude with a required written acceptance statement when P(neg year) > 25% at full magnitude. Week 10 audit Action 8.*
 *Template version: 2.2 — updated 2026-06-24: added mandatory Stop Placement Retry Loop checklist to Section 9 (Bot Architecture) — deployment gate requiring retry loop, free-balance re-sizing, INTERVENE alert, and persistent stop_failed self-healing. Ref A025/A026, METHODOLOGY_STANDARDS v1.6. Week 10 audit Action 10.*
+*Template version: 2.3 — updated 2026-06-24: added mandatory Trade Recording checklist to Section 9 — deployment gate requiring record_trade_result on every exit path (signal/stop/offline-fill), recorded before state reset, verified end-to-end on EC2. Origin: ETH ADX trade-recording gap.*
 *Template version: 2.0 — updated 2026-05-16: added Section 6 (equity curve comparative log scale), Section 7 (pre/post-2022 regime split), Section 8 (Monte Carlo with methodology split — Option A for momentum, win rate for mean reversion); renumbered prior Sections 6/7/8 to 9/10/11; added Section 12 (future improvement ideas). Colour coding standard added to Section 6.*
 *Template version: 1.0 — created 2026-05-07*
 *Derived from LIVE_TRADING_CHECKLIST.md v1.9 and STRATEGY_RESEARCH_PIPELINE.md v1.5*
