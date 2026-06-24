@@ -560,6 +560,54 @@ RR-RSI-010); independent "LONG but no resting stop on Binance" watchdog (Week 11
 
 ---
 
+### A027 — Closed trades were never recorded on any exit path
+
+**Category:** Infrastructure
+
+**Status:** RESOLVED — `record_trade_result` added to all exit paths, deployed 2026-06-24
+(commit 6c0038e)
+
+**Priority:** High
+
+**Raised:** 2026-06-24
+
+**Description:**
+`day5_production_bot.py` never imported or called `record_trade_result`, so **no ADX live
+trade was ever written to a structured trade/performance log**. Every exit path closed the
+position (reset state → FLAT, `update_position`) and only updated the in-memory RiskManager
+counter (`rm.record_trade`, never persisted). The three affected paths were: the signal-run
+ADX exit, the signal-run stop-triggered path, and the `verify_stop_order` FILLED branch
+(offline stop fills — the path that closed the June 23–24 trade). Result: months of live
+operation with zero recorded trade history.
+
+**Impact:**
+Silent, total loss of live performance data — win rate, profit factor, and consecutive-loss
+tracking could not be computed from live trades. This breaks the scale-up / Kelly
+re-calibration decisions that depend on live results (see A013/A014, and the RSI scale-up
+gates), and means the strategy could not be evaluated against its backtest. Discovered while
+confirming the June 23–24 stop-out was logged — it was not.
+
+**Resolution (deployed 2026-06-24, commit 6c0038e):**
+1. Imported `record_trade_result` into `day5_production_bot.py`.
+2. Added a `record_trade_result('eth_adx', entry_date, exit_date, return_pct, exit_reason)`
+   call to **all three** exit paths, recorded BEFORE the state reset (so `entry_date` is
+   available): FILLED branch and stop-triggered path → `STOP_LOSS`; ADX signal exit →
+   `ADX_EXIT`. No double-recording (FILLED resets state in-place, so the stop-triggered path
+   is skipped on the same run). Writes to `07_DATA/eth_adx_live_performance_log.csv`.
+3. Mechanism verified end-to-end on EC2; the RSI bot already recorded correctly (its log
+   just doesn't exist yet — no RSI trade has closed).
+4. Added a mandatory Trade Recording deployment-gate checklist to
+   STRATEGY_DEPLOYMENT_TEMPLATE.md Section 9.
+5. Historical trades (June 16–19 and June 23–24 stop-outs) backfilled manually into the EC2
+   CSVs.
+
+**Update log:**
+- 2026-06-24: Raised and resolved same day. Root-caused (no `record_trade_result` call on
+  any exit path) and fixed in commit 6c0038e; deployed to EC2. June 23–24 and June 16–19
+  trades backfilled by hand. Mandatory trade-recording gate added to the deployment template.
+
+---
+
 ## Resolved Items
 
 | ID | Description | Resolution summary | Resolved | Week / Date |
@@ -615,3 +663,4 @@ RR-RSI-010); independent "LONG but no resting stop on Binance" watchdog (Week 11
 *Version 2.2 — 2026-06-23: OHLC H/L ambiguity investigated (Week 10 audit Action 5) — backtest uses close-based peak with lagged stop check, making intrabar H/L sequencing moot; no code change required. Logged in A003. Live-vs-backtest trail divergence to be monitored as live data accumulates.*
 *Version 2.3 — 2026-06-24: A025 added — 2026-06-23 incident: stop-placement −2010 recurrence + load_state crash loop left LONG 0.576 ETH unprotected ~36h. Position protected manually (order 47836866915); both bugs fixed in day5_production_bot.py and deployed. A020 re-flagged as partially/incorrectly resolved (−2010 root cause never code-fixed until now).*
 *Version 2.4 — 2026-06-24: A026 added — stop placement had no retry/backoff or self-healing. Resolved: 3× retry loop with live free-balance re-sizing, INTERVENE alert, and persistent stop_failed self-healing added to both ETH bots (day5_production_bot.py + rsi_production_bot.py) and deployed.*
+*Version 2.5 — 2026-06-24: A027 added (RESOLVED) — ADX closed trades were never recorded on any exit path (no record_trade_result call). Fixed in commit 6c0038e: record_trade_result added to all 3 exit paths and deployed; June 16–19 and June 23–24 trades backfilled into the EC2 live logs; mandatory trade-recording gate added to deployment template.*
